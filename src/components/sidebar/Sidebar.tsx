@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Activity, Droplets, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
-import { displayName, formatDataDate, isElectricProducer, isUnknownName } from '../../data/hydrology';
+import { buildBasinSummaries, buildDamHesMapping, buildRiverNameMap, displayName, formatDataDate, isElectricProducer, isUnknownName, relateRiverToDams } from '../../data/hydrology';
 import { getForecastTimestamps } from '../../services/hydroData';
 import { useAppStore, type TabType } from '../../store/useAppStore';
 
@@ -33,12 +33,12 @@ function liveValue(record: unknown, keys: string[]): number | null {
   return firstValue(source, keys);
 }
 
-function itemsFrom(collection: FeatureCollectionLike, kind: TabType, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined): Item[] {
+function itemsFrom(collection: FeatureCollectionLike, kind: TabType, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, riverNames: Map<string, string>, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; lakeCount: number; mainRiverNames: string[] }>, damHesMapping: Map<string, { damId: string; hesIds: string[] }>): Item[] {
   return collection.features.map((feature) => {
     const properties = feature.properties ?? {};
     const id = String(properties.id ?? properties.entityId ?? feature.id ?? '');
     const entityKind = kind === 'rivers' ? 'river' : kind === 'dams' ? 'dam' : kind === 'lakes' ? 'lake' : 'basin';
-    const name = displayName(properties, entityKind, id);
+    const name = kind === 'rivers' ? riverNames.get(id) ?? displayName(properties, entityKind, id) : displayName(properties, entityKind, id);
     const basin = textValue(properties, ['basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']);
     const flow = kind === 'rivers' ? liveFlows.get(id) : undefined;
     const damLive = kind === 'dams' ? liveDams.get(name.toLocaleLowerCase('tr-TR')) : undefined;
@@ -48,7 +48,7 @@ function itemsFrom(collection: FeatureCollectionLike, kind: TabType, liveFlows: 
     const activeVolume = damLive ? firstValue(damLive.record, ['activeVolume', 'active_volume', 'hacim']) : firstValue(properties, ['activeVolume', 'active_volume']);
     const level = damLive ? firstValue(damLive.record, ['waterLevel', 'level', 'suSeviyesi']) : firstValue(properties, ['waterLevel', 'level']);
     const power = damLive ? firstValue(damLive.record, ['installedPower', 'power', 'kuruluGuc']) : firstValue(properties, ['installedPower', 'power', 'kuruluGuc']);
-    const producer = isElectricProducer(properties) || Boolean(damLive && isElectricProducer(damLive.record));
+    const producer = kind === 'dams' && isElectricProducer(properties, damHesMapping.has(id)) || Boolean(damLive && isElectricProducer(damLive.record));
     const sourceBadge: Item['sourceBadge'] = flow ? 'GEOGLOWS' : damLive ? 'EPİAŞ' : undefined;
     const sourceTime = flow?.timestamp ?? damLive?.timestamp ?? generatedAt;
     const details: Detail[] = [];
@@ -67,8 +67,15 @@ function itemsFrom(collection: FeatureCollectionLike, kind: TabType, liveFlows: 
       if (area !== null) details.push({ label: 'Alan', value: `${area.toLocaleString('tr-TR')} km²` });
       details.push({ label: 'Gözlem', value: String(properties.status ?? 'veri yok') });
     } else {
-      if (area !== null) details.push({ label: 'Alan', value: `${area.toLocaleString('tr-TR')} km²` });
-      details.push({ label: 'Veri özeti', value: String(properties.status ?? 'TATUS GIS') });
+      const summary = basinSummaries.get(String(properties.basinId ?? properties.HAVZA_ID ?? id));
+      if (summary) {
+        if (summary.areaKm2 !== null) details.push({ label: 'Alan', value: `${summary.areaKm2.toLocaleString('tr-TR')} km²` });
+        details.push({ label: 'Akarsu', value: `${summary.riverCount} · ${summary.riverLengthKm.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} km` });
+        details.push({ label: 'Baraj', value: String(summary.damCount) });
+        details.push({ label: 'HES ist.', value: String(summary.hesCount) });
+        details.push({ label: 'Göl ist.', value: String(summary.lakeCount) });
+        if (summary.mainRiverNames.length) details.push({ label: 'Ana akarsular', value: summary.mainRiverNames.join(', ') });
+      }
     }
     const metric = kind === 'rivers' && flow ? `${flow.value.toLocaleString('tr-TR')} m³/s` : kind === 'dams' && occupancy !== null ? `%${Math.round(occupancy)}` : kind === 'lakes' || kind === 'basins' ? area !== null ? `${Math.round(area).toLocaleString('tr-TR')} km²` : undefined : undefined;
     const status = kind === 'rivers' ? flow ? 'GEOGLOWS tahmin mevcut' : 'GEOGLOWS tahmini yok' : kind === 'dams' ? damLive ? 'EPİAŞ verisi mevcut' : 'EPİAŞ doluluk verisi yok' : String(properties.status ?? 'veri yok');
@@ -90,6 +97,7 @@ export const Sidebar: React.FC = () => {
   const layers = useAppStore((s) => s.layers);
   const rivers = useAppStore((s) => s.rivers);
   const dams = useAppStore((s) => s.damStations);
+  const hesStations = useAppStore((s) => s.hesStations);
   const lakes = useAppStore((s) => s.lakes);
   const basins = useAppStore((s) => s.basins);
   const geoglows = useAppStore((s) => s.geoglows);
@@ -98,6 +106,10 @@ export const Sidebar: React.FC = () => {
   const timelineIndex = useAppStore((s) => s.timelineIndex);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
   const isLight = theme === 'light';
+
+  const riverNameMap = useMemo(() => buildRiverNameMap(rivers), [rivers]);
+  const damHesMapping = useMemo(() => buildDamHesMapping(dams, hesStations), [dams, hesStations]);
+  const basinSummaries = useMemo(() => buildBasinSummaries(basins, rivers, dams, hesStations, lakes, riverNameMap), [basins, dams, hesStations, lakes, riverNameMap, rivers]);
 
   const liveMaps = useMemo(() => {
     const timestamps = getForecastTimestamps(geoglows);
@@ -119,14 +131,14 @@ export const Sidebar: React.FC = () => {
   }, [epias?.records, geoglows, timelineIndex]);
 
   const source = currentTab === 'rivers' ? rivers : currentTab === 'dams' ? dams : currentTab === 'lakes' ? lakes : basins;
-  const list = useMemo(() => itemsFrom(source, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt), [currentTab, liveMaps, manifest?.generatedAt, source]);
+  const list = useMemo(() => itemsFrom(source, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping), [basinSummaries, currentTab, damHesMapping, liveMaps, manifest?.generatedAt, riverNameMap, source]);
   const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) : null;
+  const selectedRiverRelation = useMemo(() => selectedRiver ? relateRiverToDams({ ...selectedRiver, properties: { ...selectedRiver.properties, riverName: riverNameMap.get(String(selectedRiver.properties?.id ?? selectedRiver.id ?? '')) } }, dams, hesStations, damHesMapping) : null, [damHesMapping, dams, hesStations, riverNameMap, selectedRiver]);
   const relatedDams = useMemo(() => {
-    const basinId = selectedRiver?.properties?.basinId;
-    if (basinId === undefined || basinId === null) return [];
-    const sameBasin = dams.features.filter((feature) => String(feature.properties?.basinId ?? '') === String(basinId));
-    return itemsFrom({ features: sameBasin }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt).slice(0, 12);
-  }, [dams.features, liveMaps, manifest?.generatedAt, selectedRiver]);
+    if (!selectedRiverRelation) return [];
+    const related = dams.features.filter((feature) => selectedRiverRelation.ids.has(String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? '')));
+    return itemsFrom({ features: related }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping).slice(0, 12);
+  }, [basinSummaries, damHesMapping, dams.features, liveMaps, manifest?.generatedAt, riverNameMap, selectedRiverRelation]);
   const filtered = useMemo(() => list.filter((item) => {
     const queryMatch = `${item.name} ${item.subtitle ?? ''}`.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR'));
     const normalizedStatus = (item.status ?? '').toLocaleLowerCase('tr-TR');
@@ -148,7 +160,7 @@ export const Sidebar: React.FC = () => {
   ];
   const renderItem = (item: Item, type: string) => <button key={`${type}-${item.id}`} onClick={() => setSelectedEntity({ type, id: item.id })} className={`group mb-1.5 w-full rounded-xl border p-3 text-left transition ${isLight ? 'border-slate-200 bg-slate-50 hover:border-cyan-500/40 hover:bg-cyan-50' : 'border-transparent bg-slate-900/60 hover:border-cyan-500/30 hover:bg-slate-800/80'} ${selectedEntity?.type === type && selectedEntity.id === item.id ? 'ring-1 ring-cyan-400/70' : ''}`}>
     <div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className={`flex items-center gap-1 truncate text-xs font-semibold ${isLight ? 'text-slate-700 group-hover:text-cyan-600' : 'text-slate-200 group-hover:text-cyan-300'}`}>{item.isProducer && <Zap className="h-3 w-3 shrink-0 text-amber-400" />}{item.name}</div>{item.subtitle && <div className="mt-1 truncate font-mono text-[9px] text-slate-500">{item.subtitle}</div>}</div>{item.metric && <span className="whitespace-nowrap font-mono text-[10px] text-cyan-500">{item.metric}</span>}</div>
-    <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1">{item.details.slice(0, 4).map((detail) => <div key={detail.label} className="min-w-0"><div className="font-mono text-[8px] uppercase tracking-wide text-slate-500">{detail.label}</div><div className={`truncate text-[10px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{detail.value}</div></div>)}</div>
+    <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1">{item.details.slice(0, type === 'basin' ? 10 : 4).map((detail) => <div key={detail.label} className="min-w-0"><div className="font-mono text-[8px] uppercase tracking-wide text-slate-500">{detail.label}</div><div className={`truncate text-[10px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{detail.value}</div></div>)}</div>
     <div className="mt-2 flex items-center justify-between gap-2 truncate font-mono text-[9px] text-slate-500"><span>{item.sourceBadge && <span className="mr-1 rounded bg-cyan-500/10 px-1 text-cyan-500">{item.sourceBadge}</span>}{item.status}</span><span>{formatDataDate(item.sourceTime)}</span></div>
   </button>;
 
@@ -158,7 +170,7 @@ export const Sidebar: React.FC = () => {
       <div className={`grid grid-cols-4 gap-1 border-b p-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{tabs.map((tab) => <button key={tab.id} onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[9px] transition ${currentTab === tab.id ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'text-slate-500 hover:bg-slate-100' : 'text-slate-500 hover:bg-slate-800/70 hover:text-slate-300'}`}>{tab.icon}<span className="text-center leading-3">{tab.label}</span><span className="font-mono text-[8px] opacity-70">{tab.count.toLocaleString('tr-TR')}</span></button>)}</div>
       <div className={`border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-slate-600'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div></div>
       {showFilters && <div className={`flex gap-1 overflow-x-auto border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{[['all', 'Tümü'], ['drought', 'Kuraklık'], ['normal', 'Normal'], ['flood', 'Taşkın']].map(([value, label]) => <button key={value} onClick={() => setFilter(value as typeof currentFilter)} className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[9px] ${currentFilter === value ? isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-700 text-slate-100' : isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-500 hover:text-slate-300'}`}>{label}</button>)}</div>}
-      <div className="min-h-0 flex-1 overflow-y-auto p-2"><div className="mb-2 flex items-center justify-between rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span><span>{filtered.length.toLocaleString('tr-TR')} kayıt</span></div>{currentTab === 'rivers' && selectedRiver && relatedDams.length > 0 && <div className="mb-3 rounded-xl border border-cyan-500/25 bg-cyan-500/5 p-2"><div className="mb-1 text-[10px] font-semibold text-cyan-500">İlgili Barajlar / HES</div><div className="mb-2 text-[9px] text-slate-500">Aynı havzadaki ilgili tesisler · kesin kaskad ilişkisi değildir.</div>{relatedDams.slice(0, 4).map((item) => renderItem(item, 'dam'))}</div>}{dataStatus === 'loading' && <div className="p-4 text-center text-xs text-slate-500">Gerçek TATUS verileri yükleniyor…</div>}{dataStatus !== 'loading' && !filtered.length && <div className="p-6 text-center text-xs leading-5 text-slate-500">Bu filtre için kayıt yok.<br />Kaynakta veri bulunmuyorsa sentetik kayıt gösterilmez.</div>}{filtered.map((item) => renderItem(item, selectionType))}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-2"><div className="mb-2 flex items-center justify-between rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span><span>{filtered.length.toLocaleString('tr-TR')} kayıt</span></div>{currentTab === 'rivers' && selectedRiver && relatedDams.length > 0 && <div className="mb-3 rounded-xl border border-cyan-500/25 bg-cyan-500/5 p-2"><div className="mb-1 text-[10px] font-semibold text-cyan-500">{selectedRiverRelation?.confidence === 'name/spatial' ? 'İlgili Barajlar / HES' : 'Aynı Havzadaki Tesisler'}</div><div className="mb-2 text-[9px] text-slate-500">{selectedRiverRelation?.confidence === 'name/spatial' ? 'İsim ve/veya coğrafi yakınlıkla eşleşen tesisler · kesin kaskad ilişkisi değildir.' : 'Yalnızca basinId üzerinden eşleşen tesisler · kesin kaskad ilişkisi değildir.'}</div>{relatedDams.slice(0, 4).map((item) => renderItem(item, 'dam'))}</div>}{dataStatus === 'loading' && <div className="p-4 text-center text-xs text-slate-500">Gerçek TATUS verileri yükleniyor…</div>}{dataStatus !== 'loading' && !filtered.length && <div className="p-6 text-center text-xs leading-5 text-slate-500">Bu filtre için kayıt yok.<br />Kaynakta veri bulunmuyorsa sentetik kayıt gösterilmez.</div>}{filtered.map((item) => renderItem(item, selectionType))}</div>
       <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}>Seçim haritada otomatik yakınlaştırılır · Kaynak veride olmayan alanlar gizlenir</div>
     </aside>
   );

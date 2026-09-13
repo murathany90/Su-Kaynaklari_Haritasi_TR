@@ -51,20 +51,25 @@ function damPieSvg(percent: number | null): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${wedge}${frame}</svg>`;
 }
 
-function ensureDamPieImages(map: MapLibreMap): void {
+function ensureDamPieImages(map: MapLibreMap, onReady: () => void): boolean {
   const pending = pendingDamImages.get(map) ?? new Set<string>();
   pendingDamImages.set(map, pending);
+  let ready = true;
   DAM_PIE_BUCKETS.forEach((bucket) => {
     const id = `dam-pie-${bucket}`;
     if (map.hasImage(id) || pending.has(id)) return;
+    ready = false;
     pending.add(id);
     const image = new Image();
     image.onload = () => {
       pending.delete(id);
-      if (map.isStyleLoaded() && !map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+      if (!map.isStyleLoaded()) return;
+      if (!map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+      if (!pending.size) onReady();
     };
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(damPieSvg(bucket === 'neutral' ? null : Number(bucket)))}`;
   });
+  return ready && pending.size === 0;
 }
 
 function setGeoJsonSource(map: MapLibreMap, id: string, data: OverlayCollection): void {
@@ -81,9 +86,9 @@ function setVisibility(map: MapLibreMap, id: string, visible: boolean): void {
 }
 
 /** Adds and reconciles native GeoJSON overlays after every MapLibre style swap. */
-export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCollections, options: OverlayOptions): boolean {
+export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCollections, options: OverlayOptions, onImagesReady?: () => void): boolean {
   if (!map.isStyleLoaded()) return false;
-  ensureDamPieImages(map);
+  if (!ensureDamPieImages(map, onImagesReady ?? (() => undefined))) return false;
 
   for (const id of SOURCE_IDS) {
     const data = collections[id];
