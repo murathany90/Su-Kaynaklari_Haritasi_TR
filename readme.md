@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# Türkiye Su Kaynakları Haritası
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite + TailwindCSS v4 + Zustand + Vanilla MapLibre GL JS ile hazırlanmış
+hidroloji/GIS paneli. Harita çizimleri native GeoJSON source/layer olarak
+MapLibre’ye eklenir; basemap erişilemese bile yerel katmanlar yeniden denenir.
 
-Currently, two official plugins are available:
+## Çalıştırma
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Gerçek statik veri üretmek için Python 3.12 ve `requests` gerekir:
+
+```bash
+pip install -r tools/hydro/requirements.txt
+python tools/hydro/fetch_tatus.py
+python tools/hydro/build_river_reach_map.py
+python tools/hydro/fetch_geoglows.py
+python tools/hydro/fetch_epias.py
+```
+
+Frontend veri akışı `src/services/hydroData.ts` → Zustand store → MapLibre
+overlay şeklindedir. TATUS çıktıları `public/data/static/tatus` altında,
+canlı adapter sonuçları `public/data/live` altında ve kaynak metadata’sı
+`public/data/manifest` altında tutulur. Eksik harici servis erişimi boş/sentetik
+olmayan bir veri durumu olarak gösterilir.
+
+## Harita davranışı
+
+Sidebar’daki gerçek TATUS kayıtlarına tıklamak `flyTo` veya `fitBounds` ile
+seçilen nokta/çizgi/poligona gider. Stil değişimlerinde kaynak ve çizim katmanları
+`ensureHydrologyOverlay` ile yeniden kurulur. MapLibre worker Vite asset URL’sine
+bağlandığı için GeoJSON çizimleri altlık yükünden bağımsızdır.
+
+Veri pipeline ayrıntıları ve dış servis erişim kararları için
+[`HIDROLOJI_YOL_HARITASI.md`](HIDROLOJI_YOL_HARITASI.md) dosyasına bakın.

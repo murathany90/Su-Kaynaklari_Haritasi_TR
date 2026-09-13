@@ -1,0 +1,12 @@
+{
+  "source": "EPİAŞ Şeffaflık Platformu",
+  "authentication": "https://giris.epias.com.tr/cas/v1/tickets",
+  "endpoints": {
+    "damList": null,
+    "activeFullness": null,
+    "activeVolume": null,
+    "flowRateAndInstalledPower": null,
+    "waterEnergyProvision": null
+  },
+  "note": "Endpoint URL ve request body, hesap Swagger sözleşmesi doğrulandıktan sonra secret/config ile doldurulmalıdır; frontend'e taşınmaz."
+}

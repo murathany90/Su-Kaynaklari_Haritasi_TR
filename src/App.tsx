@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { BaseMap } from './components/map/BaseMap';
@@ -5,9 +6,12 @@ import { Timeline } from './components/timeline/Timeline';
 import { useAppStore } from './store/useAppStore';
 
 function App() {
+  const loadHydroData = useAppStore((s) => s.loadHydroData);
   const theme = useAppStore((s) => s.theme);
   const isSidebarOpen = useAppStore((s) => s.isSidebarOpen);
   const isLight = theme === 'light';
+
+  useEffect(() => { void loadHydroData(); }, [loadHydroData]);
 
   return (
     <div className={`overflow-hidden select-none h-screen w-screen flex flex-col transition-colors duration-300 ${isLight ? 'bg-slate-50 text-slate-800' : 'bg-slate-950 text-slate-100'}`}>
