@@ -14,7 +14,7 @@ export type FocusDatasets = {
   riverGroups?: Map<string, Feature<Geometry, GeoJsonProperties>>;
 };
 
-const FOCUS_PADDING = { top: 72, right: 72, bottom: 184, left: 72 };
+const FOCUS_PADDING = { top: 56, right: 36, bottom: 132, left: 36 };
 
 function featureId(feature: Feature<Geometry, GeoJsonProperties>): string | null {
   const value = feature.properties?.id ?? feature.properties?.entityId ?? feature.properties?.OBJECTID ?? feature.id;
@@ -65,17 +65,17 @@ export function focusSelectedEntity(map: MapLibreMap, selection: Selection, data
     if (relatedPoints.length > 1) {
       const relatedBounds = boundsFor(relatedPoints);
       if (relatedBounds) {
-        map.fitBounds(relatedBounds, { padding: FOCUS_PADDING, maxZoom: 11, duration: 950, essential: true });
+        map.fitBounds(relatedBounds, { padding: FOCUS_PADDING, maxZoom: 11.5, duration: 950, essential: true });
         return true;
       }
     }
   }
   if (feature.geometry?.type === 'Point') {
-    map.flyTo({ center: points[0] as LngLatLike, zoom: selection.type === 'basin' ? 7.6 : 9.6, padding: FOCUS_PADDING, duration: 850, essential: true });
+    map.flyTo({ center: points[0] as LngLatLike, zoom: selection.type === 'basin' ? 7.8 : selection.type === 'river' ? 9.2 : 10.8, padding: FOCUS_PADDING, duration: 850, essential: true });
     return true;
   }
   const bounds = boundsFor(points);
   if (!bounds) return false;
-  map.fitBounds(bounds, { padding: FOCUS_PADDING, maxZoom: selection.type === 'basin' ? 8 : 10, duration: 950, essential: true });
+  map.fitBounds(bounds, { padding: FOCUS_PADDING, maxZoom: selection.type === 'basin' ? 8.2 : selection.type === 'river' ? 9.5 : 10.5, duration: 950, essential: true });
   return true;
 }

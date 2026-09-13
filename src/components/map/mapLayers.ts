@@ -104,11 +104,11 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
 
   addLayerIfMissing(map, {
     id: 'hes177-halo', type: 'circle', source: 'hes177', minzoom: 4,
-    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 6], 'circle-color': '#22d3ee', 'circle-opacity': 0.2, 'circle-blur': 0.6 },
+    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 6], 'circle-color': '#22d3ee', 'circle-opacity': ['case', ['get', 'dimmed'], 0.04, 0.2], 'circle-blur': 0.6 },
   });
   addLayerIfMissing(map, {
     id: 'hes177-points', type: 'circle', source: 'hes177', minzoom: 4,
-    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 6], 'circle-color': '#38bdf8', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 6], 'circle-color': ['case', ['get', 'dimmed'], '#64748b', '#38bdf8'], 'circle-opacity': ['case', ['get', 'dimmed'], 0.2, 0.96], 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
   });
   addLayerIfMissing(map, {
     id: 'hes177-related', type: 'circle', source: 'hes177', minzoom: 4,
@@ -118,12 +118,13 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   if (pieImagesReady) addLayerIfMissing(map, {
     id: HES_PIE_LAYER_ID, type: 'symbol', source: 'hes177', minzoom: 4,
     layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['/', ['coalesce', ['get', 'markerDiameterPx'], 12], 29], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    paint: { 'icon-opacity': ['case', ['get', 'dimmed'], 0.2, 1] },
   });
   addLayerIfMissing(map, {
     id: 'hes177-producer', type: 'symbol', source: 'hes177', minzoom: 4,
     filter: ['==', ['get', 'isProducer'], true],
     layout: { 'text-field': '⚡', 'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 13], 'text-offset': [0.9, -0.9], 'text-allow-overlap': true, 'text-ignore-placement': true },
-    paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
+    paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1, 'text-opacity': ['case', ['get', 'dimmed'], 0.2, 1] },
   });
   addLayerIfMissing(map, {
     id: 'hes-catchment-fill', type: 'fill', source: 'catchment',
@@ -144,35 +145,35 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   });
   addLayerIfMissing(map, {
     id: 'basins-fill', type: 'fill', source: 'basins',
-    paint: { 'fill-color': ['coalesce', ['get', 'color'], '#2563eb'], 'fill-opacity': 0.12 },
+    paint: { 'fill-color': ['coalesce', ['get', 'color'], '#2563eb'], 'fill-opacity': ['case', ['get', 'dimmed'], 0.04, 0.12] },
   });
   addLayerIfMissing(map, {
     id: 'basins-outline', type: 'line', source: 'basins',
-    paint: { 'line-color': '#60a5fa', 'line-width': 1.1, 'line-opacity': 0.04 },
+    paint: { 'line-color': '#60a5fa', 'line-width': 1.1, 'line-opacity': ['case', ['get', 'dimmed'], 0.01, 0.04] },
   });
   addLayerIfMissing(map, {
     id: 'rivers-glow', type: 'line', source: 'rivers',
     minzoom: 4,
     filter: ['>=', ['coalesce', ['get', 'strahler'], 0], 4],
-    paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['+', ['coalesce', ['get', 'width'], 3.4], 5], 'line-opacity': 0.2, 'line-blur': 2.5 },
+    paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['+', ['coalesce', ['get', 'width'], 3.4], 5], 'line-opacity': ['case', ['get', 'dimmed'], 0.03, 0.2], 'line-blur': 2.5 },
   });
   addLayerIfMissing(map, {
     id: 'rivers-core', type: 'line', source: 'rivers',
     minzoom: 4,
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['interpolate', ['linear'], ['zoom'], 5, ['*', ['coalesce', ['get', 'width'], 3.4], 0.7], 9, ['coalesce', ['get', 'width'], 3.4], 13, ['*', ['coalesce', ['get', 'width'], 3.4], 1.45]], 'line-opacity': 0.98 },
+    paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['interpolate', ['linear'], ['zoom'], 5, ['*', ['coalesce', ['get', 'width'], 3.4], 0.7], 9, ['coalesce', ['get', 'width'], 3.4], 13, ['*', ['coalesce', ['get', 'width'], 3.4], 1.45]], 'line-opacity': ['case', ['get', 'dimmed'], 0.14, 0.98] },
   });
   addLayerIfMissing(map, {
     id: 'rivers-detail', type: 'line', source: 'rivers', minzoom: 8,
     filter: ['<', ['coalesce', ['get', 'strahler'], 0], 4],
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.55, 13, 1.5], 'line-opacity': 0.72 },
+    paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.55, 13, 1.5], 'line-opacity': ['case', ['get', 'dimmed'], 0.1, 0.72] },
   });
   addLayerIfMissing(map, {
     id: 'rivers-flow', type: 'line', source: 'rivers', minzoom: 4,
     filter: ['>=', ['coalesce', ['get', 'strahler'], 0], 4],
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': ['coalesce', ['get', 'color'], options.riverGlowColor], 'line-width': ['+', ['coalesce', ['get', 'width'], 3.4], 1.1], 'line-opacity': 0.78, 'line-dasharray': [0.15, 2.8] },
+    paint: { 'line-color': ['coalesce', ['get', 'color'], options.riverGlowColor], 'line-width': ['+', ['coalesce', ['get', 'width'], 3.4], 1.1], 'line-opacity': ['case', ['get', 'dimmed'], 0.1, 0.78], 'line-dasharray': [0.15, 2.8] },
   });
   addLayerIfMissing(map, {
     id: 'rivers-selected', type: 'line', source: 'rivers', minzoom: 4,
@@ -208,12 +209,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   addLayerIfMissing(map, {
     id: 'dams-halo', type: 'circle', source: 'dams',
     minzoom: 7,
-    paint: { 'circle-radius': ['+', ['coalesce', ['get', 'radius'], 8], 7], 'circle-color': ['coalesce', ['get', 'color'], '#94a3b8'], 'circle-opacity': 0.2, 'circle-blur': 0.4 },
+    paint: { 'circle-radius': ['+', ['coalesce', ['get', 'radius'], 8], 7], 'circle-color': ['coalesce', ['get', 'color'], '#94a3b8'], 'circle-opacity': ['case', ['get', 'dimmed'], 0.04, 0.2], 'circle-blur': 0.4 },
   });
   addLayerIfMissing(map, {
     id: 'dams-points', type: 'circle', source: 'dams',
     minzoom: 7,
-    paint: { 'circle-radius': 4, 'circle-color': ['coalesce', ['get', 'color'], '#94a3b8'], 'circle-opacity': 0.08, 'circle-stroke-width': 1, 'circle-stroke-color': options.outlineColor },
+    paint: { 'circle-radius': 4, 'circle-color': ['coalesce', ['get', 'color'], '#94a3b8'], 'circle-opacity': ['case', ['get', 'dimmed'], 0.03, 0.08], 'circle-stroke-width': 1, 'circle-stroke-color': options.outlineColor },
   });
   addLayerIfMissing(map, {
     id: 'dams-related', type: 'circle', source: 'dams', minzoom: 6,
@@ -236,6 +237,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
     id: `dams-pie-${bucket}`, type: 'symbol', source: 'dams', minzoom: 7,
     filter: ['==', ['get', 'damIcon'], `dam-pie-${bucket}`],
     layout: { 'icon-image': `dam-pie-${bucket}`, 'icon-size': ['interpolate', ['linear'], ['zoom'], 7, 0.34, 10, 0.5, 14, 0.7], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    paint: { 'icon-opacity': ['case', ['get', 'dimmed'], 0.18, 1] },
   }));
   addLayerIfMissing(map, {
     id: 'dams-producer', type: 'symbol', source: 'dams', minzoom: 7,
