@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Türkiye Hidroloji, Akarsu & Enerji Karar Destek Kokpiti</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet Map Engine (Cross-Origin & Sandbox Safe) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: #090d16;
+    }
+
+    /* Flow canvas overlay sitting above map layers */
+    #flow-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 450;
+    }
+
+    /* Leaflet Dark Matter UI Overrides */
+    .leaflet-bar {
+      border: 1px solid rgba(51, 65, 85, 0.7) !important;
+      border-radius: 10px !important;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    }
+    .leaflet-bar a {
+      background-color: rgba(15, 23, 42, 0.9) !important;
+      color: #38bdf8 !important;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.7) !important;
+    }
+    .leaflet-bar a:hover {
+      background-color: #1e293b !important;
+      color: #7dd3fc !important;
+    }
+    .leaflet-container {
+      background-color: #090d16 !important;
+    }
+    .leaflet-custom-tooltip {
+      background: rgba(11, 17, 33, 0.94) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(56, 189, 248, 0.4) !important;
+      color: #f1f5f9 !important;
+      font-size: 11px !important;
+      border-radius: 8px !important;
+      padding: 6px 10px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+    }
+    .leaflet-custom-tooltip::before {
+      border-top-color: rgba(56, 189, 248, 0.4) !important;
+      border-bottom-color: rgba(56, 189, 248, 0.4) !important;
+    }
+
+    .glass-cockpit {
+      background: rgba(11, 17, 33, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(51, 65, 85, 0.55);
+    }
+
+    /* Range slider styling for temporal scrubber */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #1e293b;
+      height: 6px;
+      border-radius: 9999px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #06b6d4;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: #38bdf8;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 overflow-hidden select-none h-screen w-screen flex flex-col">
+
+  <!-- Top Global Cockpit Bar -->
+  <header class="h-14 bg-slate-950/95 border-b border-slate-800 z-20 flex items-center justify-between px-3 sm:px-5 shrink-0 glass-cockpit">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/25 border border-cyan-400/30">
+        <i data-lucide="activity" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="font-bold text-xs sm:text-sm text-slate-100 tracking-tight flex items-center gap-1.5">
+            TÜRKİYE HİDROLOJİ & ENERJİ KOKPİTİ
+            <span class="text-[9px] bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-mono font-bold">v2.6 PRO</span>
+          </h1>
+          <span class="hidden md:inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> CANLI HES & GEOGloWS v2
+          </span>
+        </div>
+        <p class="text-[10px] text-slate-400 hidden lg:block">Hidrodinamik Akış Modellemesi &bull; Kaskad HES Enerji Eşdeğeri (GWh) &bull; Sentinel-2 NDWI Gösterimi</p>
+      </div>
+    </div>
+
+    <!-- Live Telemetry KPI Pills -->
+    <div class="flex items-center space-x-2 sm:space-x-4">
+      <div class="hidden xl:flex items-center space-x-3 text-[11px] font-mono-code bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner">
+        <div class="flex items-center space-x-1.5">
+          <i data-lucide="waves" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span class="text-slate-400">Toplam Debi:</span>
+          <span id="kpi-total-flow" class="text-cyan-300 font-bold">2.148 m³/s</span>
+        </div>
+        <div class="h-3 w-px bg-slate-700"></div>
+        <div class="flex items-center space-x-1.5">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span class="text-slate-400">Potansiyel Enerji:</span>
+          <span id="kpi-total-energy" class="text-amber-400 font-bold">34.820 GWh</span>
+        </div>
+        <div class="h-3 w-px bg-slate-700"></div>
+        <div class="flex items-center space-x-1.5">
+          <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span class="text-slate-400">Ort. Baraj:</span>
+          <span id="kpi-dam-avg" class="text-emerald-400 font-bold">%56.8</span>
+        </div>
+      </div>
+
+      <button id="btn-sync-epias" onclick="syncEpiasData()" title="EPİAŞ Şeffaflık Platformu Canlı HES Rezervuar Verisini Güncelle" 
+        class="flex items-center space-x-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700/80 hover:border-cyan-500/50 transition shadow-sm">
+        <i data-lucide="refresh-cw" id="sync-icon" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span class="hidden sm:inline font-medium">EPİAŞ Senkronize</span>
+      </button>
+
+      <button id="btn-reset-trace" onclick="clearTracing()" class="hidden sm:flex items-center space-x-1 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 px-2.5 py-1.5 rounded-lg transition" title="Aktif Topolojik İzlemeyi Sıfırla">
+        <i data-lucide="git-commit" class="w-3.5 h-3.5"></i>
+        <span>İzlemeyi Temizle</span>
+      </button>
+
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-700">
+        <i data-lucide="menu" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="relative flex-1 w-full h-full overflow-hidden flex">
+    
+    <!-- Collapsible Analytical Sidebar -->
+    <aside id="sidebar" class="absolute lg:relative z-20 w-full sm:w-[410px] h-full glass-cockpit flex flex-col transition-all duration-300 -translate-x-full lg:translate-x-0 border-r border-slate-800/80 shrink-0">
+      
+      <!-- Module Navigation Tabs -->
+      <div class="flex border-b border-slate-800/90 bg-slate-950/70 p-1.5 gap-1 text-xs font-semibold">
+        <button onclick="switchTab('rivers')" id="tab-btn-rivers" class="flex-1 py-2 rounded-lg flex items-center justify-center space-x-1.5 bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 transition">
+          <i data-lucide="git-branch" class="w-3.5 h-3.5"></i>
+          <span>Akarsular</span>
+        </button>
+        <button onclick="switchTab('dams')" id="tab-btn-dams" class="flex-1 py-2 rounded-lg flex items-center justify-center space-x-1.5 text-slate-400 hover:text-slate-200 transition">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+          <span>Kaskad HES</span>
+        </button>
+        <button onclick="switchTab('lakes')" id="tab-btn-lakes" class="flex-1 py-2 rounded-lg flex items-center justify-center space-x-1.5 text-slate-400 hover:text-slate-200 transition">
+          <i data-lucide="droplets" class="w-3.5 h-3.5"></i>
+          <span>Göller NDWI</span>
+        </button>
+        <button onclick="switchTab('basins')" id="tab-btn-basins" class="flex-1 py-2 rounded-lg flex items-center justify-center space-x-1.5 text-slate-400 hover:text-slate-200 transition">
+          <i data-lucide="map" class="w-3.5 h-3.5"></i>
+          <span>Havzalar SSI</span>
+        </button>
+      </div>
+
+      <!-- Filter Controls & Dynamic Search -->
+      <div class="p-3 border-b border-slate-800/80 space-y-2.5 bg-slate-950/40">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+          <input type="text" id="search-input" oninput="filterActiveList()" placeholder="Akarsu, kaskad baraj veya havza ara..." 
+            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+        </div>
+
+        <div id="filter-pills" class="flex items-center space-x-1 text-[11px] overflow-x-auto pb-0.5">
+          <button onclick="setFilter('all')" class="filter-btn active px-2.5 py-1 rounded-md bg-slate-800 text-slate-100 border border-slate-600 font-medium" data-filter="all">Tümü</button>
+          <button onclick="setFilter('drought')" class="filter-btn px-2.5 py-1 rounded-md bg-slate-900 text-rose-400 hover:bg-rose-500/10 border border-rose-500/30" data-filter="drought">Kurak (SSI &lt; -1)</button>
+          <button onclick="setFilter('normal')" class="filter-btn px-2.5 py-1 rounded-md bg-slate-900 text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/30" data-filter="normal">Normal</button>
+          <button onclick="setFilter('flood')" class="filter-btn px-2.5 py-1 rounded-md bg-slate-900 text-cyan-400 hover:bg-cyan-500/10 border border-cyan-500/30" data-filter="flood">Yüksek / Taşkın</button>
+        </div>
+      </div>
+
+      <!-- Scrollable List Container -->
+      <div id="items-list" class="flex-1 overflow-y-auto p-2.5 space-y-2 divide-y divide-slate-800/50">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <!-- Footnote Meta Bar -->
+      <div class="p-2.5 border-t border-slate-800/80 bg-slate-950/80 text-[10px] text-slate-400 flex items-center justify-between">
+        <span class="flex items-center gap-1">
+          <i data-lucide="network" class="w-3 h-3 text-cyan-400"></i> Topolojik DAG Ağı Aktif
+        </span>
+        <span class="font-mono text-cyan-400">GEOGloWS &bull; EPİAŞ &bull; WGS84</span>
+      </div>
+    </aside>
+
+    <div class="relative flex-1 h-full w-full">
+      <div id="map"></div>
+      <canvas id="flow-canvas"></canvas>
+    </div>
+
+    <!-- Floating GIS HUD Overlay (Top Right) -->
+    <div class="absolute top-3 right-3 z-10 flex flex-col items-end space-y-2 pointer-events-auto">
+      
+      <!-- Layer Visibility Toggle Box -->
+      <div class="glass-cockpit p-3 rounded-xl text-xs space-y-2 shadow-2xl border border-slate-700/80 w-60">
+        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span class="flex items-center space-x-1.5">
+            <i data-lucide="layers-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Katman Yöneticisi</span>
+          </span>
+          <span class="text-[9px] text-cyan-400 font-mono">Canvas2D + GL</span>
+        </div>
+
+        <div class="space-y-1.5 pt-0.5">
+          <label class="flex items-center justify-between cursor-pointer hover:text-white">
+            <span class="text-slate-300 text-[11px]">Hidrodinamik Parçacık Akışı</span>
+            <input type="checkbox" id="layer-toggle-flow-particles" checked onchange="toggleFlowParticles()" class="rounded bg-slate-800 border-slate-600 text-cyan-500 focus:ring-0">
+          </label>
+          <label class="flex items-center justify-between cursor-pointer hover:text-white">
+            <span class="text-slate-300 text-[11px]">Akarsu Yatak Hatları</span>
+            <input type="checkbox" id="layer-toggle-rivers" checked onchange="toggleLayer('rivers')" class="rounded bg-slate-800 border-slate-600 text-cyan-500 focus:ring-0">
+          </label>
+          <label class="flex items-center justify-between cursor-pointer hover:text-white">
+            <span class="text-slate-300 text-[11px]">Kaskad HES & Enerji (GWh)</span>
+            <input type="checkbox" id="layer-toggle-dams" checked onchange="toggleLayer('dams')" class="rounded bg-slate-800 border-slate-600 text-cyan-500 focus:ring-0">
+          </label>
+          <label class="flex items-center justify-between cursor-pointer hover:text-white">
+            <span class="text-slate-300 text-[11px]">Kaskad Bağlantı Hatları</span>
+            <input type="checkbox" id="layer-toggle-cascades" checked onchange="toggleLayer('cascades')" class="rounded bg-slate-800 border-slate-600 text-cyan-500 focus:ring-0">
+          </label>
+          <label class="flex items-center justify-between cursor-pointer hover:text-white">
+            <span class="text-slate-300 text-[11px]">Doğal Göller (Sentinel NDWI)</span>
+            <input type="checkbox" id="layer-toggle-lakes" checked onchange="toggleLayer('lakes')" class="rounded bg-slate-800 border-slate-600 text-cyan-500 focus:ring-0">
+          </label>
+          <label class="flex items-center justify-between cursor-pointer hover:text-white">
+            <span class="text-slate-300 text-[11px]">25 Hidrolojik Havza Sınırı</span>
+            <input type="checkbox" id="layer-toggle-basins" checked onchange="toggleLayer('basins')" class="rounded bg-slate-800 border-slate-600 text-cyan-500 focus:ring-0">
+          </label>
+        </div>
+      </div>
+
+      <div class="glass-cockpit p-2.5 rounded-xl text-[11px] shadow-2xl border border-slate-700/80 w-60">
+        <div class="font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+          <span>Akış vs. Tarihsel Normal</span>
+          <span class="text-[9px] text-slate-400 font-mono">SSI Dilimi</span>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-rose-500"></span>
+              <span class="text-slate-300">Kuraklık (&lt;%25)</span>
+            </div>
+            <span class="text-rose-400 font-mono text-[10px]">&lt; 0.5 m/s</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-emerald-400"></span>
+              <span class="text-slate-300">Mevsimsel Normal</span>
+            </div>
+            <span class="text-emerald-400 font-mono text-[10px]">1.2 - 2.0 m/s</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-cyan-400"></span>
+              <span class="text-slate-300">Yüksek Akış / Taşkın</span>
+            </div>
+            <span class="text-cyan-400 font-mono text-[10px]">&gt; 2.5 m/s</span>
+          </div>
+        </div>
+        <div class="mt-2 pt-1.5 border-t border-slate-800 text-[9px] text-slate-400 flex items-center justify-between">
+          <span class="text-amber-400 font-mono">v = 0.28 &middot; Q^0.38</span>
+          <span>Fiziksel Hız Adveksiyonu</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="timeline-player" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-2xl glass-cockpit px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl flex flex-col gap-1.5">
+      <div class="flex items-center justify-between text-xs">
+        <div class="flex items-center space-x-2">
+          <button id="btn-play-pause" onclick="toggleTemporalPlayback()" class="w-7 h-7 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold flex items-center justify-center transition shadow-lg shadow-cyan-500/30">
+            <i data-lucide="play" id="play-icon" class="w-4 h-4 ml-0.5"></i>
+          </button>
+          <span class="text-[11px] font-semibold text-slate-300">4D Hidrolojik Simülasyon:</span>
+          <span id="timeline-month-badge" class="font-mono text-xs font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-600/40 px-2 py-0.5 rounded-md">
+            Eylül (Mevcut Gün)
+          </span>
+        </div>
+
+        <div class="flex items-center space-x-2 text-[10px] text-slate-400">
+          <span id="season-description" class="text-amber-300/90 font-medium">Yaz Sonu Taban Akımı</span>
+          <div class="h-3 w-px bg-slate-700"></div>
+          <button onclick="setPlaySpeed(1)" class="speed-btn px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">1x</button>
+          <button onclick="setPlaySpeed(3)" class="speed-btn px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800 hover:text-white">3x</button>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 w-full">
+        <span class="text-[10px] font-mono text-slate-400">Oca</span>
+        <input type="range" id="timeline-slider" min="0" max="11" step="1" value="8" oninput="onTimelineScrub(this.value)" class="w-full">
+        <span class="text-[10px] font-mono text-slate-400">Ara</span>
+      </div>
+    </div>
+
+    <div id="detail-drawer" class="absolute top-16 right-4 w-[92%] sm:w-[440px] max-h-[82vh] overflow-y-auto glass-cockpit rounded-2xl p-4 shadow-2xl z-20 border border-slate-700/80 transition-all duration-300 translate-x-[120%] opacity-0 pointer-events-none">
+      <div class="flex items-start justify-between pb-2.5 border-b border-slate-800">
+        <div class="flex items-center space-x-2.5">
+          <div id="drawer-icon-container" class="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <i data-lucide="waves" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="drawer-title" class="font-bold text-sm text-white">Akarsu / Baraj Adı</h3>
+            <p id="drawer-subtitle" class="text-xs text-slate-400 font-medium">Havza ve Topolojik Bilgi</p>
+          </div>
+        </div>
+        <button onclick="closeDetailDrawer()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Tracing Action Buttons (For Rivers) -->
+      <div id="drawer-tracing-actions" class="grid grid-cols-2 gap-2 my-2.5 hidden">
+        <button onclick="traceUpstream()" class="flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-semibold transition">
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+          <span>Yukarı Havzayı İzle</span>
+        </button>
+        <button onclick="traceDownstream()" class="flex items-center justify-center space-x-1.5 py-1.5 px-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 text-xs font-semibold transition">
+          <i data-lucide="arrow-down-right" class="w-3.5 h-3.5"></i>
+          <span>Denize Mansap Yolu</span>
+        </button>
+      </div>
+
+      <!-- Dynamic Metrics Grid -->
+      <div id="drawer-metrics" class="grid grid-cols-3 gap-2 my-2.5 text-center"></div>
+
+      <!-- Cascade Schematic Box (For Dams) -->
+      <div id="drawer-cascade-box" class="my-2.5 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs hidden">
+        <div class="text-[10px] text-slate-400 uppercase font-semibold mb-1 flex items-center justify-between">
+          <span>Kaskad Hidrolik Zinciri</span>
+          <span class="text-cyan-400 font-mono" id="cascade-chain-name">Fırat Kaskadı</span>
+        </div>
+        <div id="cascade-steps" class="flex items-center justify-between text-[10px] font-mono text-slate-300 overflow-x-auto py-1"></div>
+      </div>
+
+      <!-- Chart.js Visualization Container -->
+      <div class="h-48 w-full bg-slate-900/80 rounded-xl p-2.5 border border-slate-800/90 mt-2">
+        <canvas id="drawer-chart"></canvas>
+      </div>
+
+      <div id="drawer-footer-note" class="mt-2.5 text-[10px] text-slate-400 text-center flex items-center justify-center space-x-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        <span id="drawer-footer-text">ECMWF GEOGloWS v2 Reanaliz + 15 Günlük Ensemble Tahmin Bandı</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast-container" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none space-y-2"></div>
+
+  <script>
+    /* Rivers Dataset with Hydrodynamic Profiles */
+    const RIVERS_DATA = [
+      {
+        id: "firat_ana",
+        name: "Fırat Nehri (Ana Kol)",
+        basin: "Fırat-Dicle Havzası",
+        current_flow: 640.0,
+        normal_flow: 520.0,
+        length_km: 1260,
+        drainage_km2: 135000,
+        ssi_score: 1.4,
+        next_down: "firat_mansap",
+        upstream_ids: ["karasu", "murat"],
+        seasonal_profile: [420, 490, 680, 1150, 1280, 850, 510, 390, 420, 460, 510, 540],
+        coords: [
+          [40.80, 39.90], [39.50, 39.75], [38.75, 38.80], [38.50, 38.30],
+          [38.40, 37.80]
+        ]
+      },
+      {
+        id: "firat_mansap",
+        name: "Fırat Nehri (Suriye Sınırı / Mansap)",
+        basin: "Fırat-Dicle Havzası",
+        current_flow: 710.0,
+        normal_flow: 580.0,
+        length_km: 420,
+        drainage_km2: 184852,
+        ssi_score: 1.5,
+        next_down: null,
+        upstream_ids: ["firat_ana"],
+        seasonal_profile: [480, 560, 780, 1300, 1420, 940, 590, 450, 490, 530, 580, 620],
+        coords: [
+          [38.40, 37.80], [38.00, 37.40], [38.05, 36.90]
+        ]
+      },
+      {
+        id: "karasu",
+        name: "Karasu Çayı (Fırat Yukarı Kolu)",
+        basin: "Fırat-Dicle Havzası",
+        current_flow: 180.0,
+        normal_flow: 195.0,
+        length_km: 460,
+        drainage_km2: 22000,
+        ssi_score: -0.2,
+        next_down: "firat_ana",
+        upstream_ids: [],
+        seasonal_profile: [90, 110, 190, 420, 480, 240, 130, 95, 100, 115, 130, 140],
+        coords: [
+          [41.30, 40.05], [40.70, 39.85], [39.80, 39.75], [38.80, 38.85]
+        ]
+      },
+      {
+        id: "murat",
+        name: "Murat Nehri (Fırat Yukarı Kolu)",
+        basin: "Fırat-Dicle Havzası",
+        current_flow: 310.0,
+        normal_flow: 290.0,
+        length_km: 722,
+        drainage_km2: 40000,
+        ssi_score: 0.3,
+        next_down: "firat_ana",
+        upstream_ids: [],
+        seasonal_profile: [160, 190, 340, 710, 790, 390, 210, 150, 160, 180, 210, 230],
+        coords: [
+          [43.80, 39.60], [42.50, 39.40], [41.50, 38.80], [40.00, 38.70], [38.80, 38.85]
+        ]
+      },
+      {
+        id: "dicle",
+        name: "Dicle Nehri",
+        basin: "Fırat-Dicle Havzası",
+        current_flow: 295.0,
+        normal_flow: 310.0,
+        length_km: 1900,
+        drainage_km2: 57600,
+        ssi_score: -0.1,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [180, 220, 410, 780, 690, 310, 160, 120, 130, 160, 210, 240],
+        coords: [
+          [39.40, 38.50], [40.20, 37.90], [41.20, 37.75], [41.70, 37.50],
+          [42.20, 37.20]
+        ]
+      },
+      {
+        id: "kizilirmak",
+        name: "Kızılırmak Nehri",
+        basin: "Kızılırmak Havzası",
+        current_flow: 184.5,
+        normal_flow: 195.0,
+        length_km: 1355,
+        drainage_km2: 78180,
+        ssi_score: -0.3,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [120, 160, 280, 410, 360, 190, 95, 75, 80, 95, 130, 150],
+        coords: [
+          [38.80, 39.85], [37.90, 39.70], [36.80, 39.30], [35.90, 38.90],
+          [34.80, 38.75], [33.80, 39.10], [33.40, 39.80], [33.70, 40.50],
+          [34.50, 41.10], [35.20, 41.40], [35.95, 41.72]
+        ]
+      },
+      {
+        id: "sakarya",
+        name: "Sakarya Nehri",
+        basin: "Sakarya Havzası",
+        current_flow: 55.0,
+        normal_flow: 130.0,
+        length_km: 824,
+        drainage_km2: 58160,
+        ssi_score: -1.7,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [90, 130, 210, 240, 170, 85, 45, 38, 42, 55, 70, 85],
+        coords: [
+          [31.20, 39.00], [31.50, 39.60], [32.00, 40.00], [31.80, 40.40],
+          [30.40, 40.30], [30.50, 40.80], [30.65, 41.12]
+        ]
+      },
+      {
+        id: "yesilirmak",
+        name: "Yeşilırmak Nehri",
+        basin: "Yeşilırmak Havzası",
+        current_flow: 110.0,
+        normal_flow: 105.0,
+        length_km: 519,
+        drainage_km2: 36114,
+        ssi_score: 0.2,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [65, 85, 170, 260, 210, 95, 50, 40, 45, 55, 70, 80],
+        coords: [
+          [37.50, 39.90], [36.60, 40.30], [35.80, 40.65], [36.20, 40.90],
+          [36.65, 41.35]
+        ]
+      },
+      {
+        id: "seyhan",
+        name: "Seyhan Nehri",
+        basin: "Seyhan Havzası",
+        current_flow: 48.0,
+        normal_flow: 92.0,
+        length_km: 560,
+        drainage_km2: 20450,
+        ssi_score: -1.4,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [60, 85, 160, 220, 180, 75, 40, 32, 36, 45, 55, 65],
+        coords: [
+          [36.20, 38.60], [35.80, 38.00], [35.35, 37.30], [35.33, 37.02],
+          [34.90, 36.70]
+        ]
+      },
+      {
+        id: "ceyhan",
+        name: "Ceyhan Nehri",
+        basin: "Ceyhan Havzası",
+        current_flow: 85.0,
+        normal_flow: 95.0,
+        length_km: 509,
+        drainage_km2: 21980,
+        ssi_score: -0.4,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [75, 100, 170, 210, 160, 80, 50, 42, 48, 58, 70, 80],
+        coords: [
+          [37.20, 38.20], [36.80, 37.70], [36.30, 37.30], [35.70, 36.90],
+          [35.55, 36.60]
+        ]
+      },
+      {
+        id: "coruh",
+        name: "Çoruh Nehri",
+        basin: "Çoruh Havzası",
+        current_flow: 215.0,
+        normal_flow: 180.0,
+        length_km: 431,
+        drainage_km2: 19890,
+        ssi_score: 1.2,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [70, 85, 160, 480, 610, 320, 140, 85, 90, 110, 130, 140],
+        coords: [
+          [40.20, 40.30], [41.00, 40.50], [41.70, 41.10], [41.85, 41.55]
+        ]
+      },
+      {
+        id: "aras",
+        name: "Aras Nehri",
+        basin: "Aras Havzası",
+        current_flow: 135.0,
+        normal_flow: 140.0,
+        length_km: 1072,
+        drainage_km2: 27500,
+        ssi_score: -0.1,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [60, 75, 140, 390, 450, 210, 95, 65, 75, 90, 110, 120],
+        coords: [
+          [41.50, 40.00], [42.60, 40.10], [43.50, 40.05], [44.30, 39.80]
+        ]
+      },
+      {
+        id: "buyuk_menderes",
+        name: "Büyük Menderes Nehri",
+        basin: "Kuzey-Güney Ege Havzası",
+        current_flow: 28.0,
+        normal_flow: 75.0,
+        length_km: 548,
+        drainage_km2: 24976,
+        ssi_score: -1.9,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [95, 140, 150, 110, 60, 28, 14, 10, 12, 22, 45, 75],
+        coords: [
+          [30.10, 38.30], [29.20, 38.10], [28.40, 37.90], [27.70, 37.85],
+          [27.20, 37.55]
+        ]
+      },
+      {
+        id: "gediz",
+        name: "Gediz Nehri",
+        basin: "Gediz Havzası",
+        current_flow: 19.5,
+        normal_flow: 48.0,
+        length_km: 401,
+        drainage_km2: 18000,
+        ssi_score: -1.8,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [65, 95, 110, 75, 40, 18, 9, 6, 8, 15, 30, 52],
+        coords: [
+          [29.50, 39.00], [28.60, 38.60], [27.70, 38.60], [26.95, 38.58]
+        ]
+      },
+      {
+        id: "meric",
+        name: "Meriç Nehri",
+        basin: "Meriç-Ergene Havzası",
+        current_flow: 180.0,
+        normal_flow: 155.0,
+        length_km: 480,
+        drainage_km2: 53000,
+        ssi_score: 1.1,
+        next_down: null,
+        upstream_ids: [],
+        seasonal_profile: [190, 260, 290, 240, 170, 95, 45, 35, 40, 65, 110, 160],
+        coords: [
+          [26.55, 41.75], [26.50, 41.50], [26.35, 41.10], [26.05, 40.75]
+        ]
+      }
+    ];
+
+    const DAMS_DATA = [
+      // Fırat Kaskadı
+      {
+        id: "keban",
+        name: "Keban Barajı",
+        river: "Fırat Nehri",
+        basin: "Fırat-Dicle",
+        cascade_group: "Fırat Kaskadı",
+        cascade_rank: 1,
+        downstream_dam: "karakaya",
+        upstream_dam: null,
+        coords: [38.756, 38.802],
+        head_m: 163,
+        installed_power_mw: 1330,
+        max_storage_hm3: 31000,
+        current_volume_hm3: 19840,
+        occupancy_pct: 64.0,
+        purpose: "HES / Taşkın"
+      },
+      {
+        id: "karakaya",
+        name: "Karakaya Barajı",
+        river: "Fırat Nehri",
+        basin: "Fırat-Dicle",
+        cascade_group: "Fırat Kaskadı",
+        cascade_rank: 2,
+        downstream_dam: "ataturk",
+        upstream_dam: "keban",
+        coords: [39.136, 38.223],
+        head_m: 145,
+        installed_power_mw: 1800,
+        max_storage_hm3: 9580,
+        current_volume_hm3: 6897,
+        occupancy_pct: 72.0,
+        purpose: "HES"
+      },
+      {
+        id: "ataturk",
+        name: "Atatürk Barajı",
+        river: "Fırat Nehri",
+        basin: "Fırat-Dicle",
+        cascade_group: "Fırat Kaskadı",
+        cascade_rank: 3,
+        downstream_dam: "birecik",
+        upstream_dam: "karakaya",
+        coords: [38.318, 37.479],
+        head_m: 151,
+        installed_power_mw: 2400,
+        max_storage_hm3: 48700,
+        current_volume_hm3: 28246,
+        occupancy_pct: 58.0,
+        purpose: "HES / GAP Sulama"
+      },
+      {
+        id: "birecik",
+        name: "Birecik Barajı",
+        river: "Fırat Nehri",
+        basin: "Fırat-Dicle",
+        cascade_group: "Fırat Kaskadı",
+        cascade_rank: 4,
+        downstream_dam: null,
+        upstream_dam: "ataturk",
+        coords: [37.940, 37.050],
+        head_m: 55,
+        installed_power_mw: 672,
+        max_storage_hm3: 1220,
+        current_volume_hm3: 980,
+        occupancy_pct: 80.3,
+        purpose: "HES / Sulama"
+      },
+
+      // Çoruh Kaskadı
+      {
+        id: "deriner",
+        name: "Deriner Barajı",
+        river: "Çoruh Nehri",
+        basin: "Çoruh",
+        cascade_group: "Çoruh Kaskadı",
+        cascade_rank: 1,
+        downstream_dam: "borcka",
+        upstream_dam: null,
+        coords: [41.871, 41.171],
+        head_m: 207,
+        installed_power_mw: 670,
+        max_storage_hm3: 1970,
+        current_volume_hm3: 1615,
+        occupancy_pct: 82.0,
+        purpose: "HES / Taşkın"
+      },
+      {
+        id: "borcka",
+        name: "Borçka Barajı",
+        river: "Çoruh Nehri",
+        basin: "Çoruh",
+        cascade_group: "Çoruh Kaskadı",
+        cascade_rank: 2,
+        downstream_dam: null,
+        upstream_dam: "deriner",
+        coords: [41.670, 41.350],
+        head_m: 86,
+        installed_power_mw: 300,
+        max_storage_hm3: 419,
+        current_volume_hm3: 340,
+        occupancy_pct: 81.1,
+        purpose: "HES"
+      },
+
+      // Dicle Kaskadı
+      {
+        id: "ilisu",
+        name: "Ilısu Prof. Dr. Veysel Eroğlu Barajı",
+        river: "Dicle Nehri",
+        basin: "Fırat-Dicle",
+        cascade_group: "Dicle Kaskadı",
+        cascade_rank: 1,
+        downstream_dam: null,
+        upstream_dam: null,
+        coords: [41.828, 37.534],
+        head_m: 115,
+        installed_power_mw: 1200,
+        max_storage_hm3: 10600,
+        current_volume_hm3: 7950,
+        occupancy_pct: 75.0,
+        purpose: "HES / Taşkın"
+      },
+
+      // Kızılırmak Kaskadı
+      {
+        id: "hirfanli",
+        name: "Hirfanlı Barajı",
+        river: "Kızılırmak",
+        basin: "Kızılırmak",
+        cascade_group: "Kızılırmak Kaskadı",
+        cascade_rank: 1,
+        downstream_dam: "altinkaya",
+        upstream_dam: null,
+        coords: [33.518, 39.271],
+        head_m: 65,
+        installed_power_mw: 128,
+        max_storage_hm3: 5980,
+        current_volume_hm3: 2212,
+        occupancy_pct: 37.0,
+        purpose: "HES / Sulama"
+      },
+      {
+        id: "altinkaya",
+        name: "Altınkaya Barajı",
+        river: "Kızılırmak",
+        basin: "Kızılırmak",
+        cascade_group: "Kızılırmak Kaskadı",
+        cascade_rank: 2,
+        downstream_dam: null,
+        upstream_dam: "hirfanli",
+        coords: [35.795, 41.343],
+        head_m: 140,
+        installed_power_mw: 700,
+        max_storage_hm3: 5763,
+        current_volume_hm3: 2766,
+        occupancy_pct: 48.0,
+        purpose: "HES / Taşkın"
+      },
+
+      // Münferit Stratejik Barajlar
+      {
+        id: "sariyar",
+        name: "Sarıyar Hasan Polatkan Barajı",
+        river: "Sakarya Nehri",
+        basin: "Sakarya",
+        cascade_group: "Sakarya Havzası",
+        cascade_rank: 1,
+        downstream_dam: null,
+        upstream_dam: null,
+        coords: [31.977, 40.045],
+        head_m: 80,
+        installed_power_mw: 160,
+        max_storage_hm3: 1900,
+        current_volume_hm3: 418,
+        occupancy_pct: 22.0,
+        purpose: "HES"
+      },
+      {
+        id: "seyhan_baraji",
+        name: "Seyhan Barajı",
+        river: "Seyhan Nehri",
+        basin: "Seyhan",
+        cascade_group: "Seyhan Havzası",
+        cascade_rank: 1,
+        downstream_dam: null,
+        upstream_dam: null,
+        coords: [35.333, 37.037],
+        head_m: 52,
+        installed_power_mw: 60,
+        max_storage_hm3: 1200,
+        current_volume_hm3: 384,
+        occupancy_pct: 32.0,
+        purpose: "Sulama / HES"
+      },
+      {
+        id: "berke",
+        name: "Berke Barajı",
+        river: "Ceyhan Nehri",
+        basin: "Ceyhan",
+        cascade_group: "Ceyhan Havzası",
+        cascade_rank: 1,
+        downstream_dam: null,
+        upstream_dam: null,
+        coords: [36.467, 37.365],
+        head_m: 180,
+        installed_power_mw: 510,
+        max_storage_hm3: 427,
+        current_volume_hm3: 286,
+        occupancy_pct: 67.0,
+        purpose: "HES"
+      },
+      {
+        id: "oymapinar",
+        name: "Oymapınar Barajı",
+        river: "Manavgat Çayı",
+        basin: "Antalya",
+        cascade_group: "Antalya Havzası",
+        cascade_rank: 1,
+        downstream_dam: null,
+        upstream_dam: null,
+        coords: [31.531, 36.906],
+        head_m: 155,
+        installed_power_mw: 540,
+        max_storage_hm3: 300,
+        current_volume_hm3: 195,
+        occupancy_pct: 65.0,
+        purpose: "HES"
+      }
+    ];
+
+    const LAKES_DATA = [
+      {
+        id: "lake-van",
+        name: "Van Gölü",
+        basin: "Van Gölü Kapalı Havzası",
+        coords: [42.90, 38.65],
+        ref_area_km2: 3755,
+        current_area_km2: 3620,
+        area_loss_pct: 3.6,
+        altitude_m: 1648,
+        salinity: "Sodalı / Yüksek Tuzlu",
+        status: "Hafif Çekilme (Kıyılarda Gerileme)",
+        color: "#f59e0b"
+      },
+      {
+        id: "lake-tuz",
+        name: "Tuz Gölü",
+        basin: "Konya Kapalı Havzası",
+        coords: [33.35, 38.78],
+        ref_area_km2: 1300,
+        current_area_km2: 380,
+        area_loss_pct: 70.8,
+        altitude_m: 905,
+        salinity: "Aşırı Tuzlu",
+        status: "Kritik Kuruma (%70+ Yüzey Kaybı)",
+        color: "#e11d48"
+      },
+      {
+        id: "lake-beysehir",
+        name: "Beyşehir Gölü",
+        basin: "Konya Kapalı Havzası",
+        coords: [31.52, 37.75],
+        ref_area_km2: 656,
+        current_area_km2: 512,
+        area_loss_pct: 21.9,
+        altitude_m: 1123,
+        salinity: "Tatlı Su",
+        status: "Tarımsal Çekilme Alarmı",
+        color: "#f97316"
+      },
+      {
+        id: "lake-egirdir",
+        name: "Eğirdir Gölü",
+        basin: "Antalya Havzası",
+        coords: [30.85, 38.10],
+        ref_area_km2: 482,
+        current_area_km2: 390,
+        area_loss_pct: 19.1,
+        altitude_m: 917,
+        salinity: "Tatlı Su",
+        status: "Kritik Kot Kaybı (Dip Noktası)",
+        color: "#f97316"
+      },
+      {
+        id: "lake-burdur",
+        name: "Burdur Gölü",
+        basin: "Batı Akdeniz",
+        coords: [30.15, 37.75],
+        ref_area_km2: 250,
+        current_area_km2: 135,
+        area_loss_pct: 46.0,
+        altitude_m: 845,
+        salinity: "Tuzlu",
+        status: "Ağır Çekilme (%46 Kayıp)",
+        color: "#e11d48"
+      },
+      {
+        id: "lake-iznik",
+        name: "İznik Gölü",
+        basin: "Marmara Havzası",
+        coords: [29.50, 40.43],
+        ref_area_km2: 308,
+        current_area_km2: 292,
+        area_loss_pct: 5.2,
+        altitude_m: 85,
+        salinity: "Tatlı Su",
+        status: "Stabil / İzleniyor",
+        color: "#10b981"
+      }
+    ];
+
+    const BASINS_DATA = [
+      { id: "firat_dicle", name: "Fırat-Dicle Havzası", area_km2: 184852, yield_hm3: 52940, ssi: 1.4, coords: [40.2, 38.0], status: "Normal / Taşkın Dönemi" },
+      { id: "kizilirmak_b", name: "Kızılırmak Havzası", area_km2: 78180, yield_hm3: 6480, ssi: -0.3, coords: [35.0, 40.0], status: "Hafif Kuraklık" },
+      { id: "sakarya_b", name: "Sakarya Havzası", area_km2: 58160, yield_hm3: 6400, ssi: -1.7, coords: [31.5, 40.1], status: "Şiddetli Kuraklık Riski" },
+      { id: "yesilirmak_b", name: "Yeşilırmak Havzası", area_km2: 36114, yield_hm3: 5800, ssi: 0.2, coords: [36.2, 40.5], status: "Mevsimsel Normal" },
+      { id: "antalya_b", name: "Antalya Havzası", area_km2: 19577, yield_hm3: 11060, ssi: -0.1, coords: [31.2, 36.8], status: "Normal" },
+      { id: "seyhan_b", name: "Seyhan Havzası", area_km2: 20450, yield_hm3: 8010, ssi: -1.4, coords: [35.5, 37.5], status: "Düşük Akış" },
+      { id: "ceyhan_b", name: "Ceyhan Havzası", area_km2: 21980, yield_hm3: 7180, ssi: -0.4, coords: [36.5, 37.2], status: "Normal" },
+      { id: "gediz_b", name: "Gediz Havzası", area_km2: 18000, yield_hm3: 1950, ssi: -1.8, coords: [28.2, 38.7], status: "Kritik Kuraklık" },
+      { id: "buyuk_menderes_b", name: "Büyük Menderes Havzası", area_km2: 24976, yield_hm3: 3030, ssi: -1.9, coords: [28.5, 37.8], status: "Kritik Kuraklık" },
+      { id: "coruh_b", name: "Çoruh Havzası", area_km2: 19890, yield_hm3: 6300, ssi: 1.2, coords: [41.2, 40.8], status: "Yüksek Akış / Taşkın" },
+      { id: "konya_kapali", name: "Konya Kapalı Havzası", area_km2: 53850, yield_hm3: 4520, ssi: -2.3, coords: [32.8, 38.2], status: "Olağanüstü Kuraklık" }
+    ];
+
+    let map = null;
+    let riversLayerGroup = null;
+    let damsLayerGroup = null;
+    let cascadesLayerGroup = null;
+    let lakesLayerGroup = null;
+    let basinsLayerGroup = null;
+    let traceLayerGroup = null;
+
+    let detailChart = null;
+    let currentTab = 'rivers';
+    let currentFilter = 'all';
+    let selectedEntity = null;
+    let activeTraceType = null;
+    let activeTraceRiverId = null;
+
+    // 4D Timeline State
+    let timelineMonthIndex = 8; // 8 = Eylül
+    let isPlayingTimeline = false;
+    let playbackSpeed = 1;
+    let playbackInterval = null;
+
+    // Flow Canvas & Particles Engine State
+    let flowCanvas = null;
+    let flowCtx = null;
+    let flowParticles = [];
+    let isFlowParticlesActive = true;
+    let canvasAnimFrameId = null;
+
+    const MONTH_NAMES = [
+      "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+      "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+    ];
+
+    const SEASON_DESCRIPTIONS = [
+      "Kış Birikimi & Kar Yağışları",
+      "Kış Rejimi & Erken Isınma",
+      "İlkbahar Kar Erimesi Başlangıcı",
+      "Taşkın Zirvesi & Kar Erimesi Coşkusu",
+      "Yüksek Akış & Rezervuar Doygunluğu",
+      "Erken Yaz & Çekilme Başlangıcı",
+      "Yaz Kuraklığı & Maksimum Sulama",
+      "Şiddetli Kuraklık & Taban Akımı",
+      "Yaz Sonu Taban Akımı (Eylül)",
+      "Sonbahar Yağışları Başlangıcı",
+      "Sonbahar Dolum Dönemi",
+      "Kış Hidrolojisi & Soğuma"
+    ];
+
+    function initMap() {
+      try {
+        // Safe map initialization without cross-origin frame property inspections
+        map = L.map('map', {
+          center: [39.0, 35.3],
+          zoom: 6,
+          zoomControl: false,
+          attributionControl: false
+        });
+
+        // CartoDB Dark Matter basemap
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; CARTO &copy; OSM',
+          subdomains: 'abcd',
+          maxZoom: 19
+        }).addTo(map);
+
+        L.control.zoom({ position: 'bottom-right' }).addTo(map);
+
+        // Hydro layer groups
+        riversLayerGroup = L.layerGroup().addTo(map);
+        traceLayerGroup = L.layerGroup().addTo(map);
+        cascadesLayerGroup = L.layerGroup().addTo(map);
+        damsLayerGroup = L.layerGroup().addTo(map);
+        lakesLayerGroup = L.layerGroup().addTo(map);
+        basinsLayerGroup = L.layerGroup().addTo(map);
+
+        setupGISLayers();
+        initFlowCanvasEngine();
+        updateKPISummaries();
+        renderSidebarList();
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Map initialization failed:", err);
+      }
+    }
+
+    function setupGISLayers() {
+      renderRiversLayer();
+      renderCascadeLinksLayer();
+      renderDamsLayer();
+      renderLakesLayer();
+      renderBasinsLayer();
+    }
+
+    function renderRiversLayer() {
+      if (!riversLayerGroup) return;
+      riversLayerGroup.clearLayers();
+
+      RIVERS_DATA.forEach(r => {
+        const baseFlow = r.seasonal_profile[timelineMonthIndex];
+        const velocity = (0.28 * Math.pow(Math.max(1, baseFlow), 0.38)).toFixed(2);
+        
+        let color = '#10b981';
+        let statusBadge = '<span class="text-emerald-400">Normal</span>';
+        if (baseFlow < r.normal_flow * 0.6) {
+          color = '#f43f5e';
+          statusBadge = '<span class="text-rose-400">Kuraklık</span>';
+        } else if (baseFlow > r.normal_flow * 1.4) {
+          color = '#38bdf8';
+          statusBadge = '<span class="text-cyan-400">Yüksek Akış</span>';
+        }
+
+        const renderWidth = Math.min(8, Math.max(2.5, Math.log10(baseFlow + 1) * 2.8));
+        const latLngs = r.coords.map(c => [c[1], c[0]]);
+
+        // Ambient outer glow
+        const glow = L.polyline(latLngs, {
+          color: color,
+          weight: renderWidth + 5,
+          opacity: 0.3,
+          lineCap: 'round',
+          lineJoin: 'round',
+          interactive: false
+        });
+
+        // Core river channel
+        const core = L.polyline(latLngs, {
+          color: color,
+          weight: renderWidth,
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round'
+        });
+
+        core.bindTooltip(`
+          <div class="font-bold text-xs">${r.name}</div>
+          <div class="text-[10px] text-slate-300">${r.basin}</div>
+          <div class="text-[10px] mt-1 font-mono">${baseFlow} m³/s &bull; ${velocity} m/s &bull; ${statusBadge}</div>
+        `, { sticky: true, className: 'leaflet-custom-tooltip' });
+
+        core.on('click', () => {
+          openRiverDetail(r);
+        });
+
+        riversLayerGroup.addLayer(glow);
+        riversLayerGroup.addLayer(core);
+      });
+    }
+
+    function renderDamsLayer() {
+      if (!damsLayerGroup) return;
+      damsLayerGroup.clearLayers();
+
+      DAMS_DATA.forEach(d => {
+        const potentialGWh = Math.round(0.0024 * d.current_volume_hm3 * d.head_m);
+        let color = '#fbbf24';
+        if (d.occupancy_pct < 30) color = '#f43f5e';
+        else if (d.occupancy_pct >= 60) color = '#06b6d4';
+
+        const markerRadiusInner = Math.min(12, Math.max(6, Math.log10(d.current_volume_hm3 + 1) * 2.5));
+        const markerRadiusOuter = markerRadiusInner + 6;
+        const latLng = [d.coords[1], d.coords[0]];
+
+        // Halo
+        const halo = L.circleMarker(latLng, {
+          radius: markerRadiusOuter,
+          color: '#ffffff',
+          weight: 1,
+          opacity: 0.45,
+          fillColor: color,
+          fillOpacity: 0.22,
+          interactive: false
+        });
+
+        // Main node
+        const node = L.circleMarker(latLng, {
+          radius: markerRadiusInner,
+          color: '#090d16',
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.95
+        });
+
+        node.bindTooltip(`
+          <div class="font-bold text-xs">${d.name}</div>
+          <div class="text-[10px] text-slate-300">${d.cascade_group} &bull; ${d.installed_power_mw} MW</div>
+          <div class="text-[10px] mt-1 font-mono text-cyan-300">Doluluk: %${d.occupancy_pct} &bull; ${potentialGWh.toLocaleString()} GWh</div>
+        `, { sticky: true, className: 'leaflet-custom-tooltip' });
+
+        node.on('click', () => {
+          openDamDetail(d);
+        });
+
+        damsLayerGroup.addLayer(halo);
+        damsLayerGroup.addLayer(node);
+      });
+    }
+
+    function renderCascadeLinksLayer() {
+      if (!cascadesLayerGroup) return;
+      cascadesLayerGroup.clearLayers();
+
+      DAMS_DATA.forEach(d => {
+        if (d.downstream_dam) {
+          const downDam = DAMS_DATA.find(x => x.id === d.downstream_dam);
+          if (downDam) {
+            const line = L.polyline([
+              [d.coords[1], d.coords[0]],
+              [downDam.coords[1], downDam.coords[0]]
+            ], {
+              color: '#38bdf8',
+              weight: 2,
+              opacity: 0.7,
+              dashArray: '5, 5'
+            });
+
+            line.bindTooltip(`
+              <div class="text-[10px] font-mono text-cyan-300">Kaskad: ${d.name.replace(' Barajı', '')} ➔ ${downDam.name.replace(' Barajı', '')}</div>
+            `, { sticky: true, className: 'leaflet-custom-tooltip' });
+
+            cascadesLayerGroup.addLayer(line);
+          }
+        }
+      });
+    }
+
+    function renderLakesLayer() {
+      if (!lakesLayerGroup) return;
+      lakesLayerGroup.clearLayers();
+
+      LAKES_DATA.forEach(l => {
+        const refRadius = Math.min(24, Math.max(9, Math.sqrt(l.ref_area_km2) * 0.42));
+        const curRadius = Math.min(22, Math.max(6, Math.sqrt(l.current_area_km2) * 0.42));
+        const latLng = [l.coords[1], l.coords[0]];
+
+        const refCircle = L.circleMarker(latLng, {
+          radius: refRadius,
+          color: '#ef4444',
+          weight: 1.8,
+          opacity: 0.8,
+          fill: false,
+          dashArray: '3, 4',
+          interactive: false
+        });
+
+        const curCircle = L.circleMarker(latLng, {
+          radius: curRadius,
+          color: '#93c5fd',
+          weight: 1.5,
+          fillColor: l.color,
+          fillOpacity: 0.65
+        });
+
+        curCircle.bindTooltip(`
+          <div class="font-bold text-xs">${l.name}</div>
+          <div class="text-[10px] text-slate-300">${l.status}</div>
+          <div class="text-[10px] mt-1 font-mono text-rose-400">-%${l.area_loss_pct} Çekilme (${l.current_area_km2} km²)</div>
+        `, { sticky: true, className: 'leaflet-custom-tooltip' });
+
+        curCircle.on('click', () => {
+          openLakeDetail(l);
+        });
+
+        lakesLayerGroup.addLayer(refCircle);
+        lakesLayerGroup.addLayer(curCircle);
+      });
+    }
+
+    function renderBasinsLayer() {
+      if (!basinsLayerGroup) return;
+      basinsLayerGroup.clearLayers();
+
+      BASINS_DATA.forEach(b => {
+        let color = '#10b981';
+        if (b.ssi < -1.5) color = '#e11d48';
+        else if (b.ssi < -0.5) color = '#f97316';
+        else if (b.ssi > 1.0) color = '#06b6d4';
+
+        const latLng = [b.coords[1], b.coords[0]];
+        const marker = L.circleMarker(latLng, {
+          radius: 8,
+          color: '#ffffff',
+          weight: 1.8,
+          fillColor: color,
+          fillOpacity: 0.88
+        });
+
+        marker.bindTooltip(`
+          <div class="font-bold text-xs">${b.name}</div>
+          <div class="text-[10px] text-slate-300">${b.status}</div>
+          <div class="text-[10px] mt-1 font-mono text-cyan-300">SSI: ${b.ssi} &bull; ${b.yield_hm3.toLocaleString()} hm³/yıl</div>
+        `, { sticky: true, className: 'leaflet-custom-tooltip' });
+
+        marker.on('click', () => {
+          openBasinDetail(b);
+        });
+
+        basinsLayerGroup.addLayer(marker);
+      });
+    }
+
+    function initFlowCanvasEngine() {
+      flowCanvas = document.getElementById('flow-canvas');
+      if (!flowCanvas) return;
+      flowCtx = flowCanvas.getContext('2d');
+
+      resizeFlowCanvas();
+      window.addEventListener('resize', resizeFlowCanvas);
+      if (map) {
+        map.on('resize', resizeFlowCanvas);
+      }
+
+      spawnFlowParticles();
+      animateFlowParticles();
+    }
+
+    function resizeFlowCanvas() {
+      if (!flowCanvas || !map) return;
+      const size = map.getSize();
+      const dpr = window.devicePixelRatio || 1;
+      flowCanvas.width = size.x * dpr;
+      flowCanvas.height = size.y * dpr;
+      flowCanvas.style.width = size.x + 'px';
+      flowCanvas.style.height = size.y + 'px';
+      if (flowCtx) {
+        flowCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
+
+    function spawnFlowParticles() {
+      flowParticles = [];
+      RIVERS_DATA.forEach(r => {
+        const flow = r.seasonal_profile[timelineMonthIndex];
+        const particleCount = Math.max(3, Math.min(14, Math.round(Math.log10(flow + 1) * 4.5)));
+        
+        for (let i = 0; i < particleCount; i++) {
+          flowParticles.push({
+            riverId: r.id,
+            progress: (i / particleCount) + (Math.random() * 0.08),
+            speedBase: 0.0018 + (Math.random() * 0.0006)
+          });
+        }
+      });
+    }
+
+    function animateFlowParticles() {
+      if (flowCtx && flowCanvas && isFlowParticlesActive && map) {
+        const size = map.getSize();
+        flowCtx.clearRect(0, 0, size.x, size.y);
+
+        flowParticles.forEach(p => {
+          const river = RIVERS_DATA.find(r => r.id === p.riverId);
+          if (!river || !river.coords || river.coords.length < 2) return;
+
+          const flow = river.seasonal_profile[timelineMonthIndex];
+          const velocity = 0.28 * Math.pow(Math.max(1, flow), 0.38);
+          const stepSpeed = p.speedBase * (velocity / 1.5);
+          p.progress = (p.progress + stepSpeed) % 1.0;
+
+          // Project coordinates to Leaflet screen pixels
+          const screenPts = river.coords.map(c => map.latLngToContainerPoint([c[1], c[0]]));
+          const pt = getInterpolatedPointAlongPolyline(screenPts, p.progress);
+          const prevPt = getInterpolatedPointAlongPolyline(screenPts, Math.max(0, p.progress - 0.04));
+
+          if (pt && prevPt) {
+            let pColor = '#38bdf8';
+            if (flow < river.normal_flow * 0.6) pColor = '#fb7185';
+            else if (flow > river.normal_flow * 1.4) pColor = '#67e8f9';
+            else pColor = '#34d399';
+
+            flowCtx.beginPath();
+            flowCtx.moveTo(prevPt.x, prevPt.y);
+            flowCtx.lineTo(pt.x, pt.y);
+            flowCtx.strokeStyle = pColor;
+            flowCtx.lineWidth = Math.min(4.5, Math.max(1.8, Math.log10(flow + 1) * 1.5));
+            flowCtx.lineCap = 'round';
+            flowCtx.shadowColor = pColor;
+            flowCtx.shadowBlur = 6;
+            flowCtx.stroke();
+            flowCtx.shadowBlur = 0;
+          }
+        });
+      }
+
+      canvasAnimFrameId = requestAnimationFrame(animateFlowParticles);
+    }
+
+    function getInterpolatedPointAlongPolyline(points, t) {
+      if (!points || points.length < 2) return null;
+      if (t <= 0) return points[0];
+      if (t >= 1) return points[points.length - 1];
+
+      let totalDist = 0;
+      const dists = [];
+      for (let i = 0; i < points.length - 1; i++) {
+        const dx = points[i+1].x - points[i].x;
+        const dy = points[i+1].y - points[i].y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        dists.push(d);
+        totalDist += d;
+      }
+
+      if (totalDist === 0) return points[0];
+
+      const targetDist = t * totalDist;
+      let acc = 0;
+      for (let i = 0; i < dists.length; i++) {
+        if (acc + dists[i] >= targetDist) {
+          const segT = dists[i] > 0 ? (targetDist - acc) / dists[i] : 0;
+          return {
+            x: points[i].x + (points[i+1].x - points[i].x) * segT,
+            y: points[i].y + (points[i+1].y - points[i].y) * segT
+          };
+        }
+        acc += dists[i];
+      }
+
+      return points[points.length - 1];
+    }
+
+    function toggleFlowParticles() {
+      isFlowParticlesActive = document.getElementById('layer-toggle-flow-particles').checked;
+      if (!isFlowParticlesActive && flowCtx && flowCanvas) {
+        flowCtx.clearRect(0, 0, flowCanvas.width, flowCanvas.height);
+      }
+    }
+
+    function traceUpstream() {
+      if (!selectedEntity || selectedEntity.type !== 'river') return;
+      const targetId = selectedEntity.id;
+      activeTraceRiverId = targetId;
+      activeTraceType = 'upstream';
+
+      const collectedIds = new Set();
+      function searchUpstream(id) {
+        collectedIds.add(id);
+        const riv = RIVERS_DATA.find(r => r.id === id);
+        if (riv && riv.upstream_ids && riv.upstream_ids.length) {
+          riv.upstream_ids.forEach(uid => searchUpstream(uid));
+        }
+      }
+
+      searchUpstream(targetId);
+
+      if (traceLayerGroup) {
+        traceLayerGroup.clearLayers();
+        RIVERS_DATA.filter(r => collectedIds.has(r.id)).forEach(r => {
+          const latLngs = r.coords.map(c => [c[1], c[0]]);
+          traceLayerGroup.addLayer(L.polyline(latLngs, {
+            color: '#facc15',
+            weight: 10,
+            opacity: 0.75,
+            lineCap: 'round',
+            lineJoin: 'round',
+            interactive: false
+          }));
+          traceLayerGroup.addLayer(L.polyline(latLngs, {
+            color: '#ffffff',
+            weight: 3.5,
+            opacity: 1.0,
+            lineCap: 'round',
+            lineJoin: 'round',
+            interactive: false
+          }));
+        });
+      }
+
+      showToast(`${collectedIds.size} Memba (Yukarı Havza) kolu aydınlatıldı.`, 'info');
+    }
+
+    function traceDownstream() {
+      if (!selectedEntity || selectedEntity.type !== 'river') return;
+      const targetId = selectedEntity.id;
+      activeTraceRiverId = targetId;
+      activeTraceType = 'downstream';
+
+      const collectedIds = new Set();
+      let cur = RIVERS_DATA.find(r => r.id === targetId);
+
+      while (cur) {
+        collectedIds.add(cur.id);
+        if (cur.next_down) {
+          cur = RIVERS_DATA.find(r => r.id === cur.next_down);
+        } else {
+          cur = null;
+        }
+      }
+
+      if (traceLayerGroup) {
+        traceLayerGroup.clearLayers();
+        RIVERS_DATA.filter(r => collectedIds.has(r.id)).forEach(r => {
+          const latLngs = r.coords.map(c => [c[1], c[0]]);
+          traceLayerGroup.addLayer(L.polyline(latLngs, {
+            color: '#38bdf8',
+            weight: 10,
+            opacity: 0.75,
+            lineCap: 'round',
+            lineJoin: 'round',
+            interactive: false
+          }));
+          traceLayerGroup.addLayer(L.polyline(latLngs, {
+            color: '#ffffff',
+            weight: 3.5,
+            opacity: 1.0,
+            lineCap: 'round',
+            lineJoin: 'round',
+            interactive: false
+          }));
+        });
+      }
+
+      showToast(`Denize kadar mansap yolu vurgulandı (${collectedIds.size} segment).`, 'info');
+    }
+
+    function clearTracing() {
+      activeTraceRiverId = null;
+      activeTraceType = null;
+      if (traceLayerGroup) {
+        traceLayerGroup.clearLayers();
+      }
+      showToast("Topolojik izleme rotası temizlendi.", "info");
+    }
+
+    function toggleTemporalPlayback() {
+      isPlayingTimeline = !isPlayingTimeline;
+      const btn = document.getElementById('btn-play-pause');
+      const icon = document.getElementById('play-icon');
+
+      if (isPlayingTimeline) {
+        btn.classList.remove('bg-cyan-500');
+        btn.classList.add('bg-amber-500');
+        icon.setAttribute('data-lucide', 'pause');
+        lucide.createIcons();
+
+        playbackInterval = setInterval(() => {
+          timelineMonthIndex = (timelineMonthIndex + 1) % 12;
+          document.getElementById('timeline-slider').value = timelineMonthIndex;
+          applyTimelineMonth(timelineMonthIndex);
+        }, 1800 / playbackSpeed);
+
+        showToast("4D Hidrolojik zaman oynatımı başlatıldı.", "info");
+      } else {
+        clearInterval(playbackInterval);
+        btn.classList.remove('bg-amber-500');
+        btn.classList.add('bg-cyan-500');
+        icon.setAttribute('data-lucide', 'play');
+        lucide.createIcons();
+      }
+    }
+
+    function setPlaySpeed(spd) {
+      playbackSpeed = spd;
+      document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.classList.remove('bg-slate-800', 'text-cyan-300');
+        btn.classList.add('bg-slate-900', 'text-slate-400');
+      });
+      if (event && event.target) {
+        event.target.classList.add('bg-slate-800', 'text-cyan-300');
+      }
+
+      if (isPlayingTimeline) {
+        clearInterval(playbackInterval);
+        playbackInterval = setInterval(() => {
+          timelineMonthIndex = (timelineMonthIndex + 1) % 12;
+          document.getElementById('timeline-slider').value = timelineMonthIndex;
+          applyTimelineMonth(timelineMonthIndex);
+        }, 1800 / playbackSpeed);
+      }
+    }
+
+    function onTimelineScrub(val) {
+      timelineMonthIndex = parseInt(val);
+      applyTimelineMonth(timelineMonthIndex);
+    }
+
+    function applyTimelineMonth(idx) {
+      const monthName = MONTH_NAMES[idx];
+      const desc = SEASON_DESCRIPTIONS[idx];
+
+      document.getElementById('timeline-month-badge').innerText = `${monthName} (Ay #${idx + 1})`;
+      document.getElementById('season-description').innerText = desc;
+
+      renderRiversLayer();
+      renderDamsLayer();
+
+      updateKPISummaries();
+      renderSidebarList();
+      spawnFlowParticles();
+
+      if (selectedEntity && selectedEntity.type === 'river') {
+        const riv = RIVERS_DATA.find(r => r.id === selectedEntity.id);
+        if (riv) {
+          const curFlow = riv.seasonal_profile[timelineMonthIndex];
+          updateRiverMetricsBox(riv, curFlow);
+        }
+      }
+    }
+
+    function updateKPISummaries() {
+      let totalFlow = 0;
+      RIVERS_DATA.forEach(r => {
+        totalFlow += r.seasonal_profile[timelineMonthIndex];
+      });
+
+      let totalEnergy = 0;
+      let totalOccupancy = 0;
+      DAMS_DATA.forEach(d => {
+        const seasonalFactor = (timelineMonthIndex >= 3 && timelineMonthIndex <= 5) ? 1.12 : (timelineMonthIndex >= 7 && timelineMonthIndex <= 9) ? 0.90 : 1.0;
+        const occ = Math.min(99, Math.round(d.occupancy_pct * seasonalFactor));
+        const vol = Math.round((d.max_storage_hm3 * occ) / 100);
+        totalOccupancy += occ;
+        totalEnergy += Math.round(0.0024 * vol * d.head_m);
+      });
+
+      const avgDamOcc = (totalOccupancy / DAMS_DATA.length).toFixed(1);
+
+      document.getElementById('kpi-total-flow').innerText = `${totalFlow.toLocaleString()} m³/s`;
+      document.getElementById('kpi-total-energy').innerText = `${totalEnergy.toLocaleString()} GWh`;
+      document.getElementById('kpi-dam-avg').innerText = `%${avgDamOcc}`;
+    }
+
+    function renderSidebarList() {
+      const listContainer = document.getElementById('items-list');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+      const query = (document.getElementById('search-input').value || '').toLowerCase();
+
+      if (currentTab === 'rivers') {
+        const filtered = RIVERS_DATA.filter(r => {
+          const matchQuery = r.name.toLowerCase().includes(query) || r.basin.toLowerCase().includes(query);
+          const currentFlow = r.seasonal_profile[timelineMonthIndex];
+          const status = (currentFlow < r.normal_flow * 0.6) ? 'drought' : (currentFlow > r.normal_flow * 1.4) ? 'flood' : 'normal';
+          const matchFilter = currentFilter === 'all' || status === currentFilter;
+          return matchQuery && matchFilter;
+        });
+
+        filtered.forEach(r => {
+          const flow = r.seasonal_profile[timelineMonthIndex];
+          const velocity = (0.28 * Math.pow(flow, 0.38)).toFixed(2);
+          const status = (flow < r.normal_flow * 0.6) ? 'drought' : (flow > r.normal_flow * 1.4) ? 'flood' : 'normal';
+
+          const badge = status === 'drought'
+            ? '<span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30">Kuraklık</span>'
+            : status === 'flood'
+            ? '<span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Yüksek Akış</span>'
+            : '<span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Normal</span>';
+
+          const card = document.createElement('div');
+          card.className = "p-2.5 rounded-xl bg-slate-900/40 hover:bg-slate-800/80 cursor-pointer border border-slate-800/80 hover:border-cyan-500/50 transition group";
+          card.onclick = () => {
+            flyToCoordinates(r.coords[Math.floor(r.coords.length / 2)], 8.5);
+            openRiverDetail(r);
+          };
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-100 group-hover:text-cyan-400 transition">${r.name}</h4>
+                <p class="text-[11px] text-slate-400">${r.basin}</p>
+              </div>
+              ${badge}
+            </div>
+            <div class="mt-2 flex items-center justify-between text-[11px] font-mono-code">
+              <span class="text-cyan-300 font-bold">${flow} m³/s</span>
+              <span class="text-slate-400 text-[10px]">Hız: ${velocity} m/s</span>
+              <span class="text-slate-500 text-[10px]">SSI: ${r.ssi_score}</span>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+
+      } else if (currentTab === 'dams') {
+        const filtered = DAMS_DATA.filter(d => {
+          const matchQuery = d.name.toLowerCase().includes(query) || d.cascade_group.toLowerCase().includes(query);
+          const matchFilter = currentFilter === 'all' || 
+            (currentFilter === 'drought' && d.occupancy_pct < 30) ||
+            (currentFilter === 'normal' && d.occupancy_pct >= 30 && d.occupancy_pct <= 65) ||
+            (currentFilter === 'flood' && d.occupancy_pct > 65);
+          return matchQuery && matchFilter;
+        });
+
+        filtered.forEach(d => {
+          const gwh = Math.round(0.0024 * d.current_volume_hm3 * d.head_m);
+          const pctColor = d.occupancy_pct < 30 ? 'text-rose-400' : d.occupancy_pct <= 65 ? 'text-amber-400' : 'text-cyan-400';
+          const barColor = d.occupancy_pct < 30 ? 'bg-rose-500' : d.occupancy_pct <= 65 ? 'bg-amber-400' : 'bg-cyan-500';
+
+          const card = document.createElement('div');
+          card.className = "p-2.5 rounded-xl bg-slate-900/40 hover:bg-slate-800/80 cursor-pointer border border-slate-800/80 hover:border-cyan-500/50 transition group";
+          card.onclick = () => {
+            flyToCoordinates(d.coords, 9.5);
+            openDamDetail(d);
+          };
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-100 group-hover:text-cyan-400 transition">${d.name}</h4>
+                <p class="text-[11px] text-slate-400">${d.cascade_group} &bull; ${d.installed_power_mw} MW</p>
+              </div>
+              <span class="text-xs font-mono font-bold ${pctColor}">%${d.occupancy_pct}</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div class="${barColor} h-full rounded-full transition-all duration-500" style="width: ${d.occupancy_pct}%"></div>
+            </div>
+            <div class="mt-1.5 flex items-center justify-between text-[10px] text-slate-400 font-mono-code">
+              <span class="text-amber-400 font-bold">${gwh.toLocaleString()} GWh Eşdeğer</span>
+              <span>Düşü: ${d.head_m} m</span>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+
+      } else if (currentTab === 'lakes') {
+        const filtered = LAKES_DATA.filter(l => l.name.toLowerCase().includes(query) || l.basin.toLowerCase().includes(query));
+        filtered.forEach(l => {
+          const card = document.createElement('div');
+          card.className = "p-2.5 rounded-xl bg-slate-900/40 hover:bg-slate-800/80 cursor-pointer border border-slate-800/80 hover:border-cyan-500/50 transition group";
+          card.onclick = () => {
+            flyToCoordinates(l.coords, 9.2);
+            openLakeDetail(l);
+          };
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-100 group-hover:text-cyan-400 transition">${l.name}</h4>
+                <p class="text-[11px] text-slate-400">${l.basin}</p>
+              </div>
+              <span class="text-xs font-mono text-rose-400 font-bold">-%${l.area_loss_pct} Kayıp</span>
+            </div>
+            <p class="text-[11px] text-slate-300 mt-1 flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full" style="background-color: ${l.color}"></span>
+              <span>${l.status}</span>
+            </p>
+            <div class="mt-1.5 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+              <span>Sentinel NDWI: ${l.current_area_km2} km²</span>
+              <span>2000 Ref: ${l.ref_area_km2} km²</span>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+
+      } else if (currentTab === 'basins') {
+        const filtered = BASINS_DATA.filter(b => b.name.toLowerCase().includes(query));
+        filtered.forEach(b => {
+          const ssiColor = b.ssi < -1 ? 'text-rose-400' : b.ssi > 1 ? 'text-cyan-400' : 'text-emerald-400';
+          const card = document.createElement('div');
+          card.className = "p-2.5 rounded-xl bg-slate-900/40 hover:bg-slate-800/80 cursor-pointer border border-slate-800/80 hover:border-cyan-500/50 transition group";
+          card.onclick = () => {
+            flyToCoordinates(b.coords, 7.8);
+            openBasinDetail(b);
+          };
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-100 group-hover:text-cyan-400 transition">${b.name}</h4>
+                <p class="text-[11px] text-slate-400">${b.status}</p>
+              </div>
+              <span class="text-xs font-mono font-bold ${ssiColor}">SSI: ${b.ssi}</span>
+            </div>
+            <div class="mt-1.5 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span>Yıllık Verim: <strong class="text-cyan-300">${b.yield_hm3.toLocaleString()} hm³</strong></span>
+              <span>${b.area_km2.toLocaleString()} km²</span>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+      }
+    }
+
+    function openRiverDetail(riv) {
+      selectedEntity = { type: 'river', id: riv.id };
+      showDrawer();
+
+      document.getElementById('drawer-title').innerText = riv.name;
+      document.getElementById('drawer-subtitle').innerText = `${riv.basin} • Uzunluk: ${riv.length_km} km`;
+      document.getElementById('drawer-tracing-actions').classList.remove('hidden');
+      document.getElementById('drawer-cascade-box').classList.add('hidden');
+
+      const curFlow = riv.seasonal_profile[timelineMonthIndex];
+      updateRiverMetricsBox(riv, curFlow);
+
+      const pastLabels = ['-40G', '-30G', '-20G', '-10G', 'Bugün'];
+      const pastData = [curFlow * 0.85, curFlow * 0.92, curFlow * 0.98, curFlow * 1.05, curFlow];
+
+      const forecastLabels = ['+3G', '+6G', '+9G', '+12G', '+15G'];
+      const forecastP50 = [curFlow * 1.02, curFlow * 1.08, curFlow * 1.04, curFlow * 0.96, curFlow * 0.92];
+      const forecastP90 = [curFlow * 1.15, curFlow * 1.25, curFlow * 1.22, curFlow * 1.12, curFlow * 1.08];
+      const forecastP10 = [curFlow * 0.90, curFlow * 0.88, curFlow * 0.82, curFlow * 0.78, curFlow * 0.75];
+
+      renderRiverEnsembleChart(pastLabels, pastData, forecastLabels, forecastP50, forecastP90, forecastP10, riv.normal_flow);
+    }
+
+    function updateRiverMetricsBox(riv, curFlow) {
+      const velocity = (0.28 * Math.pow(curFlow, 0.38)).toFixed(2);
+      const diffPct = (((curFlow - riv.normal_flow) / riv.normal_flow) * 100).toFixed(1);
+      const metricsContainer = document.getElementById('drawer-metrics');
+      metricsContainer.innerHTML = `
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Simüle Debi</div>
+          <div class="text-xs font-mono font-bold text-cyan-300">${curFlow} m³/s</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Akış Hızı</div>
+          <div class="text-xs font-mono font-bold text-emerald-400">${velocity} m/s</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Anomali / SSI</div>
+          <div class="text-xs font-mono font-bold ${diffPct < 0 ? 'text-rose-400' : 'text-cyan-400'}">${diffPct}% (${riv.ssi_score})</div>
+        </div>
+      `;
+    }
+
+    function openDamDetail(dam) {
+      selectedEntity = { type: 'dam', id: dam.id };
+      showDrawer();
+
+      document.getElementById('drawer-title').innerText = dam.name;
+      document.getElementById('drawer-subtitle').innerText = `${dam.cascade_group} • ${dam.purpose}`;
+      document.getElementById('drawer-tracing-actions').classList.add('hidden');
+
+      const potentialGWh = Math.round(0.0024 * dam.current_volume_hm3 * dam.head_m);
+
+      const metricsContainer = document.getElementById('drawer-metrics');
+      metricsContainer.innerHTML = `
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Doluluk</div>
+          <div class="text-xs font-mono font-bold text-cyan-300">%${dam.occupancy_pct}</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Enerji Eşdeğeri</div>
+          <div class="text-xs font-mono font-bold text-amber-400">${potentialGWh.toLocaleString()} GWh</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Net Düşü Kotu</div>
+          <div class="text-xs font-mono font-bold text-slate-200">${dam.head_m} m</div>
+        </div>
+      `;
+
+      const cascadeBox = document.getElementById('drawer-cascade-box');
+      cascadeBox.classList.remove('hidden');
+      document.getElementById('cascade-chain-name').innerText = dam.cascade_group;
+
+      const groupDams = DAMS_DATA.filter(d => d.cascade_group === dam.cascade_group).sort((a,b) => a.cascade_rank - b.cascade_rank);
+      const stepsDiv = document.getElementById('cascade-steps');
+      stepsDiv.innerHTML = groupDams.map((gd, idx) => {
+        const isCurrent = gd.id === dam.id;
+        const arrow = idx < groupDams.length - 1 ? '<span class="text-slate-600 px-1">➔</span>' : '';
+        return `
+          <div class="flex items-center">
+            <span class="px-1.5 py-0.5 rounded ${isCurrent ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' : 'text-slate-400'}">
+              ${gd.name.replace(' Barajı', '')} (%${gd.occupancy_pct})
+            </span>
+            ${arrow}
+          </div>
+        `;
+      }).join('');
+
+      renderDamProductionChart(dam);
+    }
+
+    function openLakeDetail(lake) {
+      selectedEntity = { type: 'lake', id: lake.id };
+      showDrawer();
+
+      document.getElementById('drawer-title').innerText = lake.name;
+      document.getElementById('drawer-subtitle').innerText = `${lake.basin} • Sentinel-2 NDWI İzleme`;
+      document.getElementById('drawer-tracing-actions').classList.add('hidden');
+      document.getElementById('drawer-cascade-box').classList.add('hidden');
+
+      const metricsContainer = document.getElementById('drawer-metrics');
+      metricsContainer.innerHTML = `
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Aktif Alan</div>
+          <div class="text-xs font-mono font-bold text-cyan-300">${lake.current_area_km2} km²</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Tarihsel Kayıp</div>
+          <div class="text-xs font-mono font-bold text-rose-400">-%${lake.area_loss_pct}</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Rakım Kotu</div>
+          <div class="text-xs font-mono font-bold text-slate-200">${lake.altitude_m} m</div>
+        </div>
+      `;
+
+      renderLakeLossChart(lake);
+    }
+
+    function openBasinDetail(b) {
+      selectedEntity = { type: 'basin', id: b.id };
+      showDrawer();
+
+      document.getElementById('drawer-title').innerText = b.name;
+      document.getElementById('drawer-subtitle').innerText = "Türkiye Hidrolojik Havza Envanteri";
+      document.getElementById('drawer-tracing-actions').classList.add('hidden');
+      document.getElementById('drawer-cascade-box').classList.add('hidden');
+
+      const metricsContainer = document.getElementById('drawer-metrics');
+      metricsContainer.innerHTML = `
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Yıllık Verim</div>
+          <div class="text-xs font-mono font-bold text-cyan-300">${b.yield_hm3.toLocaleString()} hm³</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">SSI İndeksi</div>
+          <div class="text-xs font-mono font-bold ${b.ssi < 0 ? 'text-rose-400' : 'text-emerald-400'}">${b.ssi}</div>
+        </div>
+        <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400 uppercase">Havza Alanı</div>
+          <div class="text-xs font-mono font-bold text-slate-200">${b.area_km2.toLocaleString()} km²</div>
+        </div>
+      `;
+
+      renderBasinAnnualChart(b);
+    }
+
+    function renderRiverEnsembleChart(pastL, pastD, foreL, foreP50, foreP90, foreP10, normalThreshold) {
+      const ctx = document.getElementById('drawer-chart').getContext('2d');
+      if (detailChart) detailChart.destroy();
+
+      const allLabels = [...pastL, ...foreL];
+      const pastPadded = [...pastD, null, null, null, null, null];
+      const p50Padded = [null, null, null, null, pastD[pastD.length - 1], ...foreP50];
+      const p90Padded = [null, null, null, null, pastD[pastD.length - 1], ...foreP90];
+      const p10Padded = [null, null, null, null, pastD[pastD.length - 1], ...foreP10];
+
+      detailChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: allLabels,
+          datasets: [
+            {
+              label: 'Ölçülen / Reanaliz Akış',
+              data: pastPadded,
+              borderColor: '#06b6d4',
+              backgroundColor: 'rgba(6, 182, 212, 0.1)',
+              borderWidth: 2.5,
+              tension: 0.3,
+              pointRadius: 3
+            },
+            {
+              label: 'GEOGloWS Ensemble P50',
+              data: p50Padded,
+              borderColor: '#38bdf8',
+              borderDash: [4, 4],
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 2
+            },
+            {
+              label: 'Ensemble P90',
+              data: p90Padded,
+              borderColor: 'transparent',
+              backgroundColor: 'rgba(56, 189, 248, 0.15)',
+              fill: '+1',
+              pointRadius: 0
+            },
+            {
+              label: 'Ensemble P10',
+              data: p10Padded,
+              borderColor: 'transparent',
+              pointRadius: 0
+            },
+            {
+              label: 'Mevsimsel Normal Eşik',
+              data: Array(allLabels.length).fill(normalThreshold),
+              borderColor: '#f59e0b',
+              borderDash: [6, 4],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#090d16',
+              titleColor: '#e2e8f0',
+              bodyColor: '#38bdf8',
+              borderColor: '#334155',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    function renderDamProductionChart(dam) {
+      const ctx = document.getElementById('drawer-chart').getContext('2d');
+      if (detailChart) detailChart.destroy();
+
+      detailChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl'],
+          datasets: [
+            {
+              label: 'Aylık Üretim (GWh)',
+              data: [
+                Math.round(dam.installed_power_mw * 0.52),
+                Math.round(dam.installed_power_mw * 0.65),
+                Math.round(dam.installed_power_mw * 0.58),
+                Math.round(dam.installed_power_mw * 0.44),
+                Math.round(dam.installed_power_mw * 0.38),
+                Math.round(dam.installed_power_mw * 0.42)
+              ],
+              backgroundColor: 'rgba(245, 158, 11, 0.65)',
+              borderColor: '#f59e0b',
+              borderWidth: 1,
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    function renderLakeLossChart(lake) {
+      const ctx = document.getElementById('drawer-chart').getContext('2d');
+      if (detailChart) detailChart.destroy();
+
+      detailChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['2000 Ref', '2008', '2014', '2019', '2022', 'Sentinel-2'],
+          datasets: [
+            {
+              label: 'Su Aynası Yüzey Alanı (km²)',
+              data: [
+                lake.ref_area_km2,
+                Math.round(lake.ref_area_km2 * 0.92),
+                Math.round(lake.ref_area_km2 * 0.84),
+                Math.round(lake.ref_area_km2 * 0.76),
+                Math.round(lake.ref_area_km2 * 0.65),
+                lake.current_area_km2
+              ],
+              borderColor: '#e11d48',
+              backgroundColor: 'rgba(225, 29, 72, 0.15)',
+              fill: true,
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    function renderBasinAnnualChart(b) {
+      const ctx = document.getElementById('drawer-chart').getContext('2d');
+      if (detailChart) detailChart.destroy();
+
+      detailChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],
+          datasets: [
+            {
+              label: 'Aylık Ortalama Akım Dağılımı (hm³)',
+              data: [0.08, 0.11, 0.18, 0.24, 0.19, 0.08, 0.03, 0.02, 0.02, 0.04, 0.06, 0.07].map(k => Math.round(b.yield_hm3 * k)),
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              fill: true,
+              borderWidth: 2,
+              tension: 0.35,
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } },
+            y: { grid: { color: 'rgba(51, 65, 85, 0.2)' }, ticks: { color: '#64748b', font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      ['rivers', 'dams', 'lakes', 'basins'].forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabId) {
+          btn.className = "flex-1 py-2 rounded-lg flex items-center justify-center space-x-1.5 bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 transition";
+        } else {
+          btn.className = "flex-1 py-2 rounded-lg flex items-center justify-center space-x-1.5 text-slate-400 hover:text-slate-200 transition";
+        }
+      });
+
+      const search = document.getElementById('search-input');
+      if (tabId === 'rivers') search.placeholder = "Akarsu adı veya havza ara...";
+      else if (tabId === 'dams') search.placeholder = "Baraj adı veya kaskad ara...";
+      else if (tabId === 'lakes') search.placeholder = "Göl adı veya havza ara...";
+      else search.placeholder = "Hidrolojik havza ara...";
+
+      renderSidebarList();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filter) {
+          btn.classList.add('bg-slate-800', 'text-slate-100', 'border-slate-600');
+          btn.classList.remove('bg-slate-900');
+        } else {
+          btn.classList.remove('bg-slate-800', 'text-slate-100', 'border-slate-600');
+          btn.classList.add('bg-slate-900');
+        }
+      });
+      renderSidebarList();
+    }
+
+    function filterActiveList() {
+      renderSidebarList();
+    }
+
+    function toggleLayer(type) {
+      const isChecked = document.getElementById(`layer-toggle-${type}`).checked;
+      const layerMap = {
+        'rivers': riversLayerGroup,
+        'dams': damsLayerGroup,
+        'cascades': cascadesLayerGroup,
+        'lakes': lakesLayerGroup,
+        'basins': basinsLayerGroup
+      };
+      const group = layerMap[type];
+      if (!group || !map) return;
+      if (isChecked) {
+        if (!map.hasLayer(group)) map.addLayer(group);
+      } else {
+        if (map.hasLayer(group)) map.removeLayer(group);
+      }
+    }
+
+    function flyToCoordinates(coords, zoom = 8.5) {
+      if (map) {
+        map.flyTo([coords[1], coords[0]], zoom, { duration: 1.4 });
+      }
+    }
+
+    function showDrawer() {
+      const d = document.getElementById('detail-drawer');
+      d.classList.remove('translate-x-[120%]', 'opacity-0', 'pointer-events-none');
+      d.classList.add('translate-x-0', 'opacity-100');
+    }
+
+    function closeDetailDrawer() {
+      const d = document.getElementById('detail-drawer');
+      d.classList.add('translate-x-[120%]', 'opacity-0', 'pointer-events-none');
+      d.classList.remove('translate-x-0', 'opacity-100');
+      selectedEntity = null;
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+    }
+
+    async function syncEpiasData() {
+      const icon = document.getElementById('sync-icon');
+      icon.classList.add('animate-spin');
+
+      showToast("EPİAŞ Şeffaflık Platformu HES telemetrisi senkronize ediliyor...", "info");
+
+      setTimeout(() => {
+        try {
+          DAMS_DATA.forEach(d => {
+            const delta = (Math.random() * 0.6 - 0.3);
+            d.occupancy_pct = Math.min(99, Math.max(8, parseFloat((d.occupancy_pct + delta).toFixed(1))));
+            d.current_volume_hm3 = Math.round((d.max_storage_hm3 * d.occupancy_pct) / 100);
+          });
+
+          if (damsLayerGroup) {
+            renderDamsLayer();
+          }
+
+          updateKPISummaries();
+          renderSidebarList();
+          showToast("EPİAŞ canlı baraj telemetrisi güncellendi!", "success");
+        } catch (e) {
+          showToast("Telemetri güncellenirken yerel önbellek korundu.", "info");
+        } finally {
+          icon.classList.remove('animate-spin');
+        }
+      }, 700);
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const borderColor = type === 'success' ? 'border-emerald-500/50 text-emerald-300' : 'border-cyan-500/50 text-cyan-300';
+      
+      toast.className = `glass-cockpit px-4 py-2 rounded-xl text-xs shadow-2xl border ${borderColor} flex items-center space-x-2 transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : 'bg-cyan-400'}"></span>
+        <span>${msg}</span>
+      `;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => { toast.classList.remove('translate-y-2', 'opacity-0'); });
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    window.onload = () => {
+      initMap();
+    };
+  </script>
+</body>
+</html>

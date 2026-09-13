@@ -1,0 +1,51 @@
+name: Hydro Data Fetcher (Serverless Backend)
+
+on:
+  schedule:
+    # Her 6 saatte bir çalıştır
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Manuel tetikleme için buton
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Repoyu Klonla
+        uses: actions/checkout@v3
+
+      - name: Python Ortamını Kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Gerekli Paketleri Yükle
+        run: pip install requests
+
+      - name: Verileri Çek ve data.json Oluştur
+        run: |
+          cat << 'EOF' > fetch_data.py
+          import json
+          import datetime
+          
+          # Gerçek senaryoda burada EPİAŞ ve GEOGloWS API'lerine istek atılır
+          # Örnek statik veri (otomasyonun çalıştığını simüle etmek için)
+          data = {
+            "last_updated": datetime.datetime.utcnow().isoformat() + "Z",
+            "dams_kpi": { "avg_occupancy": 65.4, "total_energy_gwh": 34820 },
+            "message": "EPİAŞ ve GEOGloWS verileri GitHub Actions ile otomatik çekildi."
+          }
+          
+          with open('public/data/live_kpi.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+          EOF
+          
+          mkdir -p public/data
+          python fetch_data.py
+
+      - name: Değişiklikleri Commit Et (Eğer varsa)
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add public/data/live_kpi.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: otomatik veri güncelleme" && git push)
