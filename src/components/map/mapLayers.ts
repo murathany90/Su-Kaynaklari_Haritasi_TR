@@ -104,20 +104,20 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
 
   addLayerIfMissing(map, {
     id: 'hes177-halo', type: 'circle', source: 'hes177', minzoom: 5,
-    paint: { 'circle-radius': ['*', ['interpolate', ['linear'], ['zoom'], 5, 0.78, 9, 1, 14, 1.3], ['coalesce', ['get', 'visualRadius'], 5]], 'circle-color': '#22d3ee', 'circle-opacity': 0.2, 'circle-blur': 0.6 },
+    paint: { 'circle-radius': 14, 'circle-color': '#22d3ee', 'circle-opacity': 0.2, 'circle-blur': 0.6 },
   });
   addLayerIfMissing(map, {
     id: 'hes177-points', type: 'circle', source: 'hes177', minzoom: 5,
-    paint: { 'circle-radius': ['*', ['interpolate', ['linear'], ['zoom'], 5, 0.78, 9, 1, 14, 1.3], ['coalesce', ['get', 'visualRadius'], 5]], 'circle-color': ['coalesce', ['get', 'color'], '#22d3ee'], 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': 10, 'circle-color': ['coalesce', ['get', 'color'], '#22d3ee'], 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
   });
   addLayerIfMissing(map, {
     id: 'hes177-related', type: 'circle', source: 'hes177', minzoom: 5,
     filter: ['==', ['get', 'relatedToSelected'], true],
-    paint: { 'circle-radius': ['*', ['interpolate', ['linear'], ['zoom'], 5, 0.8, 9, 1, 14, 1.4], ['+', ['coalesce', ['get', 'visualRadius'], 5], 2]], 'circle-color': '#22d3ee', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': 16, 'circle-color': '#22d3ee', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
   });
   addLayerIfMissing(map, {
     id: HES_PIE_LAYER_ID, type: 'symbol', source: 'hes177', minzoom: 5,
-    layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['*', ['coalesce', ['get', 'visualRadius'], 5], 0.037, ['interpolate', ['linear'], ['zoom'], 5, 1, 9, 1.12, 14, 1.3]], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['*', ['coalesce', ['get', 'visualRadius'], 12], 0.05, ['interpolate', ['linear'], ['zoom'], 5, 1, 9, 1.16, 14, 1.35]], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
   });
   addLayerIfMissing(map, {
     id: 'hes177-producer', type: 'symbol', source: 'hes177', minzoom: 5,
@@ -140,7 +140,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   });
   addLayerIfMissing(map, {
     id: 'hes177-selected', type: 'circle', source: 'hes177', minzoom: 4,
-    paint: { 'circle-radius': ['+', ['*', ['interpolate', ['linear'], ['zoom'], 4, 0.75, 10, 1.1], ['coalesce', ['get', 'powerRadius'], 2]], 5], 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': options.selectionColor },
+    paint: { 'circle-radius': 18, 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': options.selectionColor },
   });
   addLayerIfMissing(map, {
     id: 'basins-fill', type: 'fill', source: 'basins',

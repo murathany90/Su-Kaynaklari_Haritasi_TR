@@ -45,7 +45,7 @@ function powerRadius(value: unknown): number {
 
 function visualPowerRadius(value: unknown): number {
   const radius = powerRadius(value);
-  return [5, 7, 9, 11, 13, 15, 18][Math.max(0, Math.min(6, Math.round(radius) - 1))];
+  return [12, 14, 16, 18, 20, 23, 26][Math.max(0, Math.min(6, Math.round(radius) - 1))];
 }
 
 function escapePopup(value: unknown): string {
