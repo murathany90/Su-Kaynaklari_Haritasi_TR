@@ -5,7 +5,7 @@ import { emptyFeatureCollection, type HydroDataManifest, type HydrologyFeatureCo
 export type TabType = 'rivers' | 'dams' | 'lakes' | 'basins';
 export type FilterType = 'all' | 'drought' | 'normal' | 'flood';
 export type ThemeType = 'dark' | 'light';
-export type BasemapType = 'dark' | 'light' | 'satellite' | 'streets';
+export type BasemapType = 'dark' | 'light' | 'neutral' | 'satellite' | 'streets';
 
 interface AppState {
   currentTab: TabType;

@@ -4,12 +4,12 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAppStore } from '../../store/useAppStore';
 import { getForecastTimestamps } from '../../services/hydroData';
-import { getDamColor, getFlowScaleColor, getRiverColor } from '../../data/hydrology';
+import { damIconBucket, displayName, getBasinColor, getDamColor, getFlowScaleColor, getRiverColor, isElectricProducer } from '../../data/hydrology';
 import { getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
-import { ensureHydrologyOverlay, type OverlayCollections, type OverlayOptions } from './mapLayers';
+import { DAM_PIE_LAYER_IDS, ensureHydrologyOverlay, type OverlayCollections, type OverlayOptions } from './mapLayers';
 import { focusSelectedEntity } from './mapCamera';
 
-const INTERACTIVE_LAYERS = ['rivers-core', 'dams-points', 'lakes-points', 'basins-fill'] as const;
+const INTERACTIVE_LAYERS = ['rivers-core', 'dams-points', 'lakes-points', 'basins-fill', 'flow-stations', 'hes-stations', ...DAM_PIE_LAYER_IDS] as const;
 
 function numberFrom(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
@@ -44,6 +44,7 @@ export function BaseMap() {
   const lastSyncedDataRef = useRef<OverlayCollections | null>(null);
   const lastSyncedOptionsRef = useRef<OverlayOptions | null>(null);
   const frameRef = useRef<number | null>(null);
+  const flowAnimationRef = useRef<number | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
   const rivers = useAppStore((state) => state.rivers);
@@ -73,6 +74,10 @@ export function BaseMap() {
       return value === null ? [] : [value];
     });
     const maxForecastFlow = activeForecastFlows.length ? Math.max(...activeForecastFlows) : 0;
+    const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) : null;
+    const selectedRiverBasin = selectedRiver?.properties?.basinId;
+    const basinNames = new Map(basins.features.map((feature) => [String(feature.properties?.basinId ?? feature.properties?.ID ?? feature.id ?? ''), String(feature.properties?.name ?? feature.properties?.HAVZA_ADI ?? '')]));
+    const basinFeatures = basins.features.map((feature) => ({ ...feature, properties: { ...feature.properties, color: getBasinColor(feature.properties?.basinId ?? feature.properties?.ID ?? feature.id, theme) } }));
     const riverFeatures = rivers.features.map((feature) => {
       const id = String(feature.properties?.id ?? feature.id ?? '');
       const live = geoglowsRecords.find((record) => String(record.localRiverId ?? '') === id);
@@ -83,16 +88,18 @@ export function BaseMap() {
       // thresholds would falsely label unavailable forecasts as drought/flood.
       const color = flow !== null && normalFlow !== null ? getRiverColor(flow, normalFlow) : flow !== null ? getFlowScaleColor(flow, maxForecastFlow) : (feature.properties?.color as string | undefined) ?? '#38bdf8';
       const width = flow !== null ? Math.min(8, Math.max(2.8, Math.log10(Math.max(flow, 0) + 1) * 2.8)) : numberFrom(feature.properties?.width) ?? 2.8;
-      return { ...feature, properties: { ...feature.properties, flow, color, width } };
+      return { ...feature, properties: { ...feature.properties, name: displayName(feature.properties ?? {}, 'river', id), basinName: basinNames.get(String(feature.properties?.basinId ?? '')), flow, color, width } };
     });
     const damFeatures = damStations.features.map((feature) => {
-      const name = String(feature.properties?.name ?? '');
+      const properties = feature.properties ?? {};
+      const id = String(properties.id ?? feature.id ?? '');
+      const name = displayName(properties, 'dam', id);
       const live = epiasRecords.find((record) => String(record.damName ?? record.name ?? '').toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR'));
       const occupancy = liveNumber(live, ['occupancy', 'fullness', 'activeFullness', 'doluluk']) ?? numberFrom(feature.properties?.occupancy);
-      return { ...feature, properties: { ...feature.properties, occupancy, color: occupancy === null ? '#94a3b8' : getDamColor(occupancy), radius: occupancy === null ? 8 : Math.min(13, Math.max(6, occupancy / 8)) } };
+      return { ...feature, properties: { ...properties, name, basinName: properties.HavzaAdi, occupancy, damIcon: damIconBucket(occupancy), isProducer: isElectricProducer(properties), relatedToSelected: selectedRiverBasin !== undefined && String(properties.basinId ?? '') === String(selectedRiverBasin), color: occupancy === null ? '#94a3b8' : getDamColor(occupancy), radius: occupancy === null ? 8 : Math.min(13, Math.max(6, occupancy / 8)) } };
     });
-    return { rivers: { ...rivers, features: riverFeatures }, basins, flowStations, hesStations, dams: { ...damStations, features: damFeatures }, lakes };
-  }, [basins, damStations, epias, flowStations, geoglows, hesStations, lakes, rivers, timelineIndex]);
+    return { rivers: { ...rivers, features: riverFeatures }, basins: { ...basins, features: basinFeatures }, flowStations, hesStations, dams: { ...damStations, features: damFeatures }, lakes };
+  }, [basins, damStations, epias, flowStations, geoglows, hesStations, lakes, rivers, selectedEntity, theme, timelineIndex]);
 
   const overlayOptions = useMemo<OverlayOptions>(() => ({
     rivers: layers.rivers,
@@ -101,7 +108,10 @@ export function BaseMap() {
     dams: layers.dams,
     lakes: layers.lakes,
     basins: layers.basins,
-    outlineColor: theme === 'light' ? '#ffffff' : '#07111f',
+    outlineColor: theme === 'light' ? '#475569' : '#07111f',
+    selectionColor: theme === 'light' ? '#0f766e' : '#f8fafc',
+    basinOutlineColor: theme === 'light' ? '#475569' : '#93c5fd',
+    riverGlowColor: theme === 'light' ? '#0e7490' : '#38bdf8',
     selectedEntity,
   }), [layers.basins, layers.dams, layers.flowStations, layers.hesStations, layers.lakes, layers.rivers, selectedEntity, theme]);
 
@@ -179,6 +189,29 @@ export function BaseMap() {
   }, [theme, scheduleOverlaySync]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !layers.rivers || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let phase = 0;
+    let active = true;
+    const tick = () => {
+      if (!active || document.visibilityState !== 'visible') return;
+      if (map.isStyleLoaded() && map.getLayer('rivers-flow') && map.getLayoutProperty('rivers-flow', 'visibility') !== 'none') {
+        phase = (phase + 0.045) % 1;
+        map.setPaintProperty('rivers-flow', 'line-dasharray', [0.12 + phase * 0.7, 2.35, 0.1 + phase * 0.3, 0.55]);
+        map.triggerRepaint();
+      }
+      flowAnimationRef.current = requestAnimationFrame(tick);
+    };
+    const restart = () => {
+      if (flowAnimationRef.current !== null) cancelAnimationFrame(flowAnimationRef.current);
+      flowAnimationRef.current = document.visibilityState === 'visible' ? requestAnimationFrame(tick) : null;
+    };
+    document.addEventListener('visibilitychange', restart);
+    restart();
+    return () => { active = false; document.removeEventListener('visibilitychange', restart); if (flowAnimationRef.current !== null) cancelAnimationFrame(flowAnimationRef.current); };
+  }, [layers.rivers]);
+
+  useEffect(() => {
     const map = mapRef.current; const container = mapContainerRef.current;
     if (!map || !container) return;
     const observer = new ResizeObserver(() => map.resize()); observer.observe(container); map.resize();
@@ -195,7 +228,7 @@ export function BaseMap() {
       const id = feature?.properties?.id ?? feature?.properties?.entityId;
       if (!feature || id === undefined || id === null) return;
       if (feature.layer.id === 'rivers-core') setSelectedEntity({ type: 'river', id: String(id) });
-      if (feature.layer.id === 'dams-points') setSelectedEntity({ type: 'dam', id: String(id) });
+      if (feature.layer.id === 'dams-points' || feature.layer.id.startsWith('dams-pie-')) setSelectedEntity({ type: 'dam', id: String(id) });
       if (feature.layer.id === 'lakes-points') setSelectedEntity({ type: 'lake', id: String(id) });
       if (feature.layer.id === 'basins-fill') setSelectedEntity({ type: 'basin', id: String(id) });
     };
@@ -205,12 +238,14 @@ export function BaseMap() {
       const feature = event.features?.[0];
       if (!feature) return;
       const props = (feature.properties ?? {}) as Record<string, unknown>;
-      const name = String(props.name ?? props.damName ?? props.adi ?? props.riverCode ?? props.id ?? 'Kaynak');
-      const value = props.flow !== null && props.flow !== undefined ? `${Number(props.flow).toLocaleString('tr-TR')} m³/s` : props.occupancy !== null && props.occupancy !== undefined ? `%${Math.round(Number(props.occupancy))} doluluk` : 'Canlı değer yok';
+      const layerId = feature.layer.id;
+      const kind = layerId === 'basins-fill' ? 'basin' : layerId === 'lakes-points' ? 'lake' : layerId === 'rivers-core' ? 'river' : layerId === 'flow-stations' || layerId === 'hes-stations' ? 'station' : 'dam';
+      const name = kind === 'station' ? displayName(props, 'lake', String(props.id ?? feature.id ?? '')) : displayName(props, kind, String(props.id ?? feature.id ?? ''));
+      const detail = kind === 'river' ? `${props.flow !== null && props.flow !== undefined ? `GEOGLOWS Model · ${Number(props.flow).toLocaleString('tr-TR')} m³/s` : 'GEOGLOWS model verisi yok'}\nHavza: ${String(props.basinName ?? props.HavzaAdi ?? props.basinId ?? '—')}` : kind === 'dam' ? `${props.occupancy !== null && props.occupancy !== undefined ? `Doluluk: %${Math.round(Number(props.occupancy))}` : 'EPİAŞ doluluk verisi yok'}${props.isProducer === true ? '\n⚡ Elektrik üretimi' : ''}` : kind === 'lake' ? `Alan: ${props.areaKm2 ? `${Number(props.areaKm2).toLocaleString('tr-TR')} km²` : 'veri yok'}` : kind === 'basin' ? `Alan: ${props.areaKm2 ? `${Number(props.areaKm2).toLocaleString('tr-TR')} km²` : 'özet veri yok'}` : 'TATUS gözlem istasyonu';
       popupRef.current?.remove();
       popupRef.current = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10, className: themeRef.current === 'light' ? 'hydro-tooltip hydro-tooltip-light' : 'hydro-tooltip' })
         .setLngLat(event.lngLat)
-        .setText(`${name}\n${value}`)
+        .setText(`${name}\n${detail}`)
         .addTo(map);
     };
     map.on('click', onClick); INTERACTIVE_LAYERS.forEach((layer) => { map.on('mouseenter', layer, onEnter); map.on('mouseleave', layer, onLeave); });

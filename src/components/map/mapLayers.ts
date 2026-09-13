@@ -20,15 +20,52 @@ export type OverlayOptions = {
   lakes: boolean;
   basins: boolean;
   outlineColor: string;
+  selectionColor: string;
+  basinOutlineColor: string;
+  riverGlowColor: string;
   selectedEntity: { type: string; id: string } | null;
 };
 
 const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes'] as const;
+export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 11 }, (_, index) => String(index * 10))];
+export const DAM_PIE_LAYER_IDS = DAM_PIE_BUCKETS.map((bucket) => `dams-pie-${bucket}`);
 const OVERLAY_LAYER_IDS = [
-  'basins-fill', 'basins-outline', 'rivers-glow', 'rivers-core',
-  'rivers-detail', 'rivers-selected', 'basins-selected', 'flow-stations', 'hes-stations',
-  'lakes-halo', 'lakes-points', 'lakes-selected', 'dams-halo', 'dams-points', 'dams-selected',
+    'basins-fill', 'basins-outline', 'rivers-glow', 'rivers-core',
+  'rivers-detail', 'rivers-flow', 'rivers-selected', 'basins-selected', 'flow-stations', 'hes-stations',
+  'lakes-halo', 'lakes-points', 'lakes-selected', 'dams-halo', 'dams-points', 'dams-related', 'dams-selected',
+  ...DAM_PIE_LAYER_IDS, 'dams-producer',
 ] as const;
+
+const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
+
+function damPieSvg(percent: number | null): string {
+  const base = '<circle cx="32" cy="32" r="25" fill="#cbd5e1" fill-opacity="0.28"/>';
+  const frame = '<circle cx="32" cy="32" r="27" fill="none" stroke="#e2e8f0" stroke-width="3"/><circle cx="32" cy="32" r="23" fill="none" stroke="#475569" stroke-opacity="0.8" stroke-width="1"/>';
+  if (percent === null || percent <= 0) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${frame}</svg>`;
+  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="#22d3ee" fill-opacity="0.86"/>${frame}</svg>`;
+  const end = (Math.PI * 2 * percent) / 100 - Math.PI / 2;
+  const x = 32 + 25 * Math.cos(end);
+  const y = 32 + 25 * Math.sin(end);
+  const largeArc = percent > 50 ? 1 : 0;
+  const wedge = `<path d="M32 32 L32 7 A25 25 0 ${largeArc} 1 ${x} ${y} Z" fill="#22d3ee" fill-opacity="0.9"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${wedge}${frame}</svg>`;
+}
+
+function ensureDamPieImages(map: MapLibreMap): void {
+  const pending = pendingDamImages.get(map) ?? new Set<string>();
+  pendingDamImages.set(map, pending);
+  DAM_PIE_BUCKETS.forEach((bucket) => {
+    const id = `dam-pie-${bucket}`;
+    if (map.hasImage(id) || pending.has(id)) return;
+    pending.add(id);
+    const image = new Image();
+    image.onload = () => {
+      pending.delete(id);
+      if (map.isStyleLoaded() && !map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+    };
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(damPieSvg(bucket === 'neutral' ? null : Number(bucket)))}`;
+  });
+}
 
 function setGeoJsonSource(map: MapLibreMap, id: string, data: OverlayCollection): void {
   const source = map.getSource(id) as GeoJSONSource | undefined;
@@ -46,6 +83,7 @@ function setVisibility(map: MapLibreMap, id: string, visible: boolean): void {
 /** Adds and reconciles native GeoJSON overlays after every MapLibre style swap. */
 export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCollections, options: OverlayOptions): boolean {
   if (!map.isStyleLoaded()) return false;
+  ensureDamPieImages(map);
 
   for (const id of SOURCE_IDS) {
     const data = collections[id];
@@ -55,7 +93,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
 
   addLayerIfMissing(map, {
     id: 'basins-fill', type: 'fill', source: 'basins',
-    paint: { 'fill-color': ['coalesce', ['get', 'color'], '#2563eb'], 'fill-opacity': 0.08 },
+    paint: { 'fill-color': ['coalesce', ['get', 'color'], '#2563eb'], 'fill-opacity': 0.12 },
   });
   addLayerIfMissing(map, {
     id: 'basins-outline', type: 'line', source: 'basins',
@@ -78,6 +116,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
     filter: ['<', ['coalesce', ['get', 'strahler'], 0], 4],
     layout: { 'line-cap': 'round', 'line-join': 'round' },
     paint: { 'line-color': ['coalesce', ['get', 'color'], '#38bdf8'], 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.55, 13, 1.5], 'line-opacity': 0.72 },
+  });
+  addLayerIfMissing(map, {
+    id: 'rivers-flow', type: 'line', source: 'rivers', minzoom: 5,
+    filter: ['>=', ['coalesce', ['get', 'strahler'], 0], 4],
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': ['coalesce', ['get', 'color'], options.riverGlowColor], 'line-width': ['+', ['coalesce', ['get', 'width'], 2.8], 0.8], 'line-opacity': 0.72, 'line-dasharray': [0.15, 2.8] },
   });
   addLayerIfMissing(map, {
     id: 'rivers-selected', type: 'line', source: 'rivers', minzoom: 4,
@@ -112,7 +156,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   addLayerIfMissing(map, {
     id: 'dams-points', type: 'circle', source: 'dams',
     minzoom: 7,
-    paint: { 'circle-radius': ['coalesce', ['get', 'radius'], 8], 'circle-color': ['coalesce', ['get', 'color'], '#94a3b8'], 'circle-stroke-width': 2, 'circle-stroke-color': options.outlineColor },
+    paint: { 'circle-radius': 4, 'circle-color': ['coalesce', ['get', 'color'], '#94a3b8'], 'circle-opacity': 0.08, 'circle-stroke-width': 1, 'circle-stroke-color': options.outlineColor },
+  });
+  addLayerIfMissing(map, {
+    id: 'dams-related', type: 'circle', source: 'dams', minzoom: 6,
+    filter: ['==', ['get', 'relatedToSelected'], true],
+    paint: { 'circle-radius': ['+', ['coalesce', ['get', 'radius'], 8], 6], 'circle-color': 'transparent', 'circle-opacity': 1, 'circle-stroke-width': 2, 'circle-stroke-color': '#22d3ee', 'circle-stroke-opacity': 0.95 },
   });
   addLayerIfMissing(map, {
     id: 'basins-selected', type: 'line', source: 'basins',
@@ -124,7 +173,18 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   });
   addLayerIfMissing(map, {
     id: 'dams-selected', type: 'circle', source: 'dams', minzoom: 4,
-    paint: { 'circle-radius': ['+', ['coalesce', ['get', 'radius'], 8], 4], 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': ['+', ['coalesce', ['get', 'radius'], 8], 5], 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': options.selectionColor, 'circle-stroke-opacity': 1 },
+  });
+  DAM_PIE_BUCKETS.forEach((bucket) => addLayerIfMissing(map, {
+    id: `dams-pie-${bucket}`, type: 'symbol', source: 'dams', minzoom: 7,
+    filter: ['==', ['get', 'damIcon'], `dam-pie-${bucket}`],
+    layout: { 'icon-image': `dam-pie-${bucket}`, 'icon-size': ['interpolate', ['linear'], ['zoom'], 7, 0.34, 10, 0.5, 14, 0.7], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+  }));
+  addLayerIfMissing(map, {
+    id: 'dams-producer', type: 'symbol', source: 'dams', minzoom: 7,
+    filter: ['==', ['get', 'isProducer'], true],
+    layout: { 'text-field': '⚡', 'text-size': 11, 'text-offset': [1.2, -1.1], 'text-allow-overlap': true },
+    paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
   });
 
   setVisibility(map, 'basins-fill', options.basins);
@@ -132,6 +192,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   setVisibility(map, 'rivers-glow', options.rivers);
   setVisibility(map, 'rivers-core', options.rivers);
   setVisibility(map, 'rivers-detail', options.rivers);
+  setVisibility(map, 'rivers-flow', options.rivers);
   setVisibility(map, 'rivers-selected', options.rivers);
   setVisibility(map, 'flow-stations', options.flowStations);
   setVisibility(map, 'hes-stations', options.hesStations);
@@ -139,9 +200,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   setVisibility(map, 'lakes-points', options.lakes);
   setVisibility(map, 'dams-halo', options.dams);
   setVisibility(map, 'dams-points', options.dams);
+  setVisibility(map, 'dams-related', options.dams);
   setVisibility(map, 'basins-selected', options.basins);
   setVisibility(map, 'lakes-selected', options.lakes);
   setVisibility(map, 'dams-selected', options.dams);
+  DAM_PIE_LAYER_IDS.forEach((id) => setVisibility(map, id, options.dams));
+  setVisibility(map, 'dams-producer', options.dams);
   const noSelection: FilterSpecification = ['==', ['get', 'id'], '__no_selection__'];
   const selectedFilter: FilterSpecification = options.selectedEntity ? ['==', ['get', 'id'], options.selectedEntity.id] : noSelection;
   if (map.getLayer('rivers-selected')) map.setFilter('rivers-selected', options.selectedEntity?.type === 'river' ? selectedFilter : noSelection);
@@ -151,5 +215,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   for (const id of ['flow-stations', 'lakes-points', 'dams-points']) {
     if (map.getLayer(id)) map.setPaintProperty(id, 'circle-stroke-color', options.outlineColor);
   }
+  if (map.getLayer('basins-outline')) map.setPaintProperty('basins-outline', 'line-color', options.basinOutlineColor);
+  if (map.getLayer('basins-outline')) map.setPaintProperty('basins-outline', 'line-opacity', 0.62);
+  if (map.getLayer('rivers-glow')) map.setPaintProperty('rivers-glow', 'line-opacity', 0.24);
+  if (map.getLayer('rivers-selected')) map.setPaintProperty('rivers-selected', 'line-color', options.selectionColor);
+  if (map.getLayer('basins-selected')) map.setPaintProperty('basins-selected', 'line-color', options.selectionColor);
+  if (map.getLayer('dams-related')) map.setPaintProperty('dams-related', 'circle-stroke-color', options.riverGlowColor);
+  if (map.getLayer('dams-selected')) map.setPaintProperty('dams-selected', 'circle-stroke-color', options.selectionColor);
   return SOURCE_IDS.every((id) => Boolean(map.getSource(id))) && OVERLAY_LAYER_IDS.every((id) => Boolean(map.getLayer(id)));
 }

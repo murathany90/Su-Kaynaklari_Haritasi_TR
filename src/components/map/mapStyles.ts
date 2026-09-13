@@ -89,6 +89,16 @@ const darkStyle: StyleSpecification = {
   }),
 };
 
+const neutralStyle: StyleSpecification = {
+  ...style('#d9e0e5', {
+    water: '#b9cbd4',
+    waterway: '#8ca9b6',
+    landcover: '#d4d9d6',
+    roads: '#aab2b8',
+    boundary: '#8c969e',
+  }),
+};
+
 const satelliteStyle: StyleSpecification = {
   version: 8,
   name: 'HydroScope satellite basemap',
@@ -126,6 +136,7 @@ export const BASEMAP_STYLES: Record<BasemapType, StyleSpecification> = {
     roads: '#b29476',
     boundary: '#718096',
   }),
+  neutral: neutralStyle,
   satellite: satelliteStyle,
   streets: style('#dbeafe', {
     water: '#b9d9ef',

@@ -35,7 +35,7 @@ export const Header: React.FC = () => {
       occupancy: epiasValues.length ? Math.round(epiasValues.reduce((sum, value) => sum + value, 0) / epiasValues.length) : null,
     };
   }, [dams.features.length, epias?.records, geoglows?.records?.length, mappingManifest?.count, mappingManifest?.matchedCount, rivers.features.length]);
-  const basemapLabels = { dark: 'Karanlık', light: 'Açık', satellite: 'Uydu', streets: 'Sokak' };
+  const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr / Gri', satellite: 'Uydu', streets: 'Sokak' };
 
   return (
     <header className={`z-20 flex h-14 shrink-0 items-center justify-between border-b px-3 transition-colors sm:px-5 ${isLight ? 'border-slate-200 bg-white/95 text-slate-800 shadow-sm' : 'glass-cockpit border-slate-800 bg-slate-950/95 text-slate-100'}`}>
