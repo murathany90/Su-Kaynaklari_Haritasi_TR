@@ -13,10 +13,12 @@ const STATIC_FILES = {
   basins: '/data/hes177/hes_basins.geojson',
   rivers: '/data/hes177/hes_rivers.geojson',
   flowStations: '',
-  hesStations: '/data/hes177/hes_river_anchors.geojson',
-  damStations: '/data/hes177/hes_dams.geojson',
+  hesStations: '/data/hes177/hes_stations_177.geojson',
+  damStations: '/data/hes177/hes_dam_points.geojson',
   lakes: '',
   hes177: '/data/hes177/hes_177.geojson',
+  cascades: '/data/hes177/hes_cascades.geojson',
+  catchment: '',
 } as const;
 
 async function readJson<T>(path: string): Promise<T> {
@@ -47,7 +49,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
   );
   const bundle: HydroDataBundle = {
     basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), flowStations: emptyFeatureCollection(),
-    hesStations: emptyFeatureCollection(), damStations: emptyFeatureCollection(), lakes: emptyFeatureCollection(), hes177: emptyFeatureCollection(), hes177Relations: null,
+    hesStations: emptyFeatureCollection(), damStations: emptyFeatureCollection(), lakes: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), hes177Relations: null,
     manifest: null, mappingManifest: null, geoglows: null, epias: null, errors: [],
   };
   entries.forEach((entry, index) => {

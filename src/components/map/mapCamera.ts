@@ -10,6 +10,7 @@ export type FocusDatasets = {
   dams: FeatureCollection<Geometry, GeoJsonProperties>;
   lakes: FeatureCollection<Geometry, GeoJsonProperties>;
   hes177: FeatureCollection<Geometry, GeoJsonProperties>;
+  cascades: FeatureCollection<Geometry, GeoJsonProperties>;
   riverGroups?: Map<string, Feature<Geometry, GeoJsonProperties>>;
 };
 
@@ -48,6 +49,22 @@ export function focusSelectedEntity(map: MapLibreMap, selection: Selection, data
   if (!feature) return false;
   const points = positions(feature.geometry);
   if (!points.length) return false;
+  if (selection.type === 'hes') {
+    const relation = (feature.properties ?? {}) as Record<string, unknown>;
+    const relatedIds = new Set([selection.id, ...(Array.isArray(relation.damIds) ? relation.damIds.map(String) : []), ...(Array.isArray(relation.stationIds) ? relation.stationIds.map(String) : [])]);
+    const relatedPoints = [
+      ...datasets.hes177.features,
+      ...datasets.dams.features,
+      ...datasets.hesStations.features,
+    ].filter((candidate) => { const id = featureId(candidate); return id !== null && relatedIds.has(id); }).flatMap((candidate) => positions(candidate.geometry));
+    if (relatedPoints.length > 1) {
+      const relatedBounds = boundsFor(relatedPoints);
+      if (relatedBounds) {
+        map.fitBounds(relatedBounds, { padding: FOCUS_PADDING, maxZoom: 11, duration: 950, essential: true });
+        return true;
+      }
+    }
+  }
   if (feature.geometry?.type === 'Point') {
     map.flyTo({ center: points[0] as LngLatLike, zoom: selection.type === 'basin' ? 7.6 : 9.6, padding: FOCUS_PADDING, duration: 850, essential: true });
     return true;

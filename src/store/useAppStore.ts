@@ -38,11 +38,15 @@ interface AppState {
   damStations: HydrologyFeatureCollection;
   lakes: HydrologyFeatureCollection;
   hes177: HydrologyFeatureCollection;
+  cascades: HydrologyFeatureCollection;
+  catchment: HydrologyFeatureCollection;
   hes177Relations: Hes177Relations | null;
   dataManifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
   geoglows: GeoglowsPayload | null;
   epias: EpiasPayload | null;
+  dataMode: 'mock' | 'epias';
+  activeCatchmentHesId: string | null;
 
   // Actions
   setTab: (tab: TabType) => void;
@@ -60,6 +64,8 @@ interface AppState {
   toggleTimelinePlayback: () => void;
   loadHydroData: () => Promise<void>;
   refreshHydroData: () => Promise<void>;
+  setDataMode: (mode: 'mock' | 'epias') => void;
+  toggleCatchment: (hesId: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -92,11 +98,15 @@ export const useAppStore = create<AppState>((set) => ({
   damStations: emptyFeatureCollection(),
   lakes: emptyFeatureCollection(),
   hes177: emptyFeatureCollection(),
+  cascades: emptyFeatureCollection(),
+  catchment: emptyFeatureCollection(),
   hes177Relations: null,
   dataManifest: null,
   mappingManifest: null,
   geoglows: null,
   epias: null,
+  dataMode: 'mock',
+  activeCatchmentHesId: null,
 
   setTab: (tab) => set({ currentTab: tab }),
   setFilter: (filter) => set({ currentFilter: filter }),
@@ -112,6 +122,8 @@ export const useAppStore = create<AppState>((set) => ({
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setTimelineIndex: (index) => set({ timelineIndex: Math.max(0, Math.round(index)) }),
   toggleTimelinePlayback: () => set((state) => ({ isPlayingTimeline: !state.isPlayingTimeline })),
+  setDataMode: (dataMode) => set({ dataMode }),
+  toggleCatchment: (hesId) => set((state) => ({ activeCatchmentHesId: state.activeCatchmentHesId === hesId ? null : hesId })),
   loadHydroData: async () => {
     if (useAppStore.getState().hydroDataStatus === 'loading') return;
     set({ hydroDataStatus: 'loading', hydroDataError: null });
@@ -131,6 +143,8 @@ export const useAppStore = create<AppState>((set) => ({
         damStations: data.damStations,
         lakes: data.lakes,
         hes177: data.hes177,
+        cascades: data.cascades,
+        catchment: data.catchment,
         hes177Relations: data.hes177Relations,
         dataManifest: data.manifest,
         mappingManifest: data.mappingManifest,

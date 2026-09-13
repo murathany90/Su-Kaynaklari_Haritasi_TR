@@ -212,6 +212,11 @@ export function buildDamHesMapping(dams: FeatureCollection<Geometry, GeoJsonProp
   const mapping = new Map<string, DamHesMatch>();
   (dams.features as HydroFeature[]).forEach((dam) => {
     const damProperties = propertiesOf(dam);
+    const declaredHesIds = Array.isArray(damProperties.hesIds) ? damProperties.hesIds.map(String) : [];
+    if (declaredHesIds.length) {
+      mapping.set(entityId(dam), { damId: entityId(dam), hesIds: declaredHesIds });
+      return;
+    }
     const damName = damProperties.name ?? damProperties.damName ?? damProperties.BarajAdi;
     const damPoint = pointOf(dam);
     if (!damPoint || isUnknownName(damName)) return;
@@ -227,7 +232,14 @@ export function buildDamHesMapping(dams: FeatureCollection<Geometry, GeoJsonProp
 }
 
 export function isElectricProducer(properties: Record<string, unknown>, hasHesMatch = false): boolean {
-  return hasHesMatch || [properties.isHes, properties.isHES, properties.hes, properties.energyProducer, properties.producer].some((value) => value === true || value === 'true' || value === 1);
+  return hasHesMatch || [properties.isHes, properties.isHES, properties.hes, properties.energyProducer, properties.producer, properties.isProducer].some((value) => value === true || value === 'true' || value === 1);
+}
+
+/** Stable demo fullness for MOCK mode. It never depends on render order. */
+export function mockFullness(id: string): number {
+  let hash = 2166136261;
+  for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  return 25 + (Math.abs(hash) % 66);
 }
 
 export type RiverDamRelation = { ids: Set<string>; stationIds: Set<string>; confidence: 'name/spatial' | 'basin' };

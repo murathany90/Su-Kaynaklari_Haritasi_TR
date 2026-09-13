@@ -11,6 +11,8 @@ export type OverlayCollections = {
   dams: OverlayCollection;
   lakes: OverlayCollection;
   hes177: OverlayCollection;
+  cascades: OverlayCollection;
+  catchment: OverlayCollection;
 };
 
 export type OverlayOptions = {
@@ -29,14 +31,15 @@ export type OverlayOptions = {
   selectedRiverMemberIds: string[];
 };
 
-const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes', 'hes177'] as const;
+const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes', 'hes177', 'cascades', 'catchment'] as const;
+const HES_PIE_LAYER_ID = 'hes177-pie';
 export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 11 }, (_, index) => String(index * 10))];
 export const DAM_PIE_LAYER_IDS = DAM_PIE_BUCKETS.map((bucket) => `dams-pie-${bucket}`);
 const OVERLAY_LAYER_IDS = [
     'basins-fill', 'basins-outline', 'rivers-glow', 'rivers-core',
   'rivers-detail', 'rivers-flow', 'rivers-selected', 'basins-selected', 'flow-stations', 'hes-stations', 'hes-related',
   'lakes-halo', 'lakes-points', 'lakes-selected', 'dams-halo', 'dams-points', 'dams-related', 'dams-selected',
-  ...DAM_PIE_LAYER_IDS, 'dams-producer', 'hes177-halo', 'hes177-points', 'hes177-related', 'hes177-producer', 'hes177-selected',
+  ...DAM_PIE_LAYER_IDS, 'dams-producer', 'hes177-halo', 'hes177-points', 'hes177-related', HES_PIE_LAYER_ID, 'hes177-producer', 'hes177-selected', 'hes-cascades', 'hes-catchment-fill', 'hes-catchment-outline',
 ] as const;
 
 const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
@@ -101,25 +104,43 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
 
   addLayerIfMissing(map, {
     id: 'hes177-halo', type: 'circle', source: 'hes177', minzoom: 5,
-    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 5, 9, 10, 14, 16], 'circle-color': '#22d3ee', 'circle-opacity': 0.2, 'circle-blur': 0.6 },
+    paint: { 'circle-radius': ['*', ['interpolate', ['linear'], ['zoom'], 5, 0.75, 9, 1, 14, 1.35], ['coalesce', ['get', 'powerRadius'], 2]], 'circle-color': '#22d3ee', 'circle-opacity': 0.2, 'circle-blur': 0.6 },
   });
   addLayerIfMissing(map, {
     id: 'hes177-points', type: 'circle', source: 'hes177', minzoom: 5,
-    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 3.5, 9, 6, 14, 9], 'circle-color': ['coalesce', ['get', 'color'], '#22d3ee'], 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': ['*', ['interpolate', ['linear'], ['zoom'], 5, 0.75, 9, 1, 14, 1.35], ['coalesce', ['get', 'powerRadius'], 2]], 'circle-color': ['coalesce', ['get', 'color'], '#22d3ee'], 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
   });
   addLayerIfMissing(map, {
     id: 'hes177-related', type: 'circle', source: 'hes177', minzoom: 5,
     filter: ['==', ['get', 'relatedToSelected'], true],
-    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 5, 9, 9, 14, 13], 'circle-color': '#22d3ee', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': ['*', ['interpolate', ['linear'], ['zoom'], 5, 0.8, 9, 1, 14, 1.4], ['coalesce', ['get', 'powerRadius'], 2.5]], 'circle-color': '#22d3ee', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+  });
+  addLayerIfMissing(map, {
+    id: HES_PIE_LAYER_ID, type: 'symbol', source: 'hes177', minzoom: 5,
+    layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.19, 9, 0.28, 14, 0.4], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
   });
   addLayerIfMissing(map, {
     id: 'hes177-producer', type: 'symbol', source: 'hes177', minzoom: 5,
+    filter: ['==', ['get', 'isProducer'], true],
     layout: { 'text-field': '⚡', 'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 13], 'text-offset': [0.9, -0.9], 'text-allow-overlap': true, 'text-ignore-placement': true },
     paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
   });
   addLayerIfMissing(map, {
+    id: 'hes-catchment-fill', type: 'fill', source: 'catchment',
+    paint: { 'fill-color': '#22d3ee', 'fill-opacity': 0.12 },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes-catchment-outline', type: 'line', source: 'catchment',
+    paint: { 'line-color': '#22d3ee', 'line-width': 2, 'line-opacity': 0.82, 'line-dasharray': [2, 1.2] },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes-cascades', type: 'line', source: 'cascades', minzoom: 5,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': '#f59e0b', 'line-width': 1.7, 'line-opacity': 0.78, 'line-dasharray': [1.2, 2.2] },
+  });
+  addLayerIfMissing(map, {
     id: 'hes177-selected', type: 'circle', source: 'hes177', minzoom: 4,
-    paint: { 'circle-radius': ['+', ['interpolate', ['linear'], ['zoom'], 4, 5, 10, 10], 5], 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': options.selectionColor },
+    paint: { 'circle-radius': ['+', ['*', ['interpolate', ['linear'], ['zoom'], 4, 0.75, 10, 1.1], ['coalesce', ['get', 'powerRadius'], 2]], 5], 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': options.selectionColor },
   });
   addLayerIfMissing(map, {
     id: 'basins-fill', type: 'fill', source: 'basins',
@@ -222,7 +243,9 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
     layout: { 'text-field': '⚡', 'text-size': 11, 'text-offset': [1.2, -1.1], 'text-allow-overlap': true },
     paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
   });
+  ['hes-catchment-fill', 'hes-catchment-outline'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
   ['hes177-halo', 'hes177-points', 'hes177-related', 'hes177-producer', 'hes177-selected'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
+  [HES_PIE_LAYER_ID, 'hes-cascades'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
 
   setVisibility(map, 'basins-fill', options.basins);
   setVisibility(map, 'basins-outline', options.basins);
@@ -247,8 +270,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   setVisibility(map, 'hes177-halo', options.hes177);
   setVisibility(map, 'hes177-points', options.hes177);
   setVisibility(map, 'hes177-related', options.hes177 && options.selectedEntity?.type === 'river');
+  setVisibility(map, HES_PIE_LAYER_ID, options.hes177);
   setVisibility(map, 'hes177-producer', options.hes177);
   setVisibility(map, 'hes177-selected', options.hes177);
+  setVisibility(map, 'hes-cascades', options.hes177);
+  setVisibility(map, 'hes-catchment-fill', options.hes177);
+  setVisibility(map, 'hes-catchment-outline', options.hes177);
   const noSelection: FilterSpecification = ['==', ['get', 'id'], '__no_selection__'];
   const selectedFilter: FilterSpecification = options.selectedEntity ? ['==', ['get', 'id'], options.selectedEntity.id] : noSelection;
   const selectedRiverFilter: FilterSpecification = options.selectedRiverMemberIds.length ? ['in', ['get', 'id'], ['literal', options.selectedRiverMemberIds]] : selectedFilter;

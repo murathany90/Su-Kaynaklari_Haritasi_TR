@@ -58,6 +58,8 @@ export interface HydroDataBundle {
   damStations: HydrologyFeatureCollection;
   lakes: HydrologyFeatureCollection;
   hes177: HydrologyFeatureCollection;
+  cascades: HydrologyFeatureCollection;
+  catchment: HydrologyFeatureCollection;
   hes177Relations: Hes177Relations | null;
   manifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
@@ -80,6 +82,10 @@ export interface Hes177Relation {
   riverMatchMethod?: string | null;
   riverConfidence?: string | null;
   damId?: string | null;
+  damIds?: string[];
+  riverIds?: string[];
+  stationIds?: string[];
+  catchmentUrl?: string | null;
   cascadeToId?: string | null;
   cascadeFromIds?: string[];
   cascadeChainId?: string | null;

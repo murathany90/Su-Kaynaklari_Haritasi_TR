@@ -11,5 +11,10 @@ export default defineConfig({
   base: './', // GitHub Pages ve Netlify için rölatif path (veya '/repo-adi/' şeklinde değiştirilebilir)
   build: {
     outDir: 'dist',
+  },
+  server: {
+    watch: {
+      ignored: ['**/docs/**', '**/*.xlsx', '**/*.csv']
+    }
   }
 })

@@ -15,6 +15,10 @@ export const Header: React.FC = () => {
   const geoglows = useAppStore((s) => s.geoglows);
   const mappingManifest = useAppStore((s) => s.mappingManifest);
   const epias = useAppStore((s) => s.epias);
+  const basins = useAppStore((s) => s.basins);
+  const hes177Relations = useAppStore((s) => s.hes177Relations);
+  const dataMode = useAppStore((s) => s.dataMode);
+  const setDataMode = useAppStore((s) => s.setDataMode);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
   const lastRefreshAt = useAppStore((s) => s.lastRefreshAt);
   const refreshHydroData = useAppStore((s) => s.refreshHydroData);
@@ -26,15 +30,19 @@ export const Header: React.FC = () => {
     if (basemap === 'dark' || basemap === 'light') setBasemap(nextTheme);
   };
   const kpis = useMemo(() => {
-    const epiasValues = (epias?.records ?? []).map((record) => Number(record.occupancy ?? record.fullness ?? record.activeFullness)).filter(Number.isFinite);
+    const epiasValues = epias?.status === 'ok' ? (epias.records ?? []).map((record) => Number(record.occupancy ?? record.fullness ?? record.activeFullness)).filter(Number.isFinite) : [];
+    const totalPower = hes177.features.reduce((sum, feature) => { const value = Number(feature.properties?.installedPowerMw); return sum + (Number.isFinite(value) ? value : 0); }, 0);
     return {
       rivers: rivers.features.length,
       dams: hes177.features.length,
       mapped: mappingManifest?.matchedCount ?? mappingManifest?.count ?? 0,
       forecasts: geoglows?.records?.length ?? 0,
       occupancy: epiasValues.length ? Math.round(epiasValues.reduce((sum, value) => sum + value, 0) / epiasValues.length) : null,
+      totalPower,
+      basins: basins.features.length,
+      cascades: hes177Relations?.cascadeEdges?.length ?? 0,
     };
-  }, [epias?.records, geoglows?.records?.length, hes177.features.length, mappingManifest?.count, mappingManifest?.matchedCount, rivers.features.length]);
+  }, [basins.features.length, epias?.records, epias?.status, geoglows?.records?.length, hes177.features, hes177Relations?.cascadeEdges?.length, mappingManifest?.count, mappingManifest?.matchedCount, rivers.features.length]);
   const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr / Gri', satellite: 'Uydu', streets: 'Sokak' };
 
   return (
@@ -45,11 +53,14 @@ export const Header: React.FC = () => {
         <div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-xs font-bold tracking-tight sm:text-sm">TÜRKİYE HİDROLOJİ & ENERJİ</h1><span className="rounded border border-cyan-500/30 bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold text-cyan-400">FAZ 2</span></div><div className="flex items-center gap-2 font-mono text-[9px] text-slate-500"><span className={dataStatus === 'ready' ? 'text-emerald-400' : dataStatus === 'loading' ? 'text-amber-400' : 'text-rose-400'}>{dataStatus === 'ready' ? 'VERİ HAZIR' : dataStatus === 'loading' ? 'VERİ YÜKLENİYOR' : dataStatus === 'partial' ? 'KISMİ VERİ' : 'VERİ BEKLENİYOR'}</span>{lastRefreshAt && <span>· {formatDataDate(lastRefreshAt)}</span>}</div></div>
       </div>
       <div className="hidden items-center gap-3 xl:flex">
-        <div className="text-right"><div className="font-mono text-sm font-bold text-cyan-400">{kpis.rivers.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Nehir</div></div>
-        <div className="text-right"><div className="font-mono text-sm font-bold text-violet-400">{kpis.dams.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">177 HES</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-violet-400">{kpis.dams.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">HES</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-cyan-400">{Math.round(kpis.totalPower).toLocaleString('tr-TR')} MW</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Kurulu güç</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-indigo-300">{kpis.basins.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Havza</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.cascades.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Kaskat</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-emerald-400">{kpis.mapped.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">GEOGLOWS eşleşmesi</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-blue-400">{kpis.forecasts.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Tahmin bulunan</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-400">{kpis.occupancy === null ? '—' : `%${kpis.occupancy}`}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">EPİAŞ doluluk</div></div>
+        <div className="flex items-center rounded-lg border border-slate-700 p-0.5 text-[9px]"><button onClick={() => setDataMode('mock')} className={`rounded px-2 py-1 ${dataMode === 'mock' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-500'}`}>MOCK</button><button onClick={() => setDataMode('epias')} className={`rounded px-2 py-1 ${dataMode === 'epias' ? 'bg-violet-500/20 text-violet-300' : 'text-slate-500'}`}>EPİAŞ</button></div>
         <button onClick={() => void refreshHydroData()} disabled={dataStatus === 'loading'} className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-[10px] font-semibold text-cyan-300 transition hover:bg-cyan-500/20 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${dataStatus === 'loading' ? 'animate-spin' : ''}`} />Yenile</button>
         <button onClick={toggleTheme} className="rounded-lg border border-slate-700 p-2 text-slate-400 transition hover:text-cyan-300" title="Temayı değiştir" aria-label="Temayı değiştir">{isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</button>
         <div className="relative"><button onClick={() => setBasemapMenuOpen((open) => !open)} className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 py-2 text-[10px] text-slate-300"><MapIcon className="h-3.5 w-3.5 text-cyan-400" />{basemapLabels[basemap]}<ChevronDown className="h-3 w-3" /></button>{basemapMenuOpen && <div className="absolute right-0 top-11 z-50 w-32 rounded-xl border border-slate-700 bg-slate-950/95 p-1 shadow-2xl">{Object.entries(basemapLabels).map(([value, label]) => <button key={value} onClick={() => { setBasemap(value as typeof basemap); setBasemapMenuOpen(false); }} className={`block w-full rounded-lg px-2 py-1.5 text-left text-[10px] ${basemap === value ? 'bg-cyan-500/15 text-cyan-300' : 'text-slate-400 hover:bg-slate-800'}`}>{label}</button>)}</div>}</div>
