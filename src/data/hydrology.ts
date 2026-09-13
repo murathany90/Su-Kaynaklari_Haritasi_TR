@@ -256,14 +256,14 @@ export function relateRiverToDams(river: HydroFeature, dams: FeatureCollection<G
   return { ids: new Set(), stationIds: new Set(), confidence: 'basin' };
 }
 
-export type BasinSummary = { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; lakeCount: number; mainRiverNames: string[] };
+export type BasinSummary = { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] };
 
-export function buildBasinSummaries(basins: FeatureCollection<Geometry, GeoJsonProperties>, rivers: FeatureCollection<Geometry, GeoJsonProperties>, dams: FeatureCollection<Geometry, GeoJsonProperties>, hesStations: FeatureCollection<Geometry, GeoJsonProperties>, lakes: FeatureCollection<Geometry, GeoJsonProperties>, riverNames: Map<string, string>): Map<string, BasinSummary> {
+export function buildBasinSummaries(basins: FeatureCollection<Geometry, GeoJsonProperties>, rivers: FeatureCollection<Geometry, GeoJsonProperties>, dams: FeatureCollection<Geometry, GeoJsonProperties>, hesFacilities: FeatureCollection<Geometry, GeoJsonProperties>, hesStations: FeatureCollection<Geometry, GeoJsonProperties>, lakes: FeatureCollection<Geometry, GeoJsonProperties>, riverNames: Map<string, string>): Map<string, BasinSummary> {
   const summaries = new Map<string, BasinSummary>();
   (basins.features as HydroFeature[]).forEach((basin) => {
     const properties = propertiesOf(basin);
     const area = Number(properties.areaKm2 ?? properties.ALAN_KM2);
-    summaries.set(basinIdOf(basin), { areaKm2: Number.isFinite(area) ? area : null, riverCount: 0, riverLengthKm: 0, damCount: 0, hesCount: 0, lakeCount: 0, mainRiverNames: [] });
+    summaries.set(basinIdOf(basin), { areaKm2: Number.isFinite(area) ? area : null, riverCount: 0, riverLengthKm: 0, damCount: 0, hesCount: 0, hesStationCount: 0, lakeCount: 0, lakeStationCount: 0, mainRiverNames: [] });
   });
   const namesByBasin = new Map<string, Map<string, { maxStrahler: number; lengthKm: number }>>();
   (rivers.features as HydroFeature[]).forEach((river) => {
@@ -277,8 +277,8 @@ export function buildBasinSummaries(basins: FeatureCollection<Geometry, GeoJsonP
     const name = riverNames.get(entityId(river)); if (!name || isUnknownName(name)) return;
     validSummaries.forEach(([basinId]) => { const basinNames = namesByBasin.get(basinId) ?? new Map<string, { maxStrahler: number; lengthKm: number }>(); const current = basinNames.get(name) ?? { maxStrahler: 0, lengthKm: 0 }; current.maxStrahler = Math.max(current.maxStrahler, Number.isFinite(strahler) ? strahler : 0); current.lengthKm += Number.isFinite(lengthKm) ? lengthKm : 0; basinNames.set(name, current); namesByBasin.set(basinId, basinNames); });
   });
-  const count = (collection: FeatureCollection<Geometry, GeoJsonProperties>, key: 'damCount' | 'hesCount' | 'lakeCount') => (collection.features as HydroFeature[]).forEach((feature) => { const summary = summaries.get(basinIdOf(feature)); if (summary) summary[key] += 1; });
-  count(dams, 'damCount'); count(hesStations, 'hesCount'); count(lakes, 'lakeCount');
+  const count = (collection: FeatureCollection<Geometry, GeoJsonProperties>, key: 'damCount' | 'hesCount' | 'hesStationCount' | 'lakeCount' | 'lakeStationCount') => (collection.features as HydroFeature[]).forEach((feature) => { const summary = summaries.get(basinIdOf(feature)); if (summary) summary[key] += 1; });
+  count(dams, 'damCount'); count(hesFacilities, 'hesCount'); count(hesStations, 'hesStationCount'); count(lakes, 'lakeCount'); count(lakes, 'lakeStationCount');
   summaries.forEach((summary, basinId) => {
     const names = namesByBasin.get(basinId);
     summary.mainRiverNames = names ? [...names.entries()].sort((a, b) => b[1].maxStrahler - a[1].maxStrahler || b[1].lengthKm - a[1].lengthKm).slice(0, 5).map(([name]) => name) : [];

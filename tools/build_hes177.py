@@ -148,6 +148,42 @@ def centroid(feature: dict[str, Any]) -> tuple[float, float] | None:
     return (sum(point[0] for point in points) / len(points), sum(point[1] for point in points) / len(points)) if points else None
 
 
+def point_in_ring(point: tuple[float, float], ring: list[Any]) -> bool:
+    """Return whether a lon/lat point is inside a polygon ring."""
+    if len(ring) < 3:
+        return False
+    x, y = point
+    inside = False
+    previous = ring[-1]
+    for current in ring:
+        try:
+            x1, y1 = float(previous[0]), float(previous[1])
+            x2, y2 = float(current[0]), float(current[1])
+        except (TypeError, ValueError, IndexError):
+            previous = current
+            continue
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / ((y2 - y1) or 1e-12) + x1:
+            inside = not inside
+        previous = current
+    return inside
+
+
+def point_in_basin(point: tuple[float, float], feature: dict[str, Any]) -> bool:
+    geometry = feature.get("geometry") or {}
+    coordinates = geometry.get("coordinates") or []
+    polygons = [coordinates] if geometry.get("type") == "Polygon" else coordinates if geometry.get("type") == "MultiPolygon" else []
+    for polygon in polygons:
+        if polygon and point_in_ring(point, polygon[0]) and not any(point_in_ring(point, hole) for hole in polygon[1:]):
+            return True
+    return False
+
+
+def basin_for_point(point: tuple[float, float] | None, basins: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not point:
+        return None
+    return next((feature for feature in basins if point_in_basin(point, feature)), None)
+
+
 def haversine(a: tuple[float, float], b: tuple[float, float]) -> float:
     lon1, lat1 = map(math.radians, a)
     lon2, lat2 = map(math.radians, b)
@@ -249,29 +285,31 @@ def main() -> None:
     dams_source = read_json(TATUS / "dam_stations.geojson")
     basins_source = read_json(TATUS / "basins.geojson")
     stations_source = read_json(TATUS / "hes_stations.geojson")
-    basin_ids = {str(row.get("Havza ID")) for row in rows if row.get("Havza ID")}
     basin_by_id = {basin_id(feature): feature for feature in basins_source.get("features", [])}
-    relevant_basins = [{**feature, "properties": {**(feature.get("properties") or {}), "hes177": True}} for bid, feature in basin_by_id.items() if bid in basin_ids]
 
     river_urls = {str(row.get("Akarsu Polyline GeoJSON URL")) for row in rows if row.get("Akarsu Polyline GeoJSON URL")}
     dam_urls = {str(row.get("TATUS Baraj Point GeoJSON URL")) for row in rows if row.get("TATUS Baraj Point GeoJSON URL")}
     fetched_rivers, fetched_dams = fetch_unique(river_urls | dam_urls), fetch_unique(dam_urls)
 
     hes_features: list[dict[str, Any]] = []
+    transformer_points: dict[str, tuple[float, float]] = {}
     for row in rows:
         sequence = int(float(row["Sıra"]))
         hes_id = f"hes177-{sequence:03d}"
         lon, lat = number(row.get("Boylam")), number(row.get("Enlem"))
         workbook_point = [lon, lat] if lon is not None and lat is not None and -180 <= lon <= 180 and -90 <= lat <= 90 else None
         geojson_point = first_point(row.get("HES Point GeoJSON"))
-        point = list(geojson_point or workbook_point) if (geojson_point or workbook_point) else None
         status = str(row.get("Koordinat Durumu") or "")
-        if geojson_point and "doğrulan" in status.lower():
+        is_transformer = "trafo" in status.lower() or "transformer" in status.lower()
+        hes_point = geojson_point or (workbook_point if not is_transformer else None)
+        point = list(hes_point) if hes_point else None
+        if geojson_point:
             coordinate_source, coordinate_kind = "hes-point-geojson", "verified"
-        elif workbook_point and "doğrulan" in status.lower():
-            coordinate_source, coordinate_kind = "workbook-verified", "verified"
-        elif "trafo" in status.lower():
+        elif workbook_point and not is_transformer:
+            coordinate_source, coordinate_kind = "workbook-hes-point", "verified"
+        elif is_transformer and workbook_point:
             coordinate_source, coordinate_kind = "transformer", "transformer"
+            transformer_points[hes_id] = (workbook_point[0], workbook_point[1])
         else:
             coordinate_source, coordinate_kind = ("workbook", "verified") if point else (None, "unresolved")
         properties = {
@@ -317,6 +355,10 @@ def main() -> None:
         points = [point_of(candidate) for candidate in chosen if point_of(candidate)]
         if not points:
             continue
+        if not point_of(hes):
+            center = (sum(point[0] for point in points) / len(points), sum(point[1] for point in points) / len(points))
+            hes["geometry"] = {"type": "Point", "coordinates": list(center)}
+            props["coordinateSource"], props["coordinateKind"], props["coordinateStatus"] = "tatus-dam-point", "dam", "TATUS doğrulanmış baraj noktası"
         key = f"{basin}:{normalize(target_name)}"
         average = [sum(point[0] for point in points) / len(points), sum(point[1] for point in points) / len(points)]
         record = dam_records.setdefault(key, {"name": target_name, "basinId": basin, "basinName": props.get("basinName"), "points": [], "hesIds": [], "sourceIds": []})
@@ -328,14 +370,48 @@ def main() -> None:
         props["hasDamMatch"] = True
         props["damMatchMethod"] = "name+basin+near-coordinate"
 
+    # Transformer coordinates remain only a last-resort map reference when no
+    # HES or TATUS dam point was available.
+    for hes in hes_features:
+        props = hes["properties"]
+        hes_id = props["id"]
+        if not point_of(hes) and hes_id in transformer_points:
+            hes["geometry"] = {"type": "Point", "coordinates": list(transformer_points[hes_id])}
+
+    # Validate the workbook basin against the official TATUS basin polygons.
+    # The selected point source is also retained in the match metadata.
+    for hes in hes_features:
+        props = hes["properties"]
+        original_basin_id, original_basin_name = props.get("basinId"), props.get("basinName")
+        source = props.get("coordinateSource")
+        spatial = basin_for_point(point_of(hes), list(basin_by_id.values()))
+        if spatial:
+            spatial_props = spatial.get("properties") or {}
+            props["basinId"] = basin_id(spatial)
+            props["basinName"] = spatial_props.get("name") or spatial_props.get("HAVZA_ADI") or original_basin_name
+            props["basinMatchMethod"] = "hes-point-in-polygon" if source in {"hes-point-geojson", "workbook-hes-point"} else "dam-point-in-polygon" if source == "tatus-dam-point" else "transformer-point-in-polygon"
+            props["basinConfidence"] = "high" if source in {"hes-point-geojson", "workbook-hes-point", "tatus-dam-point"} else "low"
+            props["basinSource"] = "TATUS basins.geojson"
+        else:
+            props["basinMatchMethod"] = "workbook-no-spatial-match" if not point_of(hes) else "point-outside-tatus-basins"
+            props["basinConfidence"] = "low"
+            props["basinSource"] = "workbook"
+            props["basinId"], props["basinName"] = original_basin_id, original_basin_name
+
+    final_basin_ids = {str(feature["properties"].get("basinId") or "") for feature in hes_features if feature["properties"].get("basinId")}
+    relevant_basins = [{**feature, "properties": {**(feature.get("properties") or {}), "hes177": True}} for bid, feature in basin_by_id.items() if bid in final_basin_ids]
+
     dam_features: list[dict[str, Any]] = []
     dam_by_hes: dict[str, list[str]] = defaultdict(list)
     for index, (key, record) in enumerate(sorted(dam_records.items())):
         points = record["points"]
         center = [sum(point[0] for point in points) / len(points), sum(point[1] for point in points) / len(points)]
         dam_id = f"dam177-{index + 1:03d}"
+        owner = hes_by_id[record["hesIds"][0]]["properties"] if record["hesIds"] else {}
+        dam_basin_id = owner.get("basinId", record["basinId"])
+        dam_basin_name = owner.get("basinName", record["basinName"])
         for hes_id in record["hesIds"]: dam_by_hes[hes_id].append(dam_id)
-        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": record["basinId"], "basinName": record["basinName"], "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": "TATUS Layer 7", "sourceIds": record["sourceIds"], "isProducer": True}})
+        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": "TATUS Layer 7", "sourceIds": record["sourceIds"], "isProducer": True}})
 
     river_segments: dict[str, dict[str, Any]] = {}
     for row, hes in zip(rows, hes_features):

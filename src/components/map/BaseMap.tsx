@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
+import type { Map as MapLibreMap } from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAppStore } from '../../store/useAppStore';
@@ -39,13 +40,33 @@ function powerRadius(value: unknown): number {
   const power = numberFrom(value);
   if (power === null) return 1;
   if (power < 30) return 1;
-  if (power >= 2400) return 7;
-  return 2 + ((power - 30) / 2370) * 5;
+  if (power <= 100) return 1.33 + ((power - 30) / 70) * 0.67;
+  if (power <= 700) return 2 + ((power - 100) / 600) * 2;
+  if (power <= 2400) return 4 + ((power - 700) / 1700) * 3;
+  return 7;
 }
 
 function visualPowerRadius(value: unknown): number {
-  const radius = powerRadius(value);
-  return [12, 14, 16, 18, 20, 23, 26][Math.max(0, Math.min(6, Math.round(radius) - 1))];
+  const scale = powerRadius(value);
+  if (scale <= 1.33) return 5;
+  if (scale <= 2) return 6 + ((scale - 1.33) / 0.67) * 2;
+  if (scale <= 4) return 8 + ((scale - 2) / 2) * 4.5;
+  return 12.5 + ((Math.min(scale, 7) - 4) / 3) * 4.5;
+}
+
+const VECTOR_BASEMAP_PALETTES = {
+  dark: { water: '#123a5a', waterway: '#2c6e9d', landcover: '#163328', roads: '#38516a', boundary: '#5f7890' },
+  light: { water: '#a8cde7', waterway: '#5c9bc5', landcover: '#d7e8ce', roads: '#b29476', boundary: '#718096' },
+} as const;
+
+function applyVectorBasemapPalette(map: MapLibreMap, variant: 'dark' | 'light'): void {
+  const palette = VECTOR_BASEMAP_PALETTES[variant];
+  if (map.getLayer('basemap-background')) map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[variant]);
+  if (map.getLayer('basemap-landcover')) map.setPaintProperty('basemap-landcover', 'fill-color', palette.landcover);
+  if (map.getLayer('basemap-water')) map.setPaintProperty('basemap-water', 'fill-color', palette.water);
+  if (map.getLayer('basemap-waterway')) map.setPaintProperty('basemap-waterway', 'line-color', palette.waterway);
+  if (map.getLayer('basemap-roads')) map.setPaintProperty('basemap-roads', 'line-color', palette.roads);
+  if (map.getLayer('basemap-boundaries')) map.setPaintProperty('basemap-boundaries', 'line-color', palette.boundary);
 }
 
 function escapePopup(value: unknown): string {
@@ -59,7 +80,8 @@ function popupValue(value: unknown, suffix = ''): string {
 
 function hesPopupHtml(properties: Record<string, unknown>): string {
   const producer = properties.isProducer === true ? '<span class="hydro-popup-producer">⚡</span>' : '';
-  return `<div class="hydro-click-popup"><div class="hydro-popup-head"><strong>${producer}${escapePopup(properties.name)}</strong><button type="button" data-popup-close aria-label="Kapat">×</button></div><div class="hydro-popup-sub">${popupValue(properties.basinName ?? properties.basinId)} · ${popupValue(properties.province)}</div><div class="hydro-popup-grid"><span>Kurulu güç</span><b>${popupValue(properties.installedPowerMw, ' MW')}</b><span>Akarsu</span><b>${popupValue(properties.riverName)}</b><span>Debi</span><b>${popupValue(properties.unitFlowM3s, ' m³/sn')}</b><span>Doluluk</span><b>${properties.occupancy === null || properties.occupancy === undefined ? '—' : `%${Math.round(Number(properties.occupancy))}`}</b><span>Koordinat</span><b>${popupValue(properties.coordinateStatus)}</b></div><div class="hydro-popup-actions"><button type="button" data-show-river>Akarsuyu göster</button><button type="button" data-show-catchment>Su alanı</button></div></div>`;
+  const occupancy = properties.occupancy === null || properties.occupancy === undefined ? '—' : `%${Math.round(Number(properties.occupancy))}`;
+  return `<div class="hydro-click-popup"><div class="hydro-popup-head"><strong>${producer}${escapePopup(properties.name)}</strong><button type="button" data-popup-close aria-label="Kapat">×</button></div><div class="hydro-popup-sub">${popupValue(properties.basinName ?? properties.basinId)} · ${popupValue(properties.province)}</div><div class="hydro-popup-grid"><span>Kurulu güç</span><b>${popupValue(properties.installedPowerMw, ' MW')}</b><span>Akarsu</span><b>${popupValue(properties.riverName)}</b><span>Min / max seviye</span><b>${popupValue(properties.minWaterLevelM)} / ${popupValue(properties.maxWaterLevelM)} m</b><span>Min / max hacim</span><b>${popupValue(properties.minVolumeHm3)} / ${popupValue(properties.maxVolumeHm3)} hm³</b><span>Aktif hacim</span><b>${popupValue(properties.activeVolumeHm3, ' hm³')}</b><span>Ünite debisi</span><b>${popupValue(properties.unitFlowM3s, ' m³/sn')}</b><span>Kaskat</span><b>${popupValue(properties.cascadeName)}</b><span>Baraj</span><b>${popupValue(properties.damName)}</b><span>Doluluk</span><b>${occupancy}</b></div><div class="hydro-popup-actions"><button type="button" data-show-river>Akarsuyu göster</button><button type="button" data-show-basin>Havzayı göster</button><button type="button" data-show-cascade>Kaskadı göster</button><button type="button" data-show-catchment>Su alanı</button></div></div>`;
 }
 
 export function BaseMap() {
@@ -155,7 +177,7 @@ export function BaseMap() {
       const occupancy = dataMode === 'mock' ? Math.min(90, Math.max(25, mockFullness(id) + ((timelineIndex % 7) - 3))) : null;
       const selectedRiverName = selectedRiver?.properties?.riverName ?? selectedRiver?.properties?.name;
       const riverSelected = selectedEntity?.type === 'river' && Boolean((relation?.riverIds ?? []).map(String).includes(selectedEntity.id) || (selectedRiverName && relation?.riverName === selectedRiverName));
-      return { ...feature, properties: { ...feature.properties, color: occupancy === null ? '#64748b' : getDamColor(occupancy), flow, occupancy, damIcon: damIconBucket(occupancy), powerRadius: powerRadius(feature.properties?.installedPowerMw), visualRadius: visualPowerRadius(feature.properties?.installedPowerMw), damLinked: Boolean(relation?.damIds?.length), relatedToSelected: riverSelected, selected: selectedEntity?.type === 'hes' && selectedEntity.id === id, cascadeDepth: relation?.cascadeOrder ?? null } };
+      return { ...feature, properties: { ...feature.properties, color: '#38bdf8', flow, occupancy, damIcon: damIconBucket(occupancy), powerRadius: powerRadius(feature.properties?.installedPowerMw), visualRadius: visualPowerRadius(feature.properties?.installedPowerMw), damLinked: Boolean(relation?.damIds?.length), relatedToSelected: riverSelected, selected: selectedEntity?.type === 'hes' && selectedEntity.id === id, cascadeDepth: relation?.cascadeOrder ?? null } };
     }) };
     return { rivers: { ...rivers, features: riverFeatures }, basins: { ...basins, features: basinFeatures }, flowStations, hesStations: enrichedHesStations, dams: { ...damStations, features: damFeatures }, lakes, hes177: enrichedHes177, cascades, catchment };
   }, [basins, cascades, catchment, damHesMapping, damStations, dataMode, epias, flowStations, geoglows, hes177, hes177Relations, hesStations, lakes, majorRiverGroups, riverNameMap, rivers, selectedEntity, theme, timelineIndex]);
@@ -173,8 +195,9 @@ export function BaseMap() {
     basinOutlineColor: theme === 'light' ? '#475569' : '#93c5fd',
     riverGlowColor: theme === 'light' ? '#0e7490' : '#38bdf8',
     selectedEntity,
-    selectedRiverMemberIds: selectedEntity?.type === 'river' ? majorRiverGroups.get(selectedEntity.id)?.memberIds ?? [] : [],
-  }), [layers.basins, layers.dams, layers.flowStations, layers.hesStations, layers.lakes, layers.rivers, majorRiverGroups, selectedEntity, theme]);
+    selectedBasinId: selectedEntity?.type === 'basin' ? selectedEntity.id : selectedEntity?.type === 'hes' ? String(hes177.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id)?.properties?.basinId ?? '') || null : null,
+    selectedRiverMemberIds: selectedEntity?.type === 'river' ? majorRiverGroups.get(selectedEntity.id)?.memberIds ?? [] : selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id]?.riverIds?.map(String) ?? [] : [],
+  }), [hes177.features, hes177Relations, layers.basins, layers.dams, layers.flowStations, layers.hesStations, layers.lakes, layers.rivers, majorRiverGroups, selectedEntity, theme]);
 
   const syncOverlay = useCallback(function syncOverlay(force = false) {
     const map = mapRef.current;
@@ -229,7 +252,15 @@ export function BaseMap() {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || basemap === initialBasemapRef.current) return;
+    if ((basemap === 'dark' || basemap === 'light') && map.getLayer('basemap-background')) {
+      initialBasemapRef.current = basemap;
+      applyVectorBasemapPalette(map, basemap);
+      map.triggerRepaint();
+      return;
+    }
     initialBasemapRef.current = basemap;
+    lastSyncedDataRef.current = null;
+    lastSyncedOptionsRef.current = null;
     map.setStyle(getBasemapStyle(basemap), { diff: false });
     scheduleOverlaySync();
   }, [basemap, scheduleOverlaySync]);
@@ -270,8 +301,8 @@ export function BaseMap() {
     themeRef.current = theme;
     const map = mapRef.current;
     if (!map) return;
-    if (!map.isStyleLoaded() || !map.getLayer('basemap-background')) { scheduleOverlaySync(); return; }
-    map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[theme]);
+    if (!map.getLayer('basemap-background')) { scheduleOverlaySync(); return; }
+    if (theme === 'dark' || theme === 'light') applyVectorBasemapPalette(map, theme);
     map.triggerRepaint();
   }, [theme, scheduleOverlaySync]);
 
@@ -327,6 +358,8 @@ export function BaseMap() {
         const properties = (feature.properties ?? {}) as Record<string, unknown>;
         const relation = hes177Relations?.byHesId?.[hesId];
         const riverId = relation?.riverSystemId ?? relation?.riverIds?.[0];
+        const basinId = properties.basinId === undefined || properties.basinId === null ? null : String(properties.basinId);
+        const cascadeId = properties.cascadeToId === undefined || properties.cascadeToId === null ? null : String(properties.cascadeToId);
         const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 14, maxWidth: '280px', className: themeRef.current === 'light' ? 'hydro-click-popup-wrap hydro-tooltip-light' : 'hydro-click-popup-wrap' })
           .setLngLat(event.lngLat)
           .setHTML(hesPopupHtml(properties))
@@ -335,6 +368,8 @@ export function BaseMap() {
         const element = popup.getElement();
         element?.querySelector('[data-popup-close]')?.addEventListener('click', () => { popup.remove(); if (clickPopupRef.current === popup) clickPopupRef.current = null; });
         element?.querySelector('[data-show-river]')?.addEventListener('click', () => { if (riverId) useAppStore.getState().setSelectedEntity({ type: 'river', id: String(riverId) }); });
+        element?.querySelector('[data-show-basin]')?.addEventListener('click', () => { if (basinId) useAppStore.getState().setSelectedEntity({ type: 'basin', id: basinId }); });
+        element?.querySelector('[data-show-cascade]')?.addEventListener('click', () => { if (cascadeId) useAppStore.getState().setSelectedEntity({ type: 'hes', id: cascadeId }); });
         element?.querySelector('[data-show-catchment]')?.addEventListener('click', () => useAppStore.getState().toggleCatchment(hesId));
       }
     };
