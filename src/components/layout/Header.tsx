@@ -11,7 +11,7 @@ export const Header: React.FC = () => {
   const isSidebarOpen = useAppStore((s) => s.isSidebarOpen);
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
   const rivers = useAppStore((s) => s.rivers);
-  const dams = useAppStore((s) => s.damStations);
+  const hes177 = useAppStore((s) => s.hes177);
   const geoglows = useAppStore((s) => s.geoglows);
   const mappingManifest = useAppStore((s) => s.mappingManifest);
   const epias = useAppStore((s) => s.epias);
@@ -29,12 +29,12 @@ export const Header: React.FC = () => {
     const epiasValues = (epias?.records ?? []).map((record) => Number(record.occupancy ?? record.fullness ?? record.activeFullness)).filter(Number.isFinite);
     return {
       rivers: rivers.features.length,
-      dams: dams.features.length,
+      dams: hes177.features.length,
       mapped: mappingManifest?.matchedCount ?? mappingManifest?.count ?? 0,
       forecasts: geoglows?.records?.length ?? 0,
       occupancy: epiasValues.length ? Math.round(epiasValues.reduce((sum, value) => sum + value, 0) / epiasValues.length) : null,
     };
-  }, [dams.features.length, epias?.records, geoglows?.records?.length, mappingManifest?.count, mappingManifest?.matchedCount, rivers.features.length]);
+  }, [epias?.records, geoglows?.records?.length, hes177.features.length, mappingManifest?.count, mappingManifest?.matchedCount, rivers.features.length]);
   const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr / Gri', satellite: 'Uydu', streets: 'Sokak' };
 
   return (
@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
       </div>
       <div className="hidden items-center gap-3 xl:flex">
         <div className="text-right"><div className="font-mono text-sm font-bold text-cyan-400">{kpis.rivers.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Nehir</div></div>
-        <div className="text-right"><div className="font-mono text-sm font-bold text-violet-400">{kpis.dams.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Baraj istasyonu</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-violet-400">{kpis.dams.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">177 HES</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-emerald-400">{kpis.mapped.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">GEOGLOWS eşleşmesi</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-blue-400">{kpis.forecasts.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Tahmin bulunan</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-400">{kpis.occupancy === null ? '—' : `%${kpis.occupancy}`}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">EPİAŞ doluluk</div></div>

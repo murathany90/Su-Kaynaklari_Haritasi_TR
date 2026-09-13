@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { loadHydroData as fetchHydroData } from '../services/hydroData';
-import { emptyFeatureCollection, type HydroDataManifest, type HydrologyFeatureCollection, type HydroLoadStatus, type GeoglowsPayload, type EpiasPayload, type RiverMappingManifest } from '../types/hydrology';
+import { emptyFeatureCollection, type Hes177Relations, type HydroDataManifest, type HydrologyFeatureCollection, type HydroLoadStatus, type GeoglowsPayload, type EpiasPayload, type RiverMappingManifest } from '../types/hydrology';
 
-export type TabType = 'rivers' | 'dams' | 'lakes' | 'basins';
+export type TabType = 'hes' | 'rivers' | 'basins';
 export type FilterType = 'all' | 'drought' | 'normal' | 'flood';
 export type ThemeType = 'dark' | 'light';
 export type BasemapType = 'dark' | 'light' | 'neutral' | 'satellite' | 'streets';
@@ -37,6 +37,8 @@ interface AppState {
   hesStations: HydrologyFeatureCollection;
   damStations: HydrologyFeatureCollection;
   lakes: HydrologyFeatureCollection;
+  hes177: HydrologyFeatureCollection;
+  hes177Relations: Hes177Relations | null;
   dataManifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
   geoglows: GeoglowsPayload | null;
@@ -61,7 +63,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  currentTab: 'rivers',
+  currentTab: 'hes',
   currentFilter: 'all',
   searchQuery: '',
   selectedEntity: null,
@@ -72,7 +74,7 @@ export const useAppStore = create<AppState>((set) => ({
     flowStations: false,
     hesStations: false,
     dams: true,
-    lakes: true,
+    lakes: false,
     basins: true,
   },
   theme: 'dark',
@@ -89,6 +91,8 @@ export const useAppStore = create<AppState>((set) => ({
   hesStations: emptyFeatureCollection(),
   damStations: emptyFeatureCollection(),
   lakes: emptyFeatureCollection(),
+  hes177: emptyFeatureCollection(),
+  hes177Relations: null,
   dataManifest: null,
   mappingManifest: null,
   geoglows: null,
@@ -113,8 +117,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ hydroDataStatus: 'loading', hydroDataError: null });
     try {
       const data = await fetchHydroData();
-      const staticLoaded = [data.basins, data.rivers, data.flowStations, data.hesStations, data.damStations, data.lakes]
-        .every((collection) => collection.features.length > 0);
+      const staticLoaded = [data.basins, data.rivers, data.hes177].every((collection) => collection.features.length > 0);
       const livePartial = Boolean(data.geoglows && !['ok', 'no_reviewed_mappings'].includes(data.geoglows.status ?? ''))
         || Boolean(data.epias && data.epias.status !== 'ok');
       set({
@@ -127,6 +130,8 @@ export const useAppStore = create<AppState>((set) => ({
         hesStations: data.hesStations,
         damStations: data.damStations,
         lakes: data.lakes,
+        hes177: data.hes177,
+        hes177Relations: data.hes177Relations,
         dataManifest: data.manifest,
         mappingManifest: data.mappingManifest,
         geoglows: data.geoglows,

@@ -5,18 +5,18 @@ import {
   type HydroDataBundle,
   type HydroDataManifest,
   type HydrologyFeatureCollection,
+  type Hes177Relations,
   type RiverMappingManifest,
 } from '../types/hydrology';
 
 const STATIC_FILES = {
-  basins: '/data/static/tatus/basins.geojson',
-  // The complete 632k-feature archive remains available for analysis. The
-  // interactive map loads the real, length-filtered overview for responsiveness.
-  rivers: '/data/static/tatus/rivers_overview.geojson',
-  flowStations: '/data/static/tatus/flow_stations.geojson',
-  hesStations: '/data/static/tatus/hes_stations.geojson',
-  damStations: '/data/static/tatus/dam_stations.geojson',
-  lakes: '/data/static/tatus/lake_stations.geojson',
+  basins: '/data/hes177/hes_basins.geojson',
+  rivers: '/data/hes177/hes_rivers.geojson',
+  flowStations: '',
+  hesStations: '/data/hes177/hes_river_anchors.geojson',
+  damStations: '/data/hes177/hes_dams.geojson',
+  lakes: '',
+  hes177: '/data/hes177/hes_177.geojson',
 } as const;
 
 async function readJson<T>(path: string): Promise<T> {
@@ -43,11 +43,11 @@ function reasonOf(result: PromiseSettledResult<unknown>): string {
 /** Loads real static TATUS data and the latest generated live payloads. */
 export async function loadHydroData(): Promise<HydroDataBundle> {
   const entries = await Promise.allSettled(
-    Object.entries(STATIC_FILES).map(async ([key, path]) => [key, asFeatureCollection(await readJson(path), path)] as const),
+    Object.entries(STATIC_FILES).map(async ([key, path]) => [key, path ? asFeatureCollection(await readJson(path), path) : emptyFeatureCollection()] as const),
   );
   const bundle: HydroDataBundle = {
     basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), flowStations: emptyFeatureCollection(),
-    hesStations: emptyFeatureCollection(), damStations: emptyFeatureCollection(), lakes: emptyFeatureCollection(),
+    hesStations: emptyFeatureCollection(), damStations: emptyFeatureCollection(), lakes: emptyFeatureCollection(), hes177: emptyFeatureCollection(), hes177Relations: null,
     manifest: null, mappingManifest: null, geoglows: null, epias: null, errors: [],
   };
   entries.forEach((entry, index) => {
@@ -61,6 +61,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
     readJson<RiverMappingManifest>('/data/manifest/river_reach_map_manifest.json'),
     readJson<GeoglowsPayload>('/data/live/geoglows_latest.json'),
     readJson<EpiasPayload>('/data/live/epias_dams_latest.json'),
+    readJson<Hes177Relations>('/data/hes177/hes_177_relations.json'),
   ]);
   if (optional[0].status === 'fulfilled') bundle.manifest = optional[0].value;
   else bundle.errors.push(`manifest: ${reasonOf(optional[0])}`);
@@ -70,6 +71,8 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
   else bundle.errors.push(`GEOGLOWS: ${reasonOf(optional[2])}`);
   if (optional[3].status === 'fulfilled') bundle.epias = asOptionalPayload<EpiasPayload>(optional[3].value);
   else bundle.errors.push(`EPİAŞ: ${reasonOf(optional[3])}`);
+  if (optional[4].status === 'fulfilled') bundle.hes177Relations = optional[4].value;
+  else bundle.errors.push(`177 HES ilişkileri: ${reasonOf(optional[4])}`);
   return bundle;
 }
 

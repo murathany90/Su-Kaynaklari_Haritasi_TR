@@ -10,6 +10,7 @@ export type OverlayCollections = {
   hesStations: OverlayCollection;
   dams: OverlayCollection;
   lakes: OverlayCollection;
+  hes177: OverlayCollection;
 };
 
 export type OverlayOptions = {
@@ -19,21 +20,23 @@ export type OverlayOptions = {
   dams: boolean;
   lakes: boolean;
   basins: boolean;
+  hes177: boolean;
   outlineColor: string;
   selectionColor: string;
   basinOutlineColor: string;
   riverGlowColor: string;
   selectedEntity: { type: string; id: string } | null;
+  selectedRiverMemberIds: string[];
 };
 
-const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes'] as const;
+const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes', 'hes177'] as const;
 export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 11 }, (_, index) => String(index * 10))];
 export const DAM_PIE_LAYER_IDS = DAM_PIE_BUCKETS.map((bucket) => `dams-pie-${bucket}`);
 const OVERLAY_LAYER_IDS = [
     'basins-fill', 'basins-outline', 'rivers-glow', 'rivers-core',
-  'rivers-detail', 'rivers-flow', 'rivers-selected', 'basins-selected', 'flow-stations', 'hes-stations',
+  'rivers-detail', 'rivers-flow', 'rivers-selected', 'basins-selected', 'flow-stations', 'hes-stations', 'hes-related',
   'lakes-halo', 'lakes-points', 'lakes-selected', 'dams-halo', 'dams-points', 'dams-related', 'dams-selected',
-  ...DAM_PIE_LAYER_IDS, 'dams-producer',
+  ...DAM_PIE_LAYER_IDS, 'dams-producer', 'hes177-halo', 'hes177-points', 'hes177-related', 'hes177-producer', 'hes177-selected',
 ] as const;
 
 const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
@@ -97,6 +100,28 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   }
 
   addLayerIfMissing(map, {
+    id: 'hes177-halo', type: 'circle', source: 'hes177', minzoom: 5,
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 5, 9, 10, 14, 16], 'circle-color': '#22d3ee', 'circle-opacity': 0.2, 'circle-blur': 0.6 },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes177-points', type: 'circle', source: 'hes177', minzoom: 5,
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 3.5, 9, 6, 14, 9], 'circle-color': ['coalesce', ['get', 'color'], '#22d3ee'], 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes177-related', type: 'circle', source: 'hes177', minzoom: 5,
+    filter: ['==', ['get', 'relatedToSelected'], true],
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 5, 9, 9, 14, 13], 'circle-color': '#22d3ee', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes177-producer', type: 'symbol', source: 'hes177', minzoom: 5,
+    layout: { 'text-field': '⚡', 'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 13], 'text-offset': [0.9, -0.9], 'text-allow-overlap': true, 'text-ignore-placement': true },
+    paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes177-selected', type: 'circle', source: 'hes177', minzoom: 4,
+    paint: { 'circle-radius': ['+', ['interpolate', ['linear'], ['zoom'], 4, 5, 10, 10], 5], 'circle-color': 'transparent', 'circle-stroke-width': 3, 'circle-stroke-color': options.selectionColor },
+  });
+  addLayerIfMissing(map, {
     id: 'basins-fill', type: 'fill', source: 'basins',
     paint: { 'fill-color': ['coalesce', ['get', 'color'], '#2563eb'], 'fill-opacity': 0.12 },
   });
@@ -142,6 +167,12 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
     id: 'hes-stations', type: 'circle', source: 'hesStations',
     minzoom: 6,
     paint: { 'circle-radius': 5, 'circle-color': '#a78bfa', 'circle-stroke-width': 1.5, 'circle-stroke-color': options.outlineColor },
+  });
+  addLayerIfMissing(map, {
+    id: 'hes-related', type: 'circle', source: 'hesStations',
+    minzoom: 5,
+    filter: ['==', ['get', 'relatedToSelected'], true],
+    paint: { 'circle-radius': 8, 'circle-color': '#22d3ee', 'circle-opacity': 0.92, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc', 'circle-stroke-opacity': 0.95 },
   });
   addLayerIfMissing(map, {
     id: 'lakes-halo', type: 'circle', source: 'lakes',
@@ -191,6 +222,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
     layout: { 'text-field': '⚡', 'text-size': 11, 'text-offset': [1.2, -1.1], 'text-allow-overlap': true },
     paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
   });
+  ['hes177-halo', 'hes177-points', 'hes177-related', 'hes177-producer', 'hes177-selected'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
 
   setVisibility(map, 'basins-fill', options.basins);
   setVisibility(map, 'basins-outline', options.basins);
@@ -201,6 +233,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   setVisibility(map, 'rivers-selected', options.rivers);
   setVisibility(map, 'flow-stations', options.flowStations);
   setVisibility(map, 'hes-stations', options.hesStations);
+  setVisibility(map, 'hes-related', options.rivers || options.selectedEntity?.type === 'river');
   setVisibility(map, 'lakes-halo', options.lakes);
   setVisibility(map, 'lakes-points', options.lakes);
   setVisibility(map, 'dams-halo', options.dams);
@@ -211,12 +244,19 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   setVisibility(map, 'dams-selected', options.dams);
   DAM_PIE_LAYER_IDS.forEach((id) => setVisibility(map, id, options.dams));
   setVisibility(map, 'dams-producer', options.dams);
+  setVisibility(map, 'hes177-halo', options.hes177);
+  setVisibility(map, 'hes177-points', options.hes177);
+  setVisibility(map, 'hes177-related', options.hes177 && options.selectedEntity?.type === 'river');
+  setVisibility(map, 'hes177-producer', options.hes177);
+  setVisibility(map, 'hes177-selected', options.hes177);
   const noSelection: FilterSpecification = ['==', ['get', 'id'], '__no_selection__'];
   const selectedFilter: FilterSpecification = options.selectedEntity ? ['==', ['get', 'id'], options.selectedEntity.id] : noSelection;
-  if (map.getLayer('rivers-selected')) map.setFilter('rivers-selected', options.selectedEntity?.type === 'river' ? selectedFilter : noSelection);
+  const selectedRiverFilter: FilterSpecification = options.selectedRiverMemberIds.length ? ['in', ['get', 'id'], ['literal', options.selectedRiverMemberIds]] : selectedFilter;
+  if (map.getLayer('rivers-selected')) map.setFilter('rivers-selected', options.selectedEntity?.type === 'river' ? selectedRiverFilter : noSelection);
   if (map.getLayer('basins-selected')) map.setFilter('basins-selected', options.selectedEntity?.type === 'basin' ? selectedFilter : noSelection);
   if (map.getLayer('lakes-selected')) map.setFilter('lakes-selected', options.selectedEntity?.type === 'lake' ? selectedFilter : noSelection);
   if (map.getLayer('dams-selected')) map.setFilter('dams-selected', options.selectedEntity?.type === 'dam' ? selectedFilter : noSelection);
+  if (map.getLayer('hes177-selected')) map.setFilter('hes177-selected', options.selectedEntity?.type === 'hes' ? selectedFilter : noSelection);
   for (const id of ['flow-stations', 'lakes-points', 'dams-points']) {
     if (map.getLayer(id)) map.setPaintProperty(id, 'circle-stroke-color', options.outlineColor);
   }

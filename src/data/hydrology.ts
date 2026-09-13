@@ -1,4 +1,4 @@
-import type { FeatureCollection, Geometry, GeoJsonProperties, Position } from 'geojson';
+import type { Feature, FeatureCollection, Geometry, GeoJsonProperties, Position } from 'geojson';
 
 type HydroFeature = { id?: string | number; geometry?: Geometry | null; properties?: GeoJsonProperties | null };
 
@@ -36,11 +36,11 @@ export function isUnknownName(value: unknown): boolean {
   return !normalized || ['bilinmiyor', 'unknown', 'no_data', 'n/a', 'null'].includes(normalized);
 }
 
-export function displayName(properties: Record<string, unknown>, kind: 'river' | 'dam' | 'lake' | 'basin', id: string): string {
-  const candidates = kind === 'river' ? [properties.name, properties.adi, properties.riverName] : kind === 'dam' ? [properties.name, properties.damName, properties.BarajAdi] : kind === 'lake' ? [properties.name, properties.IstAdi, properties.SuAdi] : [properties.name, properties.HAVZA_ADI, properties.HavzaAdi];
+export function displayName(properties: Record<string, unknown>, kind: 'river' | 'dam' | 'lake' | 'basin' | 'hes', id: string): string {
+  const candidates = kind === 'river' ? [properties.name, properties.adi, properties.riverName] : kind === 'dam' ? [properties.name, properties.damName, properties.BarajAdi] : kind === 'lake' ? [properties.name, properties.IstAdi, properties.SuAdi] : kind === 'hes' ? [properties.name, properties.hesName, properties.IstAdi] : [properties.name, properties.HAVZA_ADI, properties.HavzaAdi];
   const value = candidates.find((candidate) => !isUnknownName(candidate));
   if (value !== undefined) return String(value);
-  const labels = { river: 'Adsız akarsu', dam: 'Adsız baraj', lake: 'Adsız göl', basin: 'Adsız havza' };
+  const labels = { river: 'Adsız akarsu', dam: 'Adsız baraj', lake: 'Adsız göl', basin: 'Adsız havza', hes: 'Adsız HES' };
   const riverCode = kind === 'river' && !isUnknownName(properties.riverCode ?? properties.nehir_kod) ? String(properties.riverCode ?? properties.nehir_kod) : id;
   return `${labels[kind]} · ${riverCode}`;
 }
@@ -135,6 +135,76 @@ export function buildRiverNameMap(collection: FeatureCollection<Geometry, GeoJso
   return names;
 }
 
+type MajorRiverDefinition = { key: string; name: string; basinId: string; stationToken: string; minStrahler: number; maxDistanceKm: number };
+
+const MAJOR_RIVER_DEFINITIONS: MajorRiverDefinition[] = [
+  { key: 'FIRAT', name: 'Fırat Nehri', basinId: '21', stationToken: 'FIRAT', minStrahler: 6, maxDistanceKm: 65 },
+  { key: 'DICLE', name: 'Dicle Nehri', basinId: '21', stationToken: 'DICLE', minStrahler: 6, maxDistanceKm: 65 },
+  { key: 'KIZILIRMAK', name: 'Kızılırmak', basinId: '15', stationToken: 'KIZILIRMAK', minStrahler: 5, maxDistanceKm: 55 },
+  { key: 'SAKARYA', name: 'Sakarya Nehri', basinId: '12', stationToken: 'SAKARYA', minStrahler: 5, maxDistanceKm: 55 },
+  { key: 'YESILIRMAK', name: 'Yeşilırmak', basinId: '14', stationToken: 'YESILIRMAK', minStrahler: 5, maxDistanceKm: 55 },
+  { key: 'SEYHAN', name: 'Seyhan Nehri', basinId: '18', stationToken: 'SEYHAN', minStrahler: 5, maxDistanceKm: 55 },
+  { key: 'CEYHAN', name: 'Ceyhan Nehri', basinId: '20', stationToken: 'CEYHAN', minStrahler: 5, maxDistanceKm: 55 },
+  { key: 'CORUH', name: 'Çoruh Nehri', basinId: '23', stationToken: 'CORUH', minStrahler: 5, maxDistanceKm: 55 },
+];
+
+export type MajorRiverGroup = {
+  id: string;
+  name: string;
+  basinId: string;
+  memberIds: string[];
+  facilityIds: string[];
+  feature: Feature<Geometry, GeoJsonProperties>;
+  representedLengthKm: number;
+};
+
+function stationName(feature: HydroFeature): unknown {
+  const properties = propertiesOf(feature);
+  return properties.SuAdi ?? properties.riverName ?? properties.name;
+}
+
+function isDamLikeStation(feature: HydroFeature): boolean {
+  const value = normalizeName(propertiesOf(feature).IstAdi);
+  return /BARAJ|BRJ|HES|KEBAN|KARKAMIS|ILISU|BAGISTAS/.test(value);
+}
+
+/** Builds named river groups from TATUS water-name observations without inventing a name for unrelated segments. */
+export function buildMajorRiverGroups(rivers: FeatureCollection<Geometry, GeoJsonProperties>, hesStations: FeatureCollection<Geometry, GeoJsonProperties>): Map<string, MajorRiverGroup> {
+  const riverFeatures = rivers.features as HydroFeature[];
+  const stationFeatures = hesStations.features as HydroFeature[];
+  const groups = new Map<string, MajorRiverGroup>();
+  MAJOR_RIVER_DEFINITIONS.forEach((definition) => {
+    const anchors = stationFeatures.filter((station) => basinIdOf(station) === definition.basinId && normalizeName(stationName(station)).includes(definition.stationToken) && pointOf(station));
+    if (!anchors.length) return;
+    const members = riverFeatures.filter((river) => {
+      if (basinIdOf(river) !== definition.basinId || Number(propertiesOf(river).strahler) < definition.minStrahler) return false;
+      const distance = Math.min(...anchors.map((anchor) => pointToLineKm(pointOf(anchor) as [number, number], river)));
+      return distance <= definition.maxDistanceKm || namesRelate(propertiesOf(river).name, definition.name);
+    });
+    if (!members.length) return;
+    const memberLines = members.map((member) => lineCoordinates(member)).filter((line) => line.length > 1);
+    const anchorPoints = anchors.map((anchor) => pointOf(anchor)).filter((point): point is [number, number] => Boolean(point));
+    const facilityAnchors = anchors.filter(isDamLikeStation).filter((station, index, candidates) => {
+      const stationPoint = pointOf(station);
+      if (!stationPoint) return false;
+      return index === candidates.findIndex((candidate) => {
+        const candidatePoint = pointOf(candidate);
+        return candidatePoint && comparableName(propertiesOf(candidate).IstAdi) === comparableName(propertiesOf(station).IstAdi) && distanceKm(stationPoint, candidatePoint) <= 1;
+      });
+    });
+    groups.set(`major-river:${definition.key}`, {
+      id: `major-river:${definition.key}`,
+      name: definition.name,
+      basinId: definition.basinId,
+      memberIds: members.map(entityId),
+      facilityIds: facilityAnchors.map(entityId),
+      feature: { type: 'Feature', id: `major-river:${definition.key}`, geometry: { type: 'GeometryCollection', geometries: [...memberLines.map((coordinates) => ({ type: 'LineString' as const, coordinates })), ...anchorPoints.map((coordinates) => ({ type: 'Point' as const, coordinates }))] }, properties: { id: `major-river:${definition.key}`, name: definition.name, riverName: definition.name, basinId: definition.basinId, majorStationIds: facilityAnchors.map(entityId), majorMemberIds: members.map(entityId) } },
+      representedLengthKm: members.reduce((total, member) => { const value = Number(propertiesOf(member).lengthKm); return total + (Number.isFinite(value) ? value : 0); }, 0),
+    });
+  });
+  return groups;
+}
+
 export type DamHesMatch = { damId: string; hesIds: string[] };
 
 export function buildDamHesMapping(dams: FeatureCollection<Geometry, GeoJsonProperties>, hesStations: FeatureCollection<Geometry, GeoJsonProperties>): Map<string, DamHesMatch> {
@@ -160,14 +230,16 @@ export function isElectricProducer(properties: Record<string, unknown>, hasHesMa
   return hasHesMatch || [properties.isHes, properties.isHES, properties.hes, properties.energyProducer, properties.producer].some((value) => value === true || value === 'true' || value === 1);
 }
 
-export type RiverDamRelation = { ids: Set<string>; confidence: 'name/spatial' | 'basin' };
+export type RiverDamRelation = { ids: Set<string>; stationIds: Set<string>; confidence: 'name/spatial' | 'basin' };
 
 export function relateRiverToDams(river: HydroFeature, dams: FeatureCollection<Geometry, GeoJsonProperties>, hesStations: FeatureCollection<Geometry, GeoJsonProperties>, damHesMapping: Map<string, DamHesMatch>): RiverDamRelation {
   const riverProperties = propertiesOf(river);
   const riverName = riverProperties.riverName ?? riverProperties.name ?? riverProperties.adi;
   const riverPointFeatures = hesStations.features as HydroFeature[];
+  const majorStationIds = Array.isArray(riverProperties.majorStationIds) ? riverProperties.majorStationIds.map(String) : [];
   const strongIds = new Set<string>();
   (dams.features as HydroFeature[]).forEach((dam) => {
+    const damProperties = propertiesOf(dam);
     if (basinIdOf(dam) !== basinIdOf(river)) return;
     const damMatch = damHesMapping.get(entityId(dam));
     const damPoint = pointOf(dam);
@@ -176,10 +248,10 @@ export function relateRiverToDams(river: HydroFeature, dams: FeatureCollection<G
       const hesProperties = hes ? propertiesOf(hes) : {};
       return namesRelate(riverName, hesProperties.SuAdi) || (damPoint && hes && pointToLineKm(damPoint, river) <= 8 && pointToLineKm(pointOf(hes) as [number, number], river) <= 8);
     });
-    if (hesMatch || (damPoint && pointToLineKm(damPoint, river) <= 8 && !isUnknownName(riverName))) strongIds.add(entityId(dam));
+    if (namesRelate(riverName, damProperties.riverName) || hesMatch || (damPoint && pointToLineKm(damPoint, river) <= 8 && !isUnknownName(riverName))) strongIds.add(entityId(dam));
   });
-  if (strongIds.size) return { ids: strongIds, confidence: 'name/spatial' };
-  return { ids: new Set((dams.features as HydroFeature[]).filter((dam) => basinIdOf(dam) === basinIdOf(river)).map(entityId)), confidence: 'basin' };
+  if (strongIds.size || majorStationIds.length) return { ids: strongIds, stationIds: new Set(majorStationIds), confidence: 'name/spatial' };
+  return { ids: new Set((dams.features as HydroFeature[]).filter((dam) => basinIdOf(dam) === basinIdOf(river)).map(entityId)), stationIds: new Set(), confidence: 'basin' };
 }
 
 export type BasinSummary = { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; lakeCount: number; mainRiverNames: string[] };
@@ -193,6 +265,7 @@ export function buildBasinSummaries(basins: FeatureCollection<Geometry, GeoJsonP
   });
   const namesByBasin = new Map<string, Map<string, { maxStrahler: number; lengthKm: number }>>();
   (rivers.features as HydroFeature[]).forEach((river) => {
+    if (propertiesOf(river).entityType === 'riverGroup') return;
     const basinId = basinIdOf(river); const summary = summaries.get(basinId); if (!summary) return;
     const properties = propertiesOf(river); const lengthKm = Number(properties.lengthKm ?? Number(properties.uzunluk) / 1000); const strahler = Number(properties.strahler);
     summary.riverCount += 1; if (Number.isFinite(lengthKm)) summary.riverLengthKm += lengthKm;

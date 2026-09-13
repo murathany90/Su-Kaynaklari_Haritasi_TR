@@ -2,7 +2,16 @@ import type { Feature, FeatureCollection, Geometry, GeoJsonProperties, Position 
 import type { Map as MapLibreMap, LngLatLike } from 'maplibre-gl';
 
 export type Selection = { type: string; id: string };
-export type FocusDatasets = Record<string, FeatureCollection<Geometry, GeoJsonProperties>>;
+export type FocusDatasets = {
+  rivers: FeatureCollection<Geometry, GeoJsonProperties>;
+  basins: FeatureCollection<Geometry, GeoJsonProperties>;
+  flowStations: FeatureCollection<Geometry, GeoJsonProperties>;
+  hesStations: FeatureCollection<Geometry, GeoJsonProperties>;
+  dams: FeatureCollection<Geometry, GeoJsonProperties>;
+  lakes: FeatureCollection<Geometry, GeoJsonProperties>;
+  hes177: FeatureCollection<Geometry, GeoJsonProperties>;
+  riverGroups?: Map<string, Feature<Geometry, GeoJsonProperties>>;
+};
 
 const FOCUS_PADDING = { top: 72, right: 72, bottom: 184, left: 72 };
 
@@ -22,7 +31,8 @@ function positions(geometry: Geometry | null): Position[] {
 }
 
 function findFeature(selection: Selection, datasets: FocusDatasets): Feature<Geometry, GeoJsonProperties> | null {
-  const collection = datasets[selection.type === 'river' ? 'rivers' : selection.type === 'basin' ? 'basins' : selection.type === 'lake' ? 'lakes' : selection.type === 'dam' ? 'dams' : 'hesStations'];
+  if (selection.type === 'river' && datasets.riverGroups?.has(selection.id)) return datasets.riverGroups.get(selection.id) ?? null;
+  const collection = datasets[selection.type === 'river' ? 'rivers' : selection.type === 'basin' ? 'basins' : selection.type === 'lake' ? 'lakes' : selection.type === 'dam' ? 'dams' : selection.type === 'hes' ? 'hes177' : 'hesStations'];
   return collection?.features.find((feature) => featureId(feature) === selection.id) ?? null;
 }
 
