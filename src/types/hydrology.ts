@@ -84,6 +84,8 @@ export interface Hes177Relation {
   damId?: string | null;
   damIds?: string[];
   riverIds?: string[];
+  riverSystemId?: string | null;
+  riverSystemIds?: string[];
   stationIds?: string[];
   catchmentUrl?: string | null;
   cascadeToId?: string | null;

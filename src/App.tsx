@@ -19,8 +19,8 @@ function App() {
       <div className="relative flex-1 w-full h-full overflow-hidden flex">
         
         {/* Sidebar with slide animation */}
-        <div className={`absolute lg:relative z-20 h-full overflow-visible transition-all duration-300 shrink-0 shadow-2xl ${isSidebarOpen ? 'translate-x-0 lg:w-[410px]' : '-translate-x-full lg:w-0 lg:translate-x-0'}`}>
-          <div className={`h-full w-[min(410px,calc(100vw-2rem))] transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : 'lg:-translate-x-full'}`}>
+        <div className={`absolute lg:relative z-20 h-full overflow-visible transition-all duration-300 shrink-0 shadow-2xl ${isSidebarOpen ? 'translate-x-0 lg:w-[540px]' : '-translate-x-full lg:w-0 lg:translate-x-0'}`}>
+          <div className={`h-full w-[min(540px,calc(100vw-2rem))] transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : 'lg:-translate-x-full'}`}>
             <Sidebar />
           </div>
         </div>

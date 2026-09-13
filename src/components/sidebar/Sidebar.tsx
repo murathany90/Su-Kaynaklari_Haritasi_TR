@@ -51,6 +51,7 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
     const activeVolume = damLive ? firstValue(damLive.record, ['activeVolume', 'active_volume', 'hacim']) : firstValue(properties, ['activeVolume', 'active_volume', 'activeVolumeHm3']);
     const level = damLive ? firstValue(damLive.record, ['waterLevel', 'level', 'suSeviyesi']) : firstValue(properties, ['waterLevel', 'level']);
     const power = damLive ? firstValue(damLive.record, ['installedPower', 'power', 'kuruluGuc']) : firstValue(properties, ['installedPower', 'power', 'kuruluGuc', 'installedPowerMw']);
+    const riverPower = firstValue(properties, ['installedPowerMw', 'totalPowerMw', 'installedPower']);
     const producer = kind === 'hes' ? Boolean(properties.isProducer) : kind === 'dams' && isElectricProducer(properties, damHesMapping.has(id)) || Boolean(damLive && isElectricProducer(damLive.record));
     const sourceBadge: Item['sourceBadge'] = flow ? 'GEOGLOWS' : damLive ? 'EPİAŞ' : undefined;
     const sourceTime = flow?.timestamp ?? damLive?.timestamp ?? generatedAt;
@@ -58,6 +59,8 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
     if (basin) details.push({ label: 'Havza', value: basin });
     if (kind === 'rivers') {
       if (length !== null) details.push({ label: 'Uzunluk', value: `${length.toLocaleString('tr-TR')} km` });
+      details.push({ label: 'HES', value: `${Number(properties.hesCount ?? 0).toLocaleString('tr-TR')} tesis` });
+      if (riverPower !== null) details.push({ label: 'Kurulu güç', value: `${riverPower.toLocaleString('tr-TR')} MW` });
       details.push({ label: 'GEOGLOWS', value: flow ? `${flow.value.toLocaleString('tr-TR')} m³/s` : 'Tahmin yok' });
       details.push({ label: 'Durum', value: flow ? 'Gerçek zaman serisi' : String(properties.status ?? 'veri yok') });
     } else if (kind === 'dams') {
@@ -87,7 +90,7 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
         if (summary.mainRiverNames.length) details.push({ label: 'Ana akarsular', value: summary.mainRiverNames.join(', ') });
       }
     }
-    const metric = kind === 'rivers' ? length !== null ? `${length.toLocaleString('tr-TR')} km` : flow ? `${flow.value.toLocaleString('tr-TR')} m³/s` : undefined : kind === 'dams' ? activeVolume !== null ? `${activeVolume.toLocaleString('tr-TR')} hacim` : occupancy !== null ? `%${Math.round(occupancy)}` : undefined : kind === 'hes' ? power !== null ? `${power.toLocaleString('tr-TR')} MW` : undefined : kind === 'lakes' || kind === 'basins' ? area !== null ? `${Math.round(area).toLocaleString('tr-TR')} km²` : undefined : undefined;
+    const metric = kind === 'rivers' ? `${Number(properties.hesCount ?? 0).toLocaleString('tr-TR')} HES · ${riverPower !== null ? `${riverPower.toLocaleString('tr-TR')} MW` : length !== null ? `${length.toLocaleString('tr-TR')} km` : '—'}` : kind === 'dams' ? activeVolume !== null ? `${activeVolume.toLocaleString('tr-TR')} hacim` : occupancy !== null ? `%${Math.round(occupancy)}` : undefined : kind === 'hes' ? power !== null ? `${power.toLocaleString('tr-TR')} MW` : undefined : kind === 'lakes' || kind === 'basins' ? area !== null ? `${Math.round(area).toLocaleString('tr-TR')} km²` : undefined : undefined;
     const status = kind === 'rivers' ? flow ? 'GEOGLOWS tahmin mevcut' : 'GEOGLOWS tahmini yok' : kind === 'dams' ? damLive ? 'EPİAŞ verisi mevcut' : 'EPİAŞ doluluk verisi yok' : kind === 'hes' ? `177 HES · ${String(properties.dataQuality ?? 'kalite yok')}` : String(properties.status ?? 'veri yok');
     const typeLabel = kind === 'rivers' ? 'Akarsu' : kind === 'dams' ? 'Baraj/HES' : kind === 'hes' ? 'HES' : kind === 'lakes' ? 'Göl ist.' : 'Havza';
     const province = textValue(properties, ['Il', 'IL', 'il']);
@@ -167,6 +170,7 @@ export const Sidebar: React.FC = () => {
   const labeledSource = useMemo(() => {
     const withLabels = source.features.map((feature) => ({ ...feature, properties: { ...feature.properties, basinName: basinLabels.get(String(feature.properties?.basinId ?? feature.properties?.HAVZA_ID ?? '')) ?? feature.properties?.basinName } }));
     if (currentTab !== 'rivers') return { features: withLabels };
+    if (withLabels.some((feature) => (feature.properties as Record<string, unknown> | null | undefined)?.entityType === 'hesRiverSystem')) return { features: withLabels.filter((feature) => { const properties = feature.properties as Record<string, unknown> | null | undefined; return !isUnknownName(properties?.riverName ?? properties?.name); }) };
     const grouped = [...majorRiverGroups.values()].map((group) => ({ ...group.feature, properties: { ...group.feature.properties, entityType: 'hesRivers', basinName: basinLabels.get(group.basinId), lengthKm: group.representedLengthKm, name: group.name, riverName: group.name } }));
     const groupedMembers = new Set([...majorRiverGroups.values()].flatMap((group) => group.memberIds.map(String)));
     return { features: [...grouped, ...withLabels.filter((feature) => { const id = (feature.properties as Record<string, unknown> | null | undefined)?.id ?? (feature as { id?: string | number }).id; return !groupedMembers.has(String(id ?? '')); })] };
@@ -175,16 +179,19 @@ export const Sidebar: React.FC = () => {
     const items = itemsFrom(labeledSource, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping);
     return items;
   }, [basinSummaries, currentTab, damHesMapping, labeledSource, liveMaps, manifest?.generatedAt, riverNameMap]);
-  const selectedRiver = selectedEntity?.type === 'river' ? majorRiverGroups.get(selectedEntity.id)?.feature ?? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) : null;
+  const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) ?? majorRiverGroups.get(selectedEntity.id)?.feature : null;
   const selectedRiverRelation = useMemo(() => selectedRiver ? relateRiverToDams({ ...selectedRiver, properties: { ...selectedRiver.properties, riverName: riverNameMap.get(String(selectedRiver.properties?.id ?? selectedRiver.id ?? '')) ?? selectedRiver.properties?.riverName } }, dams, hesStations, damHesMapping) : null, [damHesMapping, dams, hesStations, riverNameMap, selectedRiver]);
   const selectedRiverHesIds = useMemo(() => {
     if (!selectedRiver) return new Set<string>();
+    const directRiverHesIds = Array.isArray(selectedRiver.properties?.hesIds) ? selectedRiver.properties.hesIds.map(String) : [];
+    if (directRiverHesIds.length) return new Set(directRiverHesIds);
     const selectedName = String(selectedRiver.properties?.riverName ?? selectedRiver.properties?.name ?? '').toLocaleLowerCase('tr-TR');
     return new Set(hes177.features.filter((feature) => {
       const id = String(feature.properties?.id ?? feature.id ?? '');
       const relation = hes177Relations?.byHesId?.[id];
       const relationName = String(relation?.riverName ?? '').toLocaleLowerCase('tr-TR');
-      return Boolean(selectedName && relationName && (selectedName.includes(relationName) || relationName.includes(selectedName))) || Boolean(relation?.riverIds?.includes(String(selectedRiver.properties?.id ?? selectedRiver.id ?? '')));
+      const riverHesIds = Array.isArray(selectedRiver.properties?.hesIds) ? selectedRiver.properties.hesIds.map(String) : [];
+      return riverHesIds.includes(id) || Boolean(selectedName && relationName && (selectedName.includes(relationName) || relationName.includes(selectedName))) || Boolean(relation?.riverIds?.includes(String(selectedRiver.properties?.id ?? selectedRiver.id ?? '')));
     }).map((feature) => String(feature.properties?.id ?? feature.id ?? '')));
   }, [hes177.features, hes177Relations, selectedRiver]);
   const selectedRiverDamIds = useMemo(() => new Set([...selectedRiverHesIds].flatMap((id) => hes177Relations?.byHesId?.[id]?.damIds?.map(String) ?? [])), [hes177Relations, selectedRiverHesIds]);
@@ -223,7 +230,7 @@ export const Sidebar: React.FC = () => {
 
   const tabs: Array<{ id: TabType; label: string; icon: React.ReactNode; count: number }> = [
     { id: 'hes', label: '177 HES', icon: <Mountain className="h-4 w-4" />, count: hes177.features.length },
-    { id: 'rivers', label: 'Akarsular', icon: <Waves className="h-4 w-4" />, count: rivers.features.length },
+    { id: 'rivers', label: 'Akarsular', icon: <Waves className="h-4 w-4" />, count: rivers.features.filter((feature) => !isUnknownName(feature.properties?.riverName ?? feature.properties?.name)).length },
     { id: 'basins', label: 'Havzalar', icon: <Gauge className="h-4 w-4" />, count: basins.features.length },
   ];
   const selectionType = currentTab === 'rivers' ? 'river' : currentTab === 'hes' ? 'hes' : 'basin';
@@ -231,19 +238,19 @@ export const Sidebar: React.FC = () => {
   const layerControls: Array<{ key: keyof typeof layers; label: string }> = [
     { key: 'basins', label: 'Havzalar' }, { key: 'rivers', label: 'Akarsular' }, { key: 'dams', label: 'Barajlar' },
   ];
-  const renderItem = (item: Item, type: string) => <button key={`${type}-${item.id}`} onClick={() => setSelectedEntity({ type, id: item.id })} className={`group mb-1 w-full rounded-lg border px-2 py-2 text-left transition ${isLight ? 'border-slate-200 bg-slate-50 hover:border-cyan-500/40 hover:bg-cyan-50' : 'border-transparent bg-slate-900/60 hover:border-cyan-500/30 hover:bg-slate-800/80'} ${selectedEntity?.type === type && selectedEntity.id === item.id ? 'ring-1 ring-cyan-400/70' : ''}`}>
-    <div className="grid grid-cols-[3.5rem_minmax(0,1fr)_4rem_minmax(0,5rem)_minmax(0,6rem)] items-center gap-1.5">
+   const renderItem = (item: Item, type: string) => <button key={`${type}-${item.id}`} onClick={() => setSelectedEntity({ type, id: item.id })} className={`group mb-1 w-full rounded-lg border px-2 py-2 text-left transition ${isLight ? 'border-slate-200 bg-slate-50 hover:border-cyan-500/40 hover:bg-cyan-50' : 'border-transparent bg-slate-900/60 hover:border-cyan-500/30 hover:bg-slate-800/80'} ${selectedEntity?.type === type && selectedEntity.id === item.id ? 'ring-1 ring-cyan-400/70' : ''}`}>
+     <div className="grid grid-cols-[3.5rem_minmax(0,1fr)_minmax(5rem,auto)_minmax(0,5rem)_minmax(0,6rem)] items-center gap-1.5">
       <span className="truncate font-mono text-[9px] uppercase text-slate-500">{item.typeLabel}</span>
       <span className={`flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold ${isLight ? 'text-slate-700 group-hover:text-cyan-600' : 'text-slate-200 group-hover:text-cyan-300'}`}>{item.isProducer && <Zap className="h-3 w-3 shrink-0 text-amber-400" />}{item.name}</span>
       <span className="truncate text-right font-mono text-[9px] text-cyan-500">{item.metric ?? '—'}</span>
       <span className="truncate text-[9px] text-cyan-400/80" title={item.subtitle}>{item.subtitle ?? '—'}</span>
       <span className="truncate text-right text-[9px] text-slate-500" title={item.location}>{item.location}</span>
-    </div>
-  </button>;
+     </div>{item.typeLabel === 'Havza' && <div className="mt-2 grid grid-cols-3 gap-x-2 gap-y-1 border-t border-slate-700/20 pt-1.5 text-[8px] text-slate-500">{item.details.filter((detail) => ['Alan', 'Akarsu', 'Baraj', 'HES ist.', 'Göl ist.', 'Ana akarsular'].includes(detail.label)).map((detail) => <span key={detail.label} className="truncate" title={detail.value}><b className="text-slate-400">{detail.label}:</b> {detail.value}</span>)}</div>}
+   </button>;
 
   return (
     <aside className={`flex h-full min-h-0 w-full flex-col border-r shadow-2xl transition-colors ${isLight ? 'light-scrollbar border-slate-200 bg-white/95 text-slate-800' : 'border-slate-700/60 bg-slate-950/90 text-slate-100'}`}>
-      <div className={`border-b p-4 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-3 flex items-center justify-between"><div><div className="flex items-center gap-2 text-sm font-bold"><Activity className="h-4 w-4 text-cyan-400" />Hidroloji katmanları</div><div className="mt-1 font-mono text-[9px] text-slate-500">TATUS · EPSG:4326 · {dataStatus === 'loading' ? 'yükleniyor' : dataStatus === 'failed' ? 'veri hatası' : 'kaynak veri'}</div></div><button onClick={() => useAppStore.getState().toggleSidebar()} className={`rounded-lg p-1.5 ${isLight ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-700' : 'text-slate-500 hover:bg-slate-800 hover:text-white'}`} aria-label="Paneli kapat"><X className="h-4 w-4" /></button></div><div className="relative"><Search className={`absolute left-3 top-2.5 h-4 w-4 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Katmanlarda ara..." className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${isLight ? 'border-slate-200 bg-slate-50 text-slate-700 placeholder:text-slate-400 focus:border-cyan-500/70' : 'border-slate-700 bg-slate-900/70 placeholder:text-slate-600 focus:border-cyan-500/70'}`} /></div></div>
+      <div className={`border-b p-4 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-3 flex items-center justify-between"><div><div className="flex items-center gap-2 text-sm font-bold"><Activity className="h-4 w-4 text-cyan-400" />HES & Hidroenerji</div><div className="mt-1 font-mono text-[9px] text-slate-500">TATUS · EPSG:4326 · {dataStatus === 'loading' ? 'yükleniyor' : dataStatus === 'failed' ? 'veri hatası' : 'kaynak veri'}</div></div><button onClick={() => useAppStore.getState().toggleSidebar()} className={`rounded-lg p-1.5 ${isLight ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-700' : 'text-slate-500 hover:bg-slate-800 hover:text-white'}`} aria-label="Paneli kapat"><X className="h-4 w-4" /></button></div><div className="relative"><Search className={`absolute left-3 top-2.5 h-4 w-4 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Katmanlarda ara..." className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${isLight ? 'border-slate-200 bg-slate-50 text-slate-700 placeholder:text-slate-400 focus:border-cyan-500/70' : 'border-slate-700 bg-slate-900/70 placeholder:text-slate-600 focus:border-cyan-500/70'}`} /></div></div>
       <div className={`grid grid-cols-4 gap-1 border-b p-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{tabs.map((tab) => <button key={tab.id} onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[9px] transition ${currentTab === tab.id ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'text-slate-500 hover:bg-slate-100' : 'text-slate-500 hover:bg-slate-800/70 hover:text-slate-300'}`}>{tab.icon}<span className="text-center leading-3">{tab.label}</span><span className="font-mono text-[8px] opacity-70">{tab.count.toLocaleString('tr-TR')}</span></button>)}</div>
       <div className={`border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-slate-600'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div></div>
       {showFilters && <div className={`flex gap-1 overflow-x-auto border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{[['all', 'Tümü'], ['drought', 'Kuraklık'], ['normal', 'Normal'], ['flood', 'Taşkın']].map(([value, label]) => <button key={value} onClick={() => setFilter(value as typeof currentFilter)} className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[9px] ${currentFilter === value ? isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-700 text-slate-100' : isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-500 hover:text-slate-300'}`}>{label}</button>)}</div>}
@@ -255,7 +262,7 @@ export const Sidebar: React.FC = () => {
         {currentTab === 'rivers' && selectedRiver && relatedFacilities.length > 0 && <div className="mb-3 rounded-xl border border-cyan-500/25 bg-cyan-500/5 p-2"><div className="mb-1 text-[10px] font-semibold text-cyan-500">{selectedRiverHesIds.size > 0 || selectedRiverRelation?.confidence === 'name/spatial' ? 'İlgili Barajlar / HES' : 'Aynı Havzadaki Tesisler'}</div><div className="mb-2 text-[9px] text-slate-500">{selectedRiverHesIds.size > 0 || selectedRiverRelation?.confidence === 'name/spatial' ? 'HES v3 nehir adı/kodu ve kontrollü coğrafi yakınlık eşleşmesi.' : 'Yalnızca basinId üzerinden eşleşen tesisler · kesin kaskad ilişkisi değildir.'}</div>{relatedFacilities.slice(0, 4).map((item) => renderItem(item, item.typeLabel === 'HES' ? 'hes' : item.typeLabel === 'Baraj/HES' && item.status === 'TATUS tesisi' ? 'station' : 'dam'))}</div>}
         {dataStatus === 'loading' && <div className="p-4 text-center text-xs text-slate-500">Gerçek TATUS verileri yükleniyor…</div>}{dataStatus !== 'loading' && !sorted.length && <div className="p-6 text-center text-xs leading-5 text-slate-500">Bu filtre için kayıt yok.<br />Kaynakta veri bulunmuyorsa sentetik kayıt gösterilmez.</div>}{sorted.map((item) => renderItem(item, selectionType))}
       </div>
-      <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}>Seçim haritada otomatik yakınlaştırılır · Kaynak veride olmayan alanlar gizlenir</div>
+      <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}><details><summary className="cursor-pointer text-slate-500">Veri Kaynakları</summary><div className="mt-2 space-y-1 leading-4">Geometri: TATUS + HydroRIVERS + OSM<br />Debi/Tahmin: GEOGLOWS / ECMWF<br />HES Teknik Veri: HES 177 v3<br />Baraj/Rezervuar: TATUS + GDW + OSM<br />Havza: TATUS</div></details><div className="mt-2">Seçim haritada otomatik yakınlaştırılır · Kaynakta olmayan alanlar gizlenir</div></div>
     </aside>
   );
 };

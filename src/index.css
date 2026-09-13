@@ -102,6 +102,36 @@
 .hydro-tooltip-light .maplibregl-popup-tip {
   border-top-color: rgba(255, 255, 255, 0.96) !important;
 }
+.hydro-click-popup-wrap .maplibregl-popup-content {
+  width: 250px;
+  padding: 0 !important;
+}
+.hydro-click-popup {
+  padding: 11px 12px 10px;
+}
+.hydro-popup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.hydro-popup-head button {
+  color: #94a3b8;
+  font-size: 17px;
+  line-height: 1;
+}
+.hydro-popup-head button:hover { color: #fff; }
+.hydro-popup-producer { color: #fbbf24; margin-right: 4px; }
+.hydro-popup-sub { margin-top: 3px; color: #94a3b8; font-size: 9px; }
+.hydro-popup-grid { display: grid; grid-template-columns: 1fr auto; gap: 5px 9px; margin-top: 10px; font-size: 9px; }
+.hydro-popup-grid span { color: #64748b; }
+.hydro-popup-grid b { color: #e2e8f0; font-weight: 600; text-align: right; }
+.hydro-popup-actions { display: flex; gap: 5px; margin-top: 10px; }
+.hydro-popup-actions button { flex: 1; border: 1px solid rgba(34, 211, 238, .35); border-radius: 6px; padding: 5px 4px; color: #67e8f9; font-size: 9px; }
+.hydro-popup-actions button:hover { background: rgba(34, 211, 238, .12); }
+.hydro-tooltip-light .hydro-popup-grid b { color: #0f172a; }
+.hydro-tooltip-light .hydro-popup-head button:hover { color: #0f172a; }
 
 /* Range slider styling */
 input[type=range] {
