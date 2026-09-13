@@ -226,10 +226,32 @@ export function isElectricProducer(properties: Record<string, unknown>, hasHesMa
 }
 
 /** Stable demo fullness for MOCK mode. It never depends on render order. */
-export function mockFullness(id: string): number {
+export function mockFullness(id: string, dateKey: string | number | null = null): number {
   let hash = 2166136261;
-  for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  for (const character of `${id}:${dateKey ?? 'static'}`) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
   return 25 + (Math.abs(hash) % 66);
+}
+
+function numericValue(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const result = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(result) ? result : null;
+}
+
+/** Single fullness rule shared by the map, sidebar and HES popup. */
+export function getHesFullness(
+  hesId: string,
+  dataMode: 'mock' | 'epias',
+  epiasRecord?: Record<string, unknown> | null,
+  dateKey: string | number | null = null,
+): number | null {
+  if (dataMode === 'mock') return mockFullness(hesId, dateKey);
+  if (!epiasRecord) return null;
+  for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
+    const value = numericValue(epiasRecord[key]);
+    if (value !== null) return Math.min(100, Math.max(0, value));
+  }
+  return null;
 }
 
 export type RiverDamRelation = { ids: Set<string>; stationIds: Set<string>; confidence: 'name/spatial' | 'basin' };

@@ -21,6 +21,11 @@ function featureId(feature: Feature<Geometry, GeoJsonProperties>): string | null
   return value === undefined || value === null ? null : String(value);
 }
 
+function basinFeatureId(feature: Feature<Geometry, GeoJsonProperties>): string | null {
+  const value = feature.properties?.basinId ?? feature.properties?.HAVZA_ID ?? feature.properties?.ID;
+  return value === undefined || value === null ? null : String(value);
+}
+
 function positions(geometry: Geometry | null): Position[] {
   if (!geometry) return [];
   if (geometry.type === 'Point') return [geometry.coordinates];
@@ -34,7 +39,7 @@ function positions(geometry: Geometry | null): Position[] {
 function findFeature(selection: Selection, datasets: FocusDatasets): Feature<Geometry, GeoJsonProperties> | null {
   if (selection.type === 'river' && datasets.riverGroups?.has(selection.id)) return datasets.riverGroups.get(selection.id) ?? null;
   const collection = datasets[selection.type === 'river' ? 'rivers' : selection.type === 'basin' ? 'basins' : selection.type === 'lake' ? 'lakes' : selection.type === 'dam' ? 'dams' : selection.type === 'hes' ? 'hes177' : 'hesStations'];
-  return collection?.features.find((feature) => featureId(feature) === selection.id) ?? null;
+  return collection?.features.find((feature) => (selection.type === 'basin' ? basinFeatureId(feature) : featureId(feature)) === selection.id) ?? null;
 }
 
 function boundsFor(points: Position[]): [[number, number], [number, number]] | null {

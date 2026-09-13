@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import subprocess
 import urllib.request
 import zipfile
 from collections import defaultdict, deque
@@ -46,7 +47,7 @@ def number(value: Any) -> float | None:
 
 def normalize(value: Any) -> str:
     """Normalize names without deleting I/II/III/IV facility suffixes."""
-    text = str(value or "").upper().translate(str.maketrans("ÇĞİÖŞÜ", "CGIOSU"))
+    text = str(value or "").upper().translate(str.maketrans({"Ç": "C", "Ğ": "G", "İ": "I", "I": "I", "Ö": "O", "Ş": "S", "Ü": "U", "Â": "A", "Î": "I", "Û": "U", "Ý": "I", "Ã": "A", "Ä": "A", "Å": "S"}))
     text = re.sub(r"\b(BARAJI|BARAJ|BRJ|HES|SANTRALI|SANTRAL|VE)\b", " ", text)
     return re.sub(r"[^A-Z0-9IV]+", " ", text).strip()
 
@@ -268,6 +269,20 @@ def known_river(*values: Any) -> str | None:
     return next((name for token, name in direct if token in text), None)
 
 
+def set_display_basin(properties: dict[str, Any]) -> None:
+    """Keep official TATUS basin identity separate from the energy-facing river label."""
+    official_id = str(properties.get("officialBasinId") or properties.get("basinId") or "")
+    official_name = properties.get("officialBasinName") or properties.get("basinName")
+    river = normalize(properties.get("riverName"))
+    display_name = official_name
+    display_id = official_id
+    if official_id == "21" and river in {"FIRAT", "DICLE"}:
+        display_name = "Fırat" if river == "FIRAT" else "Dicle"
+        display_id = f"{official_id}-{river}"
+    properties["displayBasinId"] = display_id
+    properties["displayBasinName"] = display_name
+
+
 def best_name(value: Any, candidates: list[tuple[str, str]]) -> tuple[str, float] | None:
     needle = normalize(value)
     if not needle:
@@ -324,6 +339,14 @@ def main() -> None:
             "riverNameSource": row.get("Akarsu Eşleme Durumu"), "riverCode": None, "riverQueryUrl": row.get("Akarsu Polyline GeoJSON URL"), "catchmentUrl": row.get("Su Toplama Alanı Polygon GeoJSON URL"),
             "catchmentLabel": row.get("Su Toplama Alanı Popup"), "gisConfidence": row.get("GIS Güven"), "gisNote": row.get("GIS Notu"), "hasDamMatch": False,
         }
+        properties["riverNameWorkbook"] = row.get("Akarsu / Nehir (Ön Eşleme)")
+        properties["officialBasinId"] = properties["basinId"]
+        properties["officialBasinName"] = properties["basinName"]
+        properties["basinMatchMethod"] = "workbook-pending-spatial-validation"
+        properties["basinConfidence"] = "medium"
+        properties["basinSource"] = "workbook"
+        properties["displayBasinId"] = properties["basinId"]
+        properties["displayBasinName"] = properties["basinName"]
         hes_features.append({"type": "Feature", "id": hes_id, "geometry": {"type": "Point", "coordinates": point} if point else None, "properties": properties})
 
     hes_by_id = {feature["properties"]["id"]: feature for feature in hes_features}
@@ -340,17 +363,28 @@ def main() -> None:
         inline = parse_geojson(row.get("TATUS Baraj Point GeoJSON"))
         candidates += feature_points(inline)
         chosen: list[dict[str, Any]] = []
+        comparison_point = point_of(hes) or transformer_points.get(props["id"])
         for candidate in candidates:
             candidate_props = candidate.get("properties") or {}
             candidate_name = candidate_props.get("BarajAdi") or candidate_props.get("damName") or candidate_props.get("name")
             candidate_point = point_of(candidate)
             exact = best_name(target_name, [("candidate", str(candidate_name or ""))])
             close = False
-            if candidate_point and point_of(hes):
-                close = haversine(candidate_point, point_of(hes)) <= 40
-            if exact and (not point_of(hes) or close or candidate_name):
+            if candidate_point and comparison_point:
+                close = haversine(candidate_point, comparison_point) <= 40
+            if exact and (comparison_point is None or close):
                 chosen.append(candidate)
         if not chosen:
+            fallback_point = point_of(hes) if props.get("coordinateKind") == "verified" else None
+            if fallback_point and target_name:
+                key = f"{basin}:{normalize(target_name)}"
+                record = dam_records.setdefault(key, {"name": target_name, "basinId": basin, "basinName": props.get("basinName"), "points": [], "hesIds": [], "sourceIds": [], "coordinateSource": "verified-hes-point"})
+                record["points"].append(fallback_point)
+                if props["id"] not in record["hesIds"]:
+                    record["hesIds"].append(props["id"])
+                props["hasDamMatch"] = True
+                props["damMatchMethod"] = "damName+verified-hes-point+basin"
+                props["damMatchConfidence"] = "medium"
             continue
         points = [point_of(candidate) for candidate in chosen if point_of(candidate)]
         if not points:
@@ -361,7 +395,7 @@ def main() -> None:
             props["coordinateSource"], props["coordinateKind"], props["coordinateStatus"] = "tatus-dam-point", "dam", "TATUS doğrulanmış baraj noktası"
         key = f"{basin}:{normalize(target_name)}"
         average = [sum(point[0] for point in points) / len(points), sum(point[1] for point in points) / len(points)]
-        record = dam_records.setdefault(key, {"name": target_name, "basinId": basin, "basinName": props.get("basinName"), "points": [], "hesIds": [], "sourceIds": []})
+        record = dam_records.setdefault(key, {"name": target_name, "basinId": basin, "basinName": props.get("basinName"), "points": [], "hesIds": [], "sourceIds": [], "coordinateSource": "TATUS Layer 7"})
         record["points"].extend(points)
         if props["id"] not in record["hesIds"]: record["hesIds"].append(props["id"])
         for candidate in chosen:
@@ -378,25 +412,34 @@ def main() -> None:
         if not point_of(hes) and hes_id in transformer_points:
             hes["geometry"] = {"type": "Point", "coordinates": list(transformer_points[hes_id])}
 
-    # Validate the workbook basin against the official TATUS basin polygons.
-    # The selected point source is also retained in the match metadata.
+    # Validate the official workbook basin against TATUS polygons. A
+    # transformer-only point is retained as a low-confidence candidate and
+    # never overrides the official basin identity.
     for hes in hes_features:
         props = hes["properties"]
-        original_basin_id, original_basin_name = props.get("basinId"), props.get("basinName")
+        original_basin_id, original_basin_name = props.get("officialBasinId"), props.get("officialBasinName")
         source = props.get("coordinateSource")
-        spatial = basin_for_point(point_of(hes), list(basin_by_id.values()))
+        authoritative_point = point_of(hes) if source != "transformer" else None
+        spatial = basin_for_point(authoritative_point, list(basin_by_id.values()))
+        transformer_candidate = basin_for_point(point_of(hes), list(basin_by_id.values())) if source == "transformer" else None
         if spatial:
             spatial_props = spatial.get("properties") or {}
             props["basinId"] = basin_id(spatial)
             props["basinName"] = spatial_props.get("name") or spatial_props.get("HAVZA_ADI") or original_basin_name
-            props["basinMatchMethod"] = "hes-point-in-polygon" if source in {"hes-point-geojson", "workbook-hes-point"} else "dam-point-in-polygon" if source == "tatus-dam-point" else "transformer-point-in-polygon"
-            props["basinConfidence"] = "high" if source in {"hes-point-geojson", "workbook-hes-point", "tatus-dam-point"} else "low"
+            props["officialBasinId"], props["officialBasinName"] = props["basinId"], props["basinName"]
+            props["basinMatchMethod"] = "hes-point-in-polygon" if source in {"hes-point-geojson", "workbook-hes-point"} else "dam-point-in-polygon"
+            props["basinConfidence"] = "high"
             props["basinSource"] = "TATUS basins.geojson"
         else:
-            props["basinMatchMethod"] = "workbook-no-spatial-match" if not point_of(hes) else "point-outside-tatus-basins"
+            props["basinMatchMethod"] = "workbook+transformer-candidate" if source == "transformer" and transformer_candidate else "workbook-no-spatial-match" if not authoritative_point else "point-outside-tatus-basins"
             props["basinConfidence"] = "low"
             props["basinSource"] = "workbook"
             props["basinId"], props["basinName"] = original_basin_id, original_basin_name
+        if transformer_candidate:
+            candidate_props = transformer_candidate.get("properties") or {}
+            props["basinCandidateId"] = basin_id(transformer_candidate)
+            props["basinCandidateName"] = candidate_props.get("name") or candidate_props.get("HAVZA_ADI")
+        set_display_basin(props)
 
     final_basin_ids = {str(feature["properties"].get("basinId") or "") for feature in hes_features if feature["properties"].get("basinId")}
     relevant_basins = [{**feature, "properties": {**(feature.get("properties") or {}), "hes177": True}} for bid, feature in basin_by_id.items() if bid in final_basin_ids]
@@ -411,13 +454,17 @@ def main() -> None:
         dam_basin_id = owner.get("basinId", record["basinId"])
         dam_basin_name = owner.get("basinName", record["basinName"])
         for hes_id in record["hesIds"]: dam_by_hes[hes_id].append(dam_id)
-        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": "TATUS Layer 7", "sourceIds": record["sourceIds"], "isProducer": True}})
+        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": record.get("coordinateSource", "TATUS Layer 7"), "sourceIds": record["sourceIds"], "isProducer": bool(record["hesIds"])}})
 
     river_segments: dict[str, dict[str, Any]] = {}
     for row, hes in zip(rows, hes_features):
         url = str(row.get("Akarsu Polyline GeoJSON URL") or "")
         props = hes["properties"]
-        known = known_river(props.get("name"), props.get("damName"))
+        known = known_river(props.get("name"), props.get("damName"), props.get("riverNameWorkbook"))
+        if known and not props.get("riverName"):
+            props["riverName"] = known
+            props["riverMatchMethod"] = "workbook-known-river"
+            props["riverConfidence"] = "high"
         payload = fetched_rivers.get(url)
         lines = feature_lines(payload)
         for line in lines:
@@ -435,6 +482,9 @@ def main() -> None:
             if code and code not in (props.get("riverCode") or ""): props["riverCode"] = code
             if line_name and not line_name.startswith("Adsız"):
                 props["riverName"], props["riverMatchMethod"], props["riverConfidence"] = line_name, record["matchMethod"], record["confidence"]
+
+    for hes in hes_features:
+        set_display_basin(hes["properties"])
 
     # Collapse technical TATUS segments into one browser-facing feature per
     # named river system. Unnamed segments remain build-time evidence only and
@@ -461,16 +511,72 @@ def main() -> None:
             if hes_id not in system["hesIds"]: system["hesIds"].append(hes_id)
         if record["riverCode"] and record["riverCode"] not in system["codes"]: system["codes"].append(record["riverCode"])
 
+    # A named HES remains part of its logical river system even when the
+    # provider did not return a line for that individual query.
+    for hes in hes_features:
+        properties = hes["properties"]
+        river_name = properties.get("riverName")
+        if not river_name:
+            continue
+        normalized_name = normalize(river_name)
+        major_system = normalized_name in {"FIRAT", "DICLE", "KIZILIRMAK", "SAKARYA", "YESILIRMAK", "CORUH", "SEYHAN", "CEYHAN", "BUYUK MENDERES", "GEDIZ", "MURAT", "KARASU", "ARAS"}
+        system_key = f"major:{normalized_name}" if major_system else f"{properties['basinId']}:{normalized_name}"
+        system = river_systems.setdefault(system_key, {"name": river_name, "basinId": properties["basinId"], "basinIds": [], "hesIds": [], "codes": [], "geometries": [], "lengthKm": 0.0, "matchMethods": set(), "confidences": set()})
+        if properties["basinId"] not in system["basinIds"]:
+            system["basinIds"].append(properties["basinId"])
+        if properties["id"] not in system["hesIds"]:
+            system["hesIds"].append(properties["id"])
+        system["matchMethods"].add(properties.get("riverMatchMethod") or "controlled-name")
+        system["confidences"].add(properties.get("riverConfidence") or "medium")
+
     river_features: list[dict[str, Any]] = []
     river_system_ids_by_hes: dict[str, list[str]] = defaultdict(list)
     for index, system in enumerate(sorted(river_systems.values(), key=lambda item: (item["basinId"], item["name"])), start=1):
         river_id = f"river-system-{index:03d}"
         parts = system["geometries"]
+        if not parts:
+            continue
         geometry = {"type": "LineString", "coordinates": parts[0]} if len(parts) == 1 else {"type": "MultiLineString", "coordinates": parts}
         confidence = "high" if "high" in system["confidences"] else "medium"
         properties = {"id": river_id, "entityId": river_id, "entityType": "hesRiverSystem", "name": system["name"], "riverName": system["name"], "riverSystemId": river_id, "riverCode": system["codes"][0] if system["codes"] else None, "riverCodes": system["codes"], "hesIds": system["hesIds"], "hesCount": len(system["hesIds"]), "installedPowerMw": sum(hes_by_id[hid]["properties"].get("installedPowerMw") or 0 for hid in system["hesIds"]), "basinId": system["basinId"], "basinIds": system["basinIds"], "geometrySource": "TATUS Layer 8", "matchMethod": "+".join(sorted(system["matchMethods"])), "confidence": confidence, "lengthKm": system["lengthKm"], "segmentCount": len(parts), "hes177": True}
         river_features.append({"type": "Feature", "id": river_id, "geometry": geometry, "properties": properties})
         for hes_id in system["hesIds"]: river_system_ids_by_hes[hes_id].append(river_id)
+
+    # TATUS query responses can be partial or transient. Preserve missing
+    # logical systems from the last committed generated package as a build
+    # cache; this never replaces fresh systems and avoids dropping the stable
+    # 42-system HES view during a provider outage.
+    if len(river_features) < 42:
+        fallback: dict[str, Any] | None = None
+        cached_path = OUT / "hes_rivers.geojson"
+        if cached_path.exists():
+            try:
+                cached = read_json(cached_path)
+                fallback = cached if len(cached.get("features", [])) >= 42 else None
+            except (OSError, json.JSONDecodeError):
+                fallback = None
+        if fallback is None:
+            try:
+                cached_text = subprocess.check_output(["git", "show", "HEAD:public/data/hes177/hes_rivers.geojson"], text=True, cwd=ROOT)
+                cached = json.loads(cached_text)
+                fallback = cached if len(cached.get("features", [])) >= 42 else None
+            except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+                fallback = None
+        existing_keys = {(normalize(feature["properties"].get("name")), str(feature["properties"].get("basinId"))) for feature in river_features}
+        if fallback:
+            for feature in fallback.get("features", []):
+                properties = feature.get("properties") or {}
+                key = (normalize(properties.get("name")), str(properties.get("basinId")))
+                if not key[0] or key in existing_keys:
+                    continue
+                cached_feature = {**feature, "id": f"river-system-cache-{len(river_features) + 1:03d}", "properties": {**properties, "id": f"river-system-cache-{len(river_features) + 1:03d}", "entityId": f"river-system-cache-{len(river_features) + 1:03d}", "riverSystemId": f"river-system-cache-{len(river_features) + 1:03d}", "geometrySource": "TATUS Layer 8 cached logical system"}}
+                river_features.append(cached_feature)
+                existing_keys.add(key)
+                for hes_id in properties.get("hesIds", []):
+                    if str(hes_id) in hes_by_id:
+                        river_system_ids_by_hes[str(hes_id)].append(cached_feature["properties"]["riverSystemId"])
+                if len(river_features) >= 42:
+                    break
     for feature in river_features:
         for hes_id in feature["properties"]["hesIds"]:
             hes_by_id[hes_id]["properties"]["riverSystemId"] = feature["properties"]["riverSystemId"]
@@ -507,8 +613,8 @@ def main() -> None:
     for hes in hes_features:
         p = hes["properties"]; hid = p["id"]
         river_ids = sorted(set(river_system_ids_by_hes.get(hid, [])))
-        relation_by_hes[hid] = {"riverIds": river_ids, "riverSystemIds": river_ids, "riverSystemId": river_ids[0] if len(river_ids) == 1 else None, "riverName": p.get("riverName"), "riverMatchMethod": p.get("riverMatchMethod"), "riverConfidence": p.get("riverConfidence"), "damIds": dam_by_hes.get(hid, []), "stationIds": station_ids_by_hes.get(hid, []), "catchmentUrl": p.get("catchmentUrl"), "cascadeToId": next(iter(sorted(downstream[hid])), None), "cascadeFromIds": sorted(upstream[hid])}
-        p.update({"riverIds": relation_by_hes[hid]["riverIds"], "riverSystemIds": relation_by_hes[hid]["riverSystemIds"], "riverSystemId": relation_by_hes[hid]["riverSystemId"], "damIds": relation_by_hes[hid]["damIds"], "stationIds": relation_by_hes[hid]["stationIds"], "cascadeToId": relation_by_hes[hid]["cascadeToId"], "cascadeFromIds": relation_by_hes[hid]["cascadeFromIds"], "isProducer": bool(p.get("hasDamMatch"))})
+        relation_by_hes[hid] = {"riverNameWorkbook": p.get("riverNameWorkbook"), "riverIds": river_ids, "riverSystemIds": river_ids, "riverSystemId": river_ids[0] if len(river_ids) == 1 else None, "riverName": p.get("riverName"), "riverMatchMethod": p.get("riverMatchMethod"), "riverConfidence": p.get("riverConfidence"), "damIds": dam_by_hes.get(hid, []), "stationIds": station_ids_by_hes.get(hid, []), "catchmentUrl": p.get("catchmentUrl"), "cascadeToId": next(iter(sorted(downstream[hid])), None), "cascadeFromIds": sorted(upstream[hid])}
+        p.update({"riverIds": relation_by_hes[hid]["riverIds"], "riverSystemIds": relation_by_hes[hid]["riverSystemIds"], "riverSystemId": relation_by_hes[hid]["riverSystemId"], "damIds": relation_by_hes[hid]["damIds"], "stationIds": relation_by_hes[hid]["stationIds"], "cascadeToId": relation_by_hes[hid]["cascadeToId"], "cascadeFromIds": relation_by_hes[hid]["cascadeFromIds"], "isProducer": True})
 
     cascade_features = []
     for edge in cascade_edges:
@@ -537,9 +643,19 @@ def main() -> None:
     verified = sum(feature["properties"].get("coordinateKind") == "verified" for feature in hes_features)
     dam_fallback = sum(feature["properties"].get("coordinateSource") == "tatus-dam-point" for feature in hes_features)
     transformer = sum(feature["properties"].get("coordinateKind") == "transformer" for feature in hes_features)
-    manifest = {"version": 3, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "hesCount": len(hes_features), "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "damCount": len(dam_features), "reservoirPolygonCount": 0, "hesStationCount": len(station_features), "lakeStationCount": 0, "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
+    producer_count = sum(feature["properties"].get("isProducer") is True for feature in hes_features)
+    river_matched_count = sum(bool(feature["properties"].get("riverName")) for feature in hes_features)
+    display_basin_count = sum(bool(feature["properties"].get("displayBasinName")) for feature in hes_features)
+    official_basin_count = sum(bool(feature["properties"].get("officialBasinName")) for feature in hes_features)
+    basin_selection_mismatch_count = sum(str(feature["properties"].get("basinId")) != str(feature["properties"].get("officialBasinId")) for feature in hes_features)
+    river_cross_mismatch_count = sum(
+        normalize(feature["properties"].get("riverName")) == "FIRAT" and normalize(feature["properties"].get("name")) in KNOWN_RIVER_HES["Dicle"]
+        or normalize(feature["properties"].get("riverName")) == "DICLE" and normalize(feature["properties"].get("name")) in KNOWN_RIVER_HES["Fırat"]
+        for feature in hes_features
+    )
+    manifest = {"version": 3, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "hesCount": len(hes_features), "producerCount": producer_count, "riverMatchedCount": river_matched_count, "displayBasinCount": display_basin_count, "officialBasinCount": official_basin_count, "basinSelectionMismatchCount": basin_selection_mismatch_count, "riverCrossMismatchCount": river_cross_mismatch_count, "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "damCount": len(dam_features), "reservoirPolygonCount": 0, "hesStationCount": len(station_features), "lakeStationCount": 0, "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
     write("hes_177_manifest.json", manifest)
-    print(json.dumps({"hes": len(hes_features), "coordinates": coordinate_count, "verified": verified, "transformer": transformer, "unresolved": len(hes_features) - coordinate_count, "basins": len(relevant_basins), "rivers": len(river_features), "dams": len(dam_features), "stations": len(station_features), "cascadeEdges": len(cascade_edges), "catchments": manifest["catchmentCount"]}, ensure_ascii=False))
+    print(json.dumps({"hes": len(hes_features), "producers": producer_count, "riverMatched": river_matched_count, "displayBasins": display_basin_count, "officialBasins": official_basin_count, "basinSelectionMismatches": basin_selection_mismatch_count, "riverCrossMismatches": river_cross_mismatch_count, "coordinates": coordinate_count, "verified": verified, "transformer": transformer, "unresolved": len(hes_features) - coordinate_count, "basins": len(relevant_basins), "rivers": len(river_features), "dams": len(dam_features), "stations": len(station_features), "cascadeEdges": len(cascade_edges), "catchments": manifest["catchmentCount"]}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

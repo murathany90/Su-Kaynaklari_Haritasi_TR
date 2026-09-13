@@ -46,15 +46,15 @@ const OVERLAY_LAYER_IDS = [
 const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
 
 function damPieSvg(percent: number | null): string {
-  const base = '<circle cx="32" cy="32" r="25" fill="#cbd5e1" fill-opacity="0.28"/>';
-  const frame = '<circle cx="32" cy="32" r="27" fill="none" stroke="#e2e8f0" stroke-width="3"/><circle cx="32" cy="32" r="23" fill="none" stroke="#475569" stroke-opacity="0.8" stroke-width="1"/>';
+  const base = '<circle cx="32" cy="32" r="27" fill="#a5f3fc" fill-opacity="0.72"/>';
+  const frame = '<circle cx="32" cy="32" r="29" fill="none" stroke="#f8fafc" stroke-width="2.5"/><circle cx="32" cy="32" r="25" fill="none" stroke="#0e7490" stroke-opacity="0.7" stroke-width="1"/>';
   if (percent === null || percent <= 0) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${frame}</svg>`;
-  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="#22d3ee" fill-opacity="0.86"/>${frame}</svg>`;
+  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#075985" fill-opacity="0.94"/>${frame}</svg>`;
   const end = (Math.PI * 2 * percent) / 100 - Math.PI / 2;
-  const x = 32 + 25 * Math.cos(end);
-  const y = 32 + 25 * Math.sin(end);
+  const x = 32 + 27 * Math.cos(end);
+  const y = 32 + 27 * Math.sin(end);
   const largeArc = percent > 50 ? 1 : 0;
-  const wedge = `<path d="M32 32 L32 7 A25 25 0 ${largeArc} 1 ${x} ${y} Z" fill="#22d3ee" fill-opacity="0.9"/>`;
+  const wedge = `<path d="M32 32 L32 5 A27 27 0 ${largeArc} 1 ${x} ${y} Z" fill="#075985" fill-opacity="0.94"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${wedge}${frame}</svg>`;
 }
 
@@ -117,7 +117,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   });
   if (pieImagesReady) addLayerIfMissing(map, {
     id: HES_PIE_LAYER_ID, type: 'symbol', source: 'hes177', minzoom: 4,
-    layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['*', ['coalesce', ['get', 'visualRadius'], 6], 0.0625], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['/', ['coalesce', ['get', 'markerDiameterPx'], 12], 29], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
   });
   addLayerIfMissing(map, {
     id: 'hes177-producer', type: 'symbol', source: 'hes177', minzoom: 4,
@@ -244,8 +244,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
     paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1 },
   });
   ['hes-catchment-fill', 'hes-catchment-outline'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
-  ['hes177-halo', 'hes177-points', 'hes177-related', 'hes177-producer', 'hes177-selected'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
-  [HES_PIE_LAYER_ID, 'hes-cascades'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
+  ['hes177-halo', 'hes177-points', HES_PIE_LAYER_ID, 'hes177-related', 'hes177-producer', 'hes177-selected', 'hes-cascades'].forEach((id) => { if (map.getLayer(id)) map.moveLayer(id); });
 
   setVisibility(map, 'basins-fill', options.basins);
   setVisibility(map, 'basins-outline', options.basins);
@@ -280,7 +279,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   const selectedFilter: FilterSpecification = options.selectedEntity ? ['==', ['get', 'id'], options.selectedEntity.id] : noSelection;
   const selectedRiverFilter: FilterSpecification = options.selectedRiverMemberIds.length ? ['in', ['get', 'id'], ['literal', options.selectedRiverMemberIds]] : selectedFilter;
   if (map.getLayer('rivers-selected')) map.setFilter('rivers-selected', options.selectedEntity?.type === 'river' || (options.selectedEntity?.type === 'hes' && options.selectedRiverMemberIds.length > 0) ? selectedRiverFilter : noSelection);
-  const selectedBasinFilter: FilterSpecification = options.selectedEntity?.type === 'basin' ? selectedFilter : options.selectedBasinId ? ['==', ['get', 'basinId'], options.selectedBasinId] : noSelection;
+  const selectedBasinFilter: FilterSpecification = options.selectedBasinId ? ['==', ['to-string', ['get', 'basinId']], String(options.selectedBasinId)] : noSelection;
   if (map.getLayer('basins-selected')) map.setFilter('basins-selected', selectedBasinFilter);
   if (map.getLayer('lakes-selected')) map.setFilter('lakes-selected', options.selectedEntity?.type === 'lake' ? selectedFilter : noSelection);
   if (map.getLayer('dams-selected')) map.setFilter('dams-selected', options.selectedEntity?.type === 'dam' ? selectedFilter : noSelection);

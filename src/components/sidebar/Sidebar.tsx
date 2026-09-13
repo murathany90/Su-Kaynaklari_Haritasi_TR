@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowUpDown, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
-import { buildBasinSummaries, buildDamHesMapping, buildMajorRiverGroups, buildRiverNameMap, displayName, isElectricProducer, isUnknownName, relateRiverToDams } from '../../data/hydrology';
+import { buildBasinSummaries, buildDamHesMapping, buildMajorRiverGroups, buildRiverNameMap, displayName, getHesFullness, isElectricProducer, isUnknownName, relateRiverToDams } from '../../data/hydrology';
 import { getForecastTimestamps } from '../../services/hydroData';
 import { useAppStore, type TabType } from '../../store/useAppStore';
 import { emptyFeatureCollection } from '../../types/hydrology';
 
 type Detail = { label: string; value: string };
-type Item = { id: string; name: string; subtitle?: string; basinName?: string; riverName?: string; metric?: string; status?: string; sourceBadge?: 'TATUS' | 'GEOGLOWS' | 'EPİAŞ'; sourceTime?: string; details: Detail[]; isProducer?: boolean; typeLabel: string; location: string; powerValue: number; sortText: string };
-type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power';
+type Item = { id: string; name: string; subtitle?: string; basinName?: string; riverName?: string; metric?: string; status?: string; sourceBadge?: 'TATUS' | 'GEOGLOWS' | 'EPİAŞ'; sourceTime?: string; details: Detail[]; isProducer?: boolean; typeLabel: string; location: string; powerValue: number; fullnessValue: number | null; sortText: string };
+type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness';
 type ItemKind = TabType | 'dams' | 'lakes';
 type FeatureCollectionLike = { features: Array<{ id?: string | number; properties?: Record<string, unknown> | null }> };
 
@@ -36,16 +36,17 @@ function liveValue(record: unknown, keys: string[]): number | null {
   return firstValue(source, keys);
 }
 
-function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, riverNames: Map<string, string>, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] }>, damHesMapping: Map<string, { damId: string; hesIds: string[] }>): Item[] {
+function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, riverNames: Map<string, string>, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] }>, damHesMapping: Map<string, { damId: string; hesIds: string[] }>, dataMode: 'mock' | 'epias' = 'mock', dateKey: string | number | null = null, epiasByHes = new Map<string, Record<string, unknown>>): Item[] {
   return collection.features.map((feature) => {
     const properties = feature.properties ?? {};
     const id = String(properties.id ?? properties.entityId ?? feature.id ?? '');
     const entityKind = kind === 'rivers' ? 'river' : kind === 'dams' ? 'dam' : kind === 'hes' ? 'hes' : 'basin';
     const name = kind === 'rivers' ? riverNames.get(id) ?? displayName(properties, entityKind, id) : displayName(properties, entityKind, id);
-    const basin = textValue(properties, ['basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']);
+    const officialBasin = textValue(properties, ['officialBasinName', 'basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']);
+    const basin = kind === 'hes' ? textValue(properties, ['displayBasinName', 'officialBasinName', 'basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']) : officialBasin;
     const flow = kind === 'rivers' ? liveFlows.get(id) : undefined;
     const damLive = kind === 'dams' ? liveDams.get(name.toLocaleLowerCase('tr-TR')) : undefined;
-    const occupancy = damLive?.value ?? firstValue(properties, ['occupancy', 'doluluk']);
+    const occupancy = kind === 'hes' ? getHesFullness(id, dataMode, epiasByHes.get(id), dateKey) : damLive?.value ?? firstValue(properties, ['occupancy', 'doluluk']);
     const area = firstValue(properties, ['areaKm2', 'ALAN_KM2']);
     const length = firstValue(properties, ['lengthKm']);
     const activeVolume = damLive ? firstValue(damLive.record, ['activeVolume', 'active_volume', 'hacim']) : firstValue(properties, ['activeVolume', 'active_volume', 'activeVolumeHm3']);
@@ -75,6 +76,8 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
       if (flowRate !== null) details.push({ label: 'Ünite debisi', value: `${flowRate.toLocaleString('tr-TR')} m³/sn` });
       if (properties.damName) details.push({ label: 'Baraj / rezervuar', value: String(properties.damName) });
       if (properties.cascadeName && !/^[0-9.]+$/.test(String(properties.cascadeName))) details.push({ label: 'Kaskad', value: String(properties.cascadeName) });
+      details.push({ label: 'Doluluk', value: occupancy === null ? '—' : `%${Math.round(occupancy)}` });
+      details.push({ label: 'Resmi havza', value: officialBasin ?? '—' });
       details.push({ label: 'Veri kalitesi', value: String(properties.dataQuality ?? '—') });
     } else if (kind === 'lakes') {
       if (area !== null) details.push({ label: 'Alan', value: `${area.toLocaleString('tr-TR')} km²` });
@@ -98,7 +101,7 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
     const location = kind === 'dams' ? province ?? basin ?? '—' : kind === 'hes' ? province ? `${province} · ${basin ?? '—'}` : basin ?? '—' : kind === 'basins' ? name : basin ?? province ?? '—';
     const rowSubtitle = kind === 'hes' ? textValue(properties, ['riverName']) ?? basin : basin;
     const riverName = kind === 'hes' ? textValue(properties, ['riverName']) : kind === 'rivers' ? name : undefined;
-    return { id, name, subtitle: rowSubtitle, basinName: basin, riverName, metric, status, sourceBadge, sourceTime, details, isProducer: producer, typeLabel, location, powerValue: kind === 'hes' ? power ?? 0 : riverPower ?? 0, sortText: `${typeLabel} ${name} ${basin ?? ''} ${riverName ?? ''} ${location} ${status} ${String(properties.damName ?? '')}` };
+    return { id, name, subtitle: rowSubtitle, basinName: basin, riverName, metric, status, sourceBadge, sourceTime, details, isProducer: producer, typeLabel, location, powerValue: kind === 'hes' ? power ?? 0 : riverPower ?? 0, fullnessValue: kind === 'hes' ? occupancy : null, sortText: `${typeLabel} ${name} ${basin ?? ''} ${riverName ?? ''} ${location} ${status} ${String(properties.damName ?? '')}` };
   }).filter((item) => item.id && item.name);
 }
 
@@ -109,7 +112,7 @@ function stationItemsFrom(collection: FeatureCollectionLike): Item[] {
     const name = textValue(properties, ['IstAdi', 'name']) ?? `HES istasyonu · ${id}`;
     const water = textValue(properties, ['SuAdi']);
     const location = textValue(properties, ['Il', 'IL', 'il', 'HavzaAdi']) ?? 'Fırat-Dicle';
-    return { id, name, subtitle: water, basinName: location, riverName: water, metric: 'HES', status: 'TATUS tesisi', sourceBadge: 'TATUS' as const, details: [{ label: 'Su', value: water ?? '—' }, { label: 'Konum', value: location }], typeLabel: 'Baraj/HES', location, powerValue: 0, sortText: `Baraj HES ${name} ${water ?? ''} ${location}` };
+    return { id, name, subtitle: water, basinName: location, riverName: water, metric: 'HES', status: 'TATUS tesisi', sourceBadge: 'TATUS' as const, details: [{ label: 'Su', value: water ?? '—' }, { label: 'Konum', value: location }], typeLabel: 'Baraj/HES', location, powerValue: 0, fullnessValue: null, sortText: `Baraj HES ${name} ${water ?? ''} ${location}` };
   });
 }
 
@@ -136,6 +139,7 @@ export const Sidebar: React.FC = () => {
   const epias = useAppStore((s) => s.epias);
   const manifest = useAppStore((s) => s.dataManifest);
   const timelineIndex = useAppStore((s) => s.timelineIndex);
+  const dataMode = useAppStore((s) => s.dataMode);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
   const isLight = theme === 'light';
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -166,6 +170,21 @@ export const Sidebar: React.FC = () => {
     });
     return { flowMap, damMap };
   }, [epias?.records, geoglows, timelineIndex]);
+  const timelineDateKey = useMemo(() => getForecastTimestamps(geoglows)[timelineIndex] ?? timelineIndex, [geoglows, timelineIndex]);
+  const epiasByHes = useMemo(() => {
+    const records = epias?.records ?? [];
+    return new Map(hes177.features.map((feature) => {
+      const properties = feature.properties ?? {};
+      const id = String(properties.id ?? feature.id ?? '');
+      const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
+      const record = records.find((candidate) => {
+        const ids = [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String);
+        const recordNames = [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
+        return ids.includes(id) || recordNames.some((name) => names.includes(name));
+      });
+      return [id, record] as const;
+    }).filter((entry): entry is readonly [string, Record<string, unknown>] => Boolean(entry[1])));
+  }, [epias?.records, hes177.features]);
 
   const source = currentTab === 'rivers' ? rivers : currentTab === 'hes' ? hes177 : basins;
   const labeledSource = useMemo(() => {
@@ -177,9 +196,9 @@ export const Sidebar: React.FC = () => {
     return { features: [...grouped, ...withLabels.filter((feature) => { const id = (feature.properties as Record<string, unknown> | null | undefined)?.id ?? (feature as { id?: string | number }).id; return !groupedMembers.has(String(id ?? '')); })] };
   }, [basinLabels, currentTab, majorRiverGroups, source]);
   const list = useMemo(() => {
-    const items = itemsFrom(labeledSource, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping);
+    const items = itemsFrom(labeledSource, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping, dataMode, timelineDateKey, epiasByHes);
     return items;
-  }, [basinSummaries, currentTab, damHesMapping, labeledSource, liveMaps, manifest?.generatedAt, riverNameMap]);
+  }, [basinSummaries, currentTab, damHesMapping, dataMode, epiasByHes, labeledSource, liveMaps, manifest?.generatedAt, riverNameMap, timelineDateKey]);
   const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) ?? majorRiverGroups.get(selectedEntity.id)?.feature : null;
   const selectedRiverRelation = useMemo(() => selectedRiver ? relateRiverToDams({ ...selectedRiver, properties: { ...selectedRiver.properties, riverName: riverNameMap.get(String(selectedRiver.properties?.id ?? selectedRiver.id ?? '')) ?? selectedRiver.properties?.riverName } }, dams, hesStations, damHesMapping) : null, [damHesMapping, dams, hesStations, riverNameMap, selectedRiver]);
   const selectedRiverHesIds = useMemo(() => {
@@ -204,14 +223,14 @@ export const Sidebar: React.FC = () => {
       const hesIds = Array.isArray(feature.properties?.hesIds) ? feature.properties.hesIds.map(String) : [];
       return selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId)) || Boolean(selectedRiverRelation?.ids.has(id));
     });
-    return itemsFrom({ features: related }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping).slice(0, 12);
-  }, [basinSummaries, damHesMapping, dams.features, liveMaps, manifest?.generatedAt, riverNameMap, selectedRiverDamIds, selectedRiverHesIds, selectedRiverRelation]);
+    return itemsFrom({ features: related }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping, dataMode, timelineDateKey, epiasByHes).slice(0, 12);
+  }, [basinSummaries, damHesMapping, dams.features, dataMode, epiasByHes, liveMaps, manifest?.generatedAt, riverNameMap, selectedRiverDamIds, selectedRiverHesIds, selectedRiverRelation, timelineDateKey]);
   const relatedStations = useMemo(() => {
     if (!selectedRiverRelation && !selectedRiverHesIds.size) return [];
     const stationIds = new Set([...selectedRiverHesIds].flatMap((id) => hes177Relations?.byHesId?.[id]?.stationIds?.map(String) ?? []));
     return stationItemsFrom({ features: hesStations.features.filter((feature) => stationIds.has(String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? '')) || Boolean(selectedRiverRelation?.stationIds.has(String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? '')))) });
   }, [hes177Relations, hesStations.features, selectedRiverHesIds, selectedRiverRelation]);
-  const relatedHes = useMemo(() => itemsFrom({ features: hes177.features.filter((feature) => selectedRiverHesIds.has(String(feature.properties?.id ?? feature.id ?? ''))) }, 'hes', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping), [basinSummaries, damHesMapping, hes177.features, liveMaps, manifest?.generatedAt, riverNameMap, selectedRiverHesIds]);
+  const relatedHes = useMemo(() => itemsFrom({ features: hes177.features.filter((feature) => selectedRiverHesIds.has(String(feature.properties?.id ?? feature.id ?? ''))) }, 'hes', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, riverNameMap, basinSummaries, damHesMapping, dataMode, timelineDateKey, epiasByHes), [basinSummaries, damHesMapping, dataMode, epiasByHes, hes177.features, liveMaps, manifest?.generatedAt, riverNameMap, selectedRiverHesIds, timelineDateKey]);
   const relatedFacilities = useMemo(() => [...relatedHes, ...relatedDams, ...relatedStations].slice(0, 12), [relatedDams, relatedHes, relatedStations]);
   const filtered = useMemo(() => list.filter((item) => {
     const query = searchQuery.trim().toLocaleLowerCase('tr-TR');
@@ -224,6 +243,7 @@ export const Sidebar: React.FC = () => {
   const sorted = useMemo(() => [...filtered].sort((left, right) => {
     const direction = sortDirection === 'asc' ? 1 : -1;
     if (sortKey === 'power') return (left.powerValue - right.powerValue) * direction;
+    if (sortKey === 'fullness') return ((left.fullnessValue ?? -1) - (right.fullnessValue ?? -1)) * direction;
     const leftValue = sortKey === 'name' ? left.name : sortKey === 'type' ? left.typeLabel : sortKey === 'basin' ? left.basinName ?? '' : left.riverName ?? '';
     const rightValue = sortKey === 'name' ? right.name : sortKey === 'type' ? right.typeLabel : sortKey === 'basin' ? right.basinName ?? '' : right.riverName ?? '';
     return leftValue.localeCompare(rightValue, 'tr-TR') * direction;
@@ -239,14 +259,15 @@ export const Sidebar: React.FC = () => {
   const layerControls: Array<{ key: keyof typeof layers; label: string }> = [
     { key: 'basins', label: 'Havzalar' }, { key: 'rivers', label: 'Akarsular' }, { key: 'dams', label: 'Barajlar' },
   ];
-   const sortLabels: Record<SortKey, string> = { type: 'Tip', name: 'HES Adı', basin: 'Havza', river: 'Akarsu', power: 'Kurulu Güç' };
+   const sortLabels: Record<SortKey, string> = { type: 'Tip', name: 'HES Adı', basin: 'Havza', river: 'Akarsu', power: 'Kurulu Güç', fullness: 'Doluluk' };
    const renderItem = (item: Item, type: string) => <button key={`${type}-${item.id}`} onClick={() => setSelectedEntity({ type, id: item.id })} className={`group mb-1 w-full rounded-lg border px-2 py-1.5 text-left transition ${isLight ? 'border-slate-200 bg-slate-50 hover:border-cyan-500/40 hover:bg-cyan-50' : 'border-transparent bg-slate-900/60 hover:border-cyan-500/30 hover:bg-slate-800/80'} ${selectedEntity?.type === type && selectedEntity.id === item.id ? 'ring-1 ring-cyan-400/70' : ''}`}>
-     <div className="grid grid-cols-[2.7rem_minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_4.7rem] items-center gap-1.5">
+     <div className="grid grid-cols-[2.7rem_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_4.4rem_3.1rem] items-center gap-1.5">
       <span className="truncate font-mono text-[9px] uppercase text-slate-500">{item.typeLabel}</span>
       <span className={`flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold ${isLight ? 'text-slate-700 group-hover:text-cyan-600' : 'text-slate-200 group-hover:text-cyan-300'}`}>{item.isProducer && <Zap className="h-3 w-3 shrink-0 text-amber-400" />}{item.name}</span>
       <span className="truncate text-[9px] text-slate-400" title={item.basinName}>{item.basinName ?? '—'}</span>
       <span className="truncate text-[9px] text-cyan-400/80" title={item.riverName}>{item.riverName ?? '—'}</span>
       <span className="truncate text-right font-mono text-[9px] text-cyan-500" title={item.metric}>{item.typeLabel === 'HES' && item.powerValue ? `${item.powerValue.toLocaleString('tr-TR')} MW` : item.metric ?? '—'}</span>
+      <span className="truncate text-right font-mono text-[9px] text-sky-300" title={item.fullnessValue === null ? 'Doluluk verisi yok' : `Doluluk %${Math.round(item.fullnessValue)}`}>{item.fullnessValue === null ? '—' : `%${Math.round(item.fullnessValue)}`}</span>
      </div>{item.typeLabel === 'Havza' && <div className="mt-2 grid grid-cols-3 gap-x-2 gap-y-1 border-t border-slate-700/20 pt-1.5 text-[8px] text-slate-500">{item.details.filter((detail) => ['Alan', 'Akarsu', 'Baraj', 'HES', 'HES ist.', 'Göl ist.', 'Ana akarsular'].includes(detail.label)).map((detail) => <span key={detail.label} className="truncate" title={detail.value}><b className="text-slate-400">{detail.label}:</b> {detail.value}</span>)}</div>}
    </button>;
 
@@ -258,7 +279,7 @@ export const Sidebar: React.FC = () => {
       {showFilters && <div className={`flex gap-1 overflow-x-auto border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{[['all', 'Tümü'], ['drought', 'Kuraklık'], ['normal', 'Normal'], ['flood', 'Taşkın']].map(([value, label]) => <button key={value} onClick={() => setFilter(value as typeof currentFilter)} className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[9px] ${currentFilter === value ? isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-700 text-slate-100' : isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-500 hover:text-slate-300'}`}>{label}</button>)}</div>}
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         <div className="mb-1 flex items-center justify-between rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span><span>{sorted.length.toLocaleString('tr-TR')} kayıt</span></div>
-        <div className={`mb-2 grid grid-cols-[2.7rem_minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_4.7rem] items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-slate-500 ${isLight ? 'bg-slate-100' : 'bg-slate-900/80'}`}>{(Object.keys(sortLabels) as SortKey[]).map((key) => <button key={key} type="button" onClick={() => { if (sortKey === key) setSortDirection((value) => value === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDirection('asc'); } }} className={`truncate text-left transition hover:text-cyan-400 ${key === 'power' ? 'text-right' : ''}`} title={`${sortLabels[key]} göre sırala`}>{sortLabels[key]} {sortKey === key ? <ArrowUpDown className="inline h-3 w-3" /> : null}</button>)}</div>
+        <div className={`mb-2 grid grid-cols-[2.7rem_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_4.4rem_3.1rem] items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-slate-500 ${isLight ? 'bg-slate-100' : 'bg-slate-900/80'}`}>{(Object.keys(sortLabels) as SortKey[]).map((key) => <button key={key} type="button" onClick={() => { if (sortKey === key) setSortDirection((value) => value === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDirection('asc'); } }} className={`truncate text-left transition hover:text-cyan-400 ${key === 'power' || key === 'fullness' ? 'text-right' : ''}`} title={`${sortLabels[key]} göre sırala`}>{sortLabels[key]} {sortKey === key ? <ArrowUpDown className="inline h-3 w-3" /> : null}</button>)}</div>
         {selectedHes && <div className={`mb-3 rounded-xl border p-2 ${isLight ? 'border-cyan-200 bg-cyan-50' : 'border-cyan-500/20 bg-cyan-500/5'}`}><div className="flex items-center justify-between gap-2"><span className="truncate text-[11px] font-semibold text-cyan-400">{String(selectedHes.properties?.name ?? 'HES')}</span><span className="font-mono text-[9px] text-amber-400">{selectedHes.properties?.isProducer ? '⚡ ' : ''}{String(selectedHes.properties?.dataQuality ?? '—')}</span></div><div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] text-slate-500"><span>Havza: {String(selectedHes.properties?.basinName ?? '—')}</span><span>İl: {String(selectedHes.properties?.province ?? '—')}</span><span>Güç: {numeric(selectedHes.properties?.installedPowerMw)?.toLocaleString('tr-TR') ?? '—'} MW</span><span>Debi: {numeric(selectedHes.properties?.unitFlowM3s)?.toLocaleString('tr-TR') ?? '—'} m³/sn</span><span>Min / max seviye: {numeric(selectedHes.properties?.minWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} / {numeric(selectedHes.properties?.maxWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} m</span><span>Min / max hacim: {numeric(selectedHes.properties?.minVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} / {numeric(selectedHes.properties?.maxVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Aktif hacim: {numeric(selectedHes.properties?.activeVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Kaskat: {String(selectedHes.properties?.cascadeName ?? '—')}</span><span>Akarsu: {String(selectedHes.properties?.riverName ?? '—')}</span><span>Baraj: {String(selectedHes.properties?.damName ?? '—')}</span></div><div className="mt-2 grid grid-cols-2 gap-1"><button onClick={() => { const riverId = Array.isArray(selectedHes.properties?.riverIds) ? String(selectedHes.properties.riverIds[0] ?? '') : ''; if (riverId) setSelectedEntity({ type: 'river', id: riverId }); }} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Akarsuyu Göster</button><button onClick={() => toggleCatchment(String(selectedHes.properties?.id ?? selectedHes.id ?? ''))} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Su Alanını Göster</button><button onClick={() => { const cascadeId = selectedHes.properties?.cascadeToId ? String(selectedHes.properties.cascadeToId) : null; if (cascadeId) setSelectedEntity({ type: 'hes', id: cascadeId }); }} className="rounded border border-amber-500/25 px-1.5 py-1 text-[8px] text-amber-400">Kaskadı Göster</button><button onClick={() => { const basinId = String(selectedHes.properties?.basinId ?? ''); if (basinId) setSelectedEntity({ type: 'basin', id: basinId }); }} className="rounded border border-violet-500/25 px-1.5 py-1 text-[8px] text-violet-400">Havzayı Göster</button></div></div>}
         {currentTab === 'rivers' && selectedRiver && relatedFacilities.length > 0 && <div className="mb-3 rounded-xl border border-cyan-500/25 bg-cyan-500/5 p-2"><div className="mb-1 text-[10px] font-semibold text-cyan-500">{selectedRiverHesIds.size > 0 || selectedRiverRelation?.confidence === 'name/spatial' ? 'İlgili Barajlar / HES' : 'Aynı Havzadaki Tesisler'}</div><div className="mb-2 text-[9px] text-slate-500">{selectedRiverHesIds.size > 0 || selectedRiverRelation?.confidence === 'name/spatial' ? 'HES v3 nehir adı/kodu ve kontrollü coğrafi yakınlık eşleşmesi.' : 'Yalnızca basinId üzerinden eşleşen tesisler · kesin kaskad ilişkisi değildir.'}</div>{relatedFacilities.slice(0, 4).map((item) => renderItem(item, item.typeLabel === 'HES' ? 'hes' : item.typeLabel === 'Baraj/HES' && item.status === 'TATUS tesisi' ? 'station' : 'dam'))}</div>}
         {dataStatus === 'loading' && <div className="p-4 text-center text-xs text-slate-500">Gerçek TATUS verileri yükleniyor…</div>}{dataStatus !== 'loading' && !sorted.length && <div className="p-6 text-center text-xs leading-5 text-slate-500">Bu filtre için kayıt yok.<br />Kaynakta veri bulunmuyorsa sentetik kayıt gösterilmez.</div>}{sorted.map((item) => renderItem(item, selectionType))}
