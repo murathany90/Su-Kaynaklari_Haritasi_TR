@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ChevronDown, Map as MapIcon, Menu, Moon, RefreshCw, Sun, X } from 'lucide-react';
-import { formatDataDate } from '../../data/hydrology';
+import { formatDataDate, fullnessFromVolumes } from '../../data/hydrology';
 import { useAppStore } from '../../store/useAppStore';
 
 export const Header: React.FC = () => {
@@ -14,6 +14,8 @@ export const Header: React.FC = () => {
   const hes177 = useAppStore((s) => s.hes177);
   const basins = useAppStore((s) => s.basins);
   const hes177Relations = useAppStore((s) => s.hes177Relations);
+  const hes177Manifest = useAppStore((s) => s.hes177Manifest);
+  const epias = useAppStore((s) => s.epias);
   const dataMode = useAppStore((s) => s.dataMode);
   const setDataMode = useAppStore((s) => s.setDataMode);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
@@ -28,15 +30,22 @@ export const Header: React.FC = () => {
   };
   const kpis = useMemo(() => {
     const totalPower = hes177.features.reduce((sum, feature) => { const value = Number(feature.properties?.installedPowerMw); return sum + (Number.isFinite(value) ? value : 0); }, 0);
+    const epiasFullnessCount = (epias?.records ?? []).filter((record) => ['occupancy', 'fullness', 'activeFullness', 'doluluk'].some((key) => record[key] !== null && record[key] !== undefined && record[key] !== '' && Number.isFinite(Number(record[key]))) || fullnessFromVolumes(record) !== null).length;
+    const volumeFullnessCount = Number(hes177Manifest?.volumeCalculatedFullnessCount ?? 0);
+    const fallbackMockCount = Number(hes177Manifest?.fallbackMockFullnessCount ?? Math.max(0, hes177.features.length - volumeFullnessCount));
     return {
-      rivers: rivers.features.length,
+      rivers: Number(hes177Manifest?.logicalRiverCount ?? rivers.features.length),
       dams: hes177.features.length,
-      coordinates: hes177.features.filter((feature) => Boolean(feature.geometry)).length,
+      coordinates: Number(hes177Manifest?.coordinateCount ?? hes177.features.filter((feature) => Boolean(feature.geometry)).length),
       totalPower,
-      basins: basins.features.length,
-      cascades: hes177Relations?.cascadeEdges?.length ?? 0,
+      basins: Number(hes177Manifest?.basinCount ?? basins.features.length),
+      cascades: Number(hes177Manifest?.cascadeEdgeCount ?? hes177Relations?.cascadeEdges?.length ?? 0),
+      fullness: dataMode === 'epias' ? epiasFullnessCount : hes177.features.length,
+      calculatedFullness: volumeFullnessCount,
+      epiasFullness: epiasFullnessCount,
+      fallbackMock: fallbackMockCount,
     };
-  }, [basins.features.length, hes177.features, hes177Relations?.cascadeEdges?.length, rivers.features.length]);
+  }, [basins.features.length, dataMode, epias?.records, hes177.features, hes177Manifest, hes177Relations?.cascadeEdges?.length, rivers.features.length]);
   const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr / Gri', satellite: 'Uydu', streets: 'Sokak' };
 
   return (
@@ -53,6 +62,8 @@ export const Header: React.FC = () => {
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.cascades.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Kaskat</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-emerald-400">{kpis.rivers.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Nehir sistemi</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-blue-400">{kpis.coordinates.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Konumlu HES</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-teal-300">{kpis.fullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Doluluk verisi olan HES</div><div className="font-mono text-[8px] text-slate-600">Hesap {kpis.calculatedFullness} · Mock {kpis.fallbackMock}</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.epiasFullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">EPİAŞ doluluk</div></div>
         <div className="flex items-center rounded-lg border border-slate-700 p-0.5 text-[9px]"><button onClick={() => setDataMode('mock')} className={`rounded px-2 py-1 ${dataMode === 'mock' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-500'}`}>MOCK</button><button onClick={() => setDataMode('epias')} className={`rounded px-2 py-1 ${dataMode === 'epias' ? 'bg-violet-500/20 text-violet-300' : 'text-slate-500'}`}>EPİAŞ</button></div>
         <button onClick={() => void refreshHydroData()} disabled={dataStatus === 'loading'} className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-[10px] font-semibold text-cyan-300 transition hover:bg-cyan-500/20 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${dataStatus === 'loading' ? 'animate-spin' : ''}`} />Yenile</button>
         <button onClick={toggleTheme} className="rounded-lg border border-slate-700 p-2 text-slate-400 transition hover:text-cyan-300" title="Temayı değiştir" aria-label="Temayı değiştir">{isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</button>

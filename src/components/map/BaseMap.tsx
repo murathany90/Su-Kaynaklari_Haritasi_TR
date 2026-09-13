@@ -175,10 +175,11 @@ export function BaseMap() {
       const name = displayName(properties, 'dam', id);
       const live = epiasRecords.find((record) => String(record.damName ?? record.name ?? '').toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR'));
       const hesIds = Array.isArray(properties.hesIds) ? properties.hesIds.map(String) : [];
+      const linkedHesProperties = hesIds.length ? hes177.features.find((candidate) => String(candidate.properties?.id ?? candidate.id ?? '') === hesIds[0])?.properties ?? properties : properties;
       const selectedHesRelation = selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id] : undefined;
       const relatedToSelectedHes = Boolean(selectedHesRelation?.damIds?.map(String).includes(id));
       const fullnessSeedId = hesIds[0] ?? id;
-      const seededOccupancy = getHesFullness(fullnessSeedId, dataMode, live ?? null, activeTimestamp ?? timelineIndex);
+      const seededOccupancy = getHesFullness(fullnessSeedId, dataMode, live ?? null, linkedHesProperties);
       const damRelevant = selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId)) || relatedToSelectedHes || selectedEntity?.type === 'dam' && selectedEntity.id === id;
       return { ...feature, properties: { ...properties, name, basinName: properties.basinName ?? properties.HavzaAdi, occupancy: seededOccupancy, damIcon: damIconBucket(seededOccupancy), isProducer: hesIds.length > 0, hesMatchIds: hesIds, relatedToSelected: damRelevant, dimmed: Boolean(selectedEntity && !damRelevant), color: seededOccupancy === null ? '#94a3b8' : getDamColor(seededOccupancy), radius: seededOccupancy === null ? 8 : Math.min(13, Math.max(6, seededOccupancy / 8)) } };
     });
@@ -189,7 +190,7 @@ export function BaseMap() {
       const relation = hes177Relations?.byHesId?.[id];
       const live = relation?.riverIds?.length ? geoglowsRecords.find((record) => relation.riverIds?.map(String).includes(String(record.localRiverId ?? ''))) : undefined;
       const flow = liveNumber(live, ['flow', 'discharge', 'streamflow', 'flow_median', 'value']);
-      const occupancy = getHesFullness(id, dataMode, findHesEpiasRecord(epiasRecords, id, feature.properties ?? {}), activeTimestamp ?? timelineIndex);
+      const occupancy = getHesFullness(id, dataMode, findHesEpiasRecord(epiasRecords, id, feature.properties ?? {}), feature.properties ?? {});
       const selectedRiverName = selectedRiver?.properties?.riverName ?? selectedRiver?.properties?.name;
       const riverSelected = selectedEntity?.type === 'river' && Boolean((relation?.riverIds ?? []).map(String).includes(selectedEntity.id) || (selectedRiverName && relation?.riverName === selectedRiverName));
       const hesSelected = selectedEntity?.type === 'hes' && selectedEntity.id === id;

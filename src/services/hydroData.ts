@@ -50,7 +50,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
   const bundle: HydroDataBundle = {
     basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), flowStations: emptyFeatureCollection(),
     hesStations: emptyFeatureCollection(), damStations: emptyFeatureCollection(), lakes: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), hes177Relations: null,
-    manifest: null, mappingManifest: null, geoglows: null, epias: null, errors: [],
+    manifest: null, hes177Manifest: null, mappingManifest: null, geoglows: null, epias: null, errors: [],
   };
   entries.forEach((entry, index) => {
     const key = Object.keys(STATIC_FILES)[index] as keyof typeof STATIC_FILES;
@@ -60,6 +60,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
 
   const optional = await Promise.allSettled([
     readJson<HydroDataManifest>('/data/manifest/tatus_manifest.json'),
+    readJson<HydroDataManifest>('/data/hes177/hes_177_manifest.json'),
     readJson<RiverMappingManifest>('/data/manifest/river_reach_map_manifest.json'),
     readJson<GeoglowsPayload>('/data/live/geoglows_latest.json'),
     readJson<EpiasPayload>('/data/live/epias_dams_latest.json'),
@@ -67,14 +68,16 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
   ]);
   if (optional[0].status === 'fulfilled') bundle.manifest = optional[0].value;
   else bundle.errors.push(`manifest: ${reasonOf(optional[0])}`);
-  if (optional[1].status === 'fulfilled') bundle.mappingManifest = optional[1].value;
-  else bundle.errors.push(`river mapping: ${reasonOf(optional[1])}`);
-  if (optional[2].status === 'fulfilled') bundle.geoglows = asOptionalPayload<GeoglowsPayload>(optional[2].value);
-  else bundle.errors.push(`GEOGLOWS: ${reasonOf(optional[2])}`);
-  if (optional[3].status === 'fulfilled') bundle.epias = asOptionalPayload<EpiasPayload>(optional[3].value);
-  else bundle.errors.push(`EPİAŞ: ${reasonOf(optional[3])}`);
-  if (optional[4].status === 'fulfilled') bundle.hes177Relations = optional[4].value;
-  else bundle.errors.push(`177 HES ilişkileri: ${reasonOf(optional[4])}`);
+  if (optional[1].status === 'fulfilled') bundle.hes177Manifest = optional[1].value;
+  else bundle.errors.push(`177 HES manifest: ${reasonOf(optional[1])}`);
+  if (optional[2].status === 'fulfilled') bundle.mappingManifest = optional[2].value;
+  else bundle.errors.push(`river mapping: ${reasonOf(optional[2])}`);
+  if (optional[3].status === 'fulfilled') bundle.geoglows = asOptionalPayload<GeoglowsPayload>(optional[3].value);
+  else bundle.errors.push(`GEOGLOWS: ${reasonOf(optional[3])}`);
+  if (optional[4].status === 'fulfilled') bundle.epias = asOptionalPayload<EpiasPayload>(optional[4].value);
+  else bundle.errors.push(`EPİAŞ: ${reasonOf(optional[4])}`);
+  if (optional[5].status === 'fulfilled') bundle.hes177Relations = optional[5].value;
+  else bundle.errors.push(`177 HES ilişkileri: ${reasonOf(optional[5])}`);
   return bundle;
 }
 

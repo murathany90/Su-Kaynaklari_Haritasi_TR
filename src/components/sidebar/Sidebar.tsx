@@ -35,7 +35,7 @@ function liveValue(record: unknown, keys: string[]): number | null {
   return firstValue(source, keys);
 }
 
-function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] }>, dataMode: 'mock' | 'epias' = 'mock', dateKey: string | number | null = null, epiasByHes = new Map<string, Record<string, unknown>>): Item[] {
+function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] }>, dataMode: 'mock' | 'epias' = 'mock', epiasByHes = new Map<string, Record<string, unknown>>): Item[] {
   return collection.features.map((feature) => {
     const properties = feature.properties ?? {};
     const id = String(properties.id ?? properties.entityId ?? feature.id ?? '');
@@ -46,7 +46,7 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
     const flow = kind === 'rivers' ? liveFlows.get(id) : undefined;
     const damLive = kind === 'dams' ? liveDams.get(name.toLocaleLowerCase('tr-TR')) : undefined;
     const linkedHesId = kind === 'dams' && Array.isArray(properties.hesIds) && properties.hesIds.length ? String(properties.hesIds[0]) : id;
-    const occupancy = kind === 'hes' || kind === 'dams' ? getHesFullness(linkedHesId, dataMode, kind === 'hes' ? epiasByHes.get(id) : damLive?.record ?? null, dateKey) : firstValue(properties, ['occupancy', 'doluluk']);
+    const occupancy = kind === 'hes' || kind === 'dams' ? getHesFullness(linkedHesId, dataMode, kind === 'hes' ? epiasByHes.get(id) : damLive?.record ?? null, properties) : firstValue(properties, ['occupancy', 'doluluk']);
     const area = firstValue(properties, ['areaKm2', 'ALAN_KM2']);
     const length = firstValue(properties, ['lengthKm']);
     const activeVolume = damLive ? firstValue(damLive.record, ['activeVolume', 'active_volume', 'hacim']) : firstValue(properties, ['activeVolume', 'active_volume', 'activeVolumeHm3']);
@@ -168,7 +168,6 @@ export const Sidebar: React.FC = () => {
     });
     return { flowMap, damMap };
   }, [epias?.records, geoglows, timelineIndex]);
-  const timelineDateKey = useMemo(() => getForecastTimestamps(geoglows)[timelineIndex] ?? timelineIndex, [geoglows, timelineIndex]);
   const epiasByHes = useMemo(() => {
     const records = epias?.records ?? [];
     return new Map(hes177.features.map((feature) => {
@@ -191,9 +190,9 @@ export const Sidebar: React.FC = () => {
     return { features: withLabels.filter((feature) => { const properties = feature.properties as Record<string, unknown> | null | undefined; return !isUnknownName(properties?.riverName ?? properties?.name); }) };
   }, [basinLabels, currentTab, source]);
   const list = useMemo(() => {
-    const items = itemsFrom(labeledSource, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, timelineDateKey, epiasByHes);
+    const items = itemsFrom(labeledSource, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, epiasByHes);
     return items;
-  }, [basinSummaries, currentTab, dataMode, epiasByHes, labeledSource, liveMaps, manifest?.generatedAt, timelineDateKey]);
+  }, [basinSummaries, currentTab, dataMode, epiasByHes, labeledSource, liveMaps, manifest?.generatedAt]);
   const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) ?? null : null;
   const selectedRiverHesIds = useMemo(() => {
     if (!selectedRiver) return new Set<string>();
@@ -210,22 +209,23 @@ export const Sidebar: React.FC = () => {
     const feature = selectedEntity?.type === 'hes' ? hes177.features.find((candidate) => String(candidate.properties?.id ?? candidate.id ?? '') === selectedEntity.id) : null;
     if (!feature) return null;
     const properties = feature.properties ?? {};
-    return { ...feature, properties: { ...properties, basinName: `${properties.displayBasinName ?? properties.basinName ?? '—'} · Resmî TATUS Havzası: ${properties.officialBasinName ?? properties.basinName ?? '—'}` } } as typeof feature;
-  }, [hes177.features, selectedEntity]);
+    const fullness = getHesFullness(String(properties.id ?? feature.id ?? ''), dataMode, epiasByHes.get(String(properties.id ?? feature.id ?? '')), properties);
+    return { ...feature, properties: { ...properties, basinName: `${properties.displayBasinName ?? properties.basinName ?? '—'} · Resmî TATUS Havzası: ${properties.officialBasinName ?? properties.basinName ?? '—'}`, dataQuality: `${properties.dataQuality ?? '—'} · Doluluk: ${fullness === null ? '—' : `%${Math.round(fullness)}`}` } } as typeof feature;
+  }, [dataMode, epiasByHes, hes177.features, selectedEntity]);
   const relatedDams = useMemo(() => {
     const related = dams.features.filter((feature) => {
       const id = String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? '');
       const hesIds = Array.isArray(feature.properties?.hesIds) ? feature.properties.hesIds.map(String) : [];
       return selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId));
     });
-    return itemsFrom({ features: related }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, timelineDateKey, epiasByHes).slice(0, 12);
-  }, [basinSummaries, dams.features, dataMode, epiasByHes, liveMaps, manifest?.generatedAt, selectedRiverDamIds, selectedRiverHesIds, timelineDateKey]);
+    return itemsFrom({ features: related }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, epiasByHes).slice(0, 12);
+  }, [basinSummaries, dams.features, dataMode, epiasByHes, liveMaps, manifest?.generatedAt, selectedRiverDamIds, selectedRiverHesIds]);
   const relatedStations = useMemo(() => {
     if (!selectedRiverHesIds.size) return [];
     const stationIds = new Set([...selectedRiverHesIds].flatMap((id) => hes177Relations?.byHesId?.[id]?.stationIds?.map(String) ?? []));
     return stationItemsFrom({ features: hesStations.features.filter((feature) => stationIds.has(String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? ''))) });
   }, [hes177Relations, hesStations.features, selectedRiverHesIds]);
-  const relatedHes = useMemo(() => itemsFrom({ features: hes177.features.filter((feature) => selectedRiverHesIds.has(String(feature.properties?.id ?? feature.id ?? ''))) }, 'hes', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, timelineDateKey, epiasByHes), [basinSummaries, dataMode, epiasByHes, hes177.features, liveMaps, manifest?.generatedAt, selectedRiverHesIds, timelineDateKey]);
+  const relatedHes = useMemo(() => itemsFrom({ features: hes177.features.filter((feature) => selectedRiverHesIds.has(String(feature.properties?.id ?? feature.id ?? ''))) }, 'hes', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, epiasByHes), [basinSummaries, dataMode, epiasByHes, hes177.features, liveMaps, manifest?.generatedAt, selectedRiverHesIds]);
   const relatedFacilities = useMemo(() => [...relatedHes, ...relatedDams, ...relatedStations].slice(0, 12), [relatedDams, relatedHes, relatedStations]);
   const filtered = useMemo(() => list.filter((item) => {
     const query = searchQuery.trim().toLocaleLowerCase('tr-TR');

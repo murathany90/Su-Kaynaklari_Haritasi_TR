@@ -44,6 +44,15 @@ def number(value: Any) -> float | None:
     return result if math.isfinite(result) else None
 
 
+def fullness_from_volumes(properties: dict[str, Any]) -> float | None:
+    active = number(properties.get("activeVolumeHm3"))
+    minimum = number(properties.get("minVolumeHm3"))
+    maximum = number(properties.get("maxVolumeHm3"))
+    if active is None or minimum is None or maximum is None or maximum <= minimum:
+        return None
+    return max(0, min(100, ((active - minimum) / (maximum - minimum)) * 100))
+
+
 def normalize(value: Any) -> str:
     """Normalize names without deleting I/II/III/IV facility suffixes."""
     text = str(value or "").upper().translate(str.maketrans({"Ç": "C", "Ğ": "G", "İ": "I", "I": "I", "Ö": "O", "Ş": "S", "Ü": "U", "Â": "A", "Î": "I", "Û": "U", "Ý": "I", "Ã": "A", "Ä": "A", "Å": "S"}))
@@ -401,6 +410,7 @@ def main() -> None:
             "riverNameSource": row.get("Akarsu Eşleme Durumu"), "riverCode": None, "riverQueryUrl": row.get("Akarsu Polyline GeoJSON URL"), "catchmentUrl": row.get("Su Toplama Alanı Polygon GeoJSON URL"),
             "catchmentLabel": row.get("Su Toplama Alanı Popup"), "gisConfidence": row.get("GIS Güven"), "gisNote": row.get("GIS Notu"), "hasDamMatch": False,
         }
+        properties["fullnessPercent"] = fullness_from_volumes(properties)
         properties["riverNameWorkbook"] = row.get("Akarsu / Nehir (Ön Eşleme)")
         properties["officialBasinId"] = properties["basinId"]
         properties["officialBasinName"] = properties["basinName"]
@@ -516,7 +526,7 @@ def main() -> None:
         dam_basin_id = owner.get("basinId", record["basinId"])
         dam_basin_name = owner.get("basinName", record["basinName"])
         for hes_id in record["hesIds"]: dam_by_hes[hes_id].append(dam_id)
-        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": record.get("coordinateSource", "TATUS Layer 7"), "sourceIds": record["sourceIds"], "isProducer": bool(record["hesIds"])}})
+        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": record.get("coordinateSource", "TATUS Layer 7"), "sourceIds": record["sourceIds"], "isProducer": bool(record["hesIds"]), "minVolumeHm3": owner.get("minVolumeHm3"), "maxVolumeHm3": owner.get("maxVolumeHm3"), "activeVolumeHm3": owner.get("activeVolumeHm3"), "fullnessPercent": owner.get("fullnessPercent")}})
 
     # Layer 4 station names are a controlled fallback for HES records whose
     # Layer 8 query is empty. Accept only same-basin nearest stations.
@@ -745,6 +755,7 @@ def main() -> None:
     dam_fallback = sum(feature["properties"].get("coordinateSource") == "tatus-dam-point" for feature in hes_features)
     transformer = sum(feature["properties"].get("coordinateKind") == "transformer" for feature in hes_features)
     producer_count = sum(feature["properties"].get("isProducer") is True for feature in hes_features)
+    volume_fullness_count = sum(feature["properties"].get("fullnessPercent") is not None for feature in hes_features)
     river_unresolved = [feature for feature in hes_features if feature["properties"].get("riverMatchMethod") == "unresolved-technical"]
     river_matched_count = len(hes_features) - len(river_unresolved)
     river_unmatched_hes = [feature["properties"]["id"] for feature in river_unresolved]
@@ -761,7 +772,7 @@ def main() -> None:
         or normalize(feature["properties"].get("riverName")) == "DICLE" and normalize(feature["properties"].get("name")) in KNOWN_RIVER_HES["Fırat"]
         for feature in hes_features
     )
-    manifest = {"version": 3, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "hesCount": len(hes_features), "producerCount": producer_count, "riverMatchedCount": river_matched_count, "riverUnresolvedCount": len(river_unresolved), "riverUnmatchedCount": len(river_unmatched_hes), "riverUnmatchedHesIds": river_unmatched_hes, "riverUnmatchedHesNames": river_unmatched_names, "displayBasinCount": display_basin_count, "officialBasinCount": official_basin_count, "spatialVerifiedBasinCount": spatial_verified_basin_count, "damFallbackBasinCount": dam_fallback_basin_count, "workbookBasinCount": workbook_basin_count, "transformerCandidateCount": transformer_candidate_count, "basinSelectionMismatchCount": basin_selection_mismatch_count, "riverCrossMismatchCount": river_cross_mismatch_count, "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "disconnectedRiverComponents": disconnected_river_components, "damCount": len(dam_features), "reservoirPolygonCount": 0, "hesStationCount": len(station_features), "lakeStationCount": 0, "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
+    manifest = {"version": 3, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "hesCount": len(hes_features), "producerCount": producer_count, "riverMatchedCount": river_matched_count, "riverUnresolvedCount": len(river_unresolved), "riverUnmatchedCount": len(river_unmatched_hes), "riverUnmatchedHesIds": river_unmatched_hes, "riverUnmatchedHesNames": river_unmatched_names, "displayBasinCount": display_basin_count, "officialBasinCount": official_basin_count, "spatialVerifiedBasinCount": spatial_verified_basin_count, "damFallbackBasinCount": dam_fallback_basin_count, "workbookBasinCount": workbook_basin_count, "transformerCandidateCount": transformer_candidate_count, "basinSelectionMismatchCount": basin_selection_mismatch_count, "riverCrossMismatchCount": river_cross_mismatch_count, "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "disconnectedRiverComponents": disconnected_river_components, "damCount": len(dam_features), "reservoirPolygonCount": 0, "hesStationCount": len(station_features), "lakeStationCount": 0, "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "volumeCalculatedFullnessCount": volume_fullness_count, "epiasFullnessCount": 0, "fallbackMockFullnessCount": len(hes_features) - volume_fullness_count, "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
     write("hes_177_manifest.json", manifest)
     print(json.dumps({"hes": len(hes_features), "producers": producer_count, "riverMatched": river_matched_count, "riverUnmatched": len(river_unmatched_hes), "displayBasins": display_basin_count, "officialBasins": official_basin_count, "spatialVerifiedBasins": spatial_verified_basin_count, "damFallbackBasins": dam_fallback_basin_count, "workbookBasins": workbook_basin_count, "transformerCandidates": transformer_candidate_count, "basinSelectionMismatches": basin_selection_mismatch_count, "riverCrossMismatches": river_cross_mismatch_count, "coordinates": coordinate_count, "verified": verified, "transformer": transformer, "unresolved": len(hes_features) - coordinate_count, "basins": len(relevant_basins), "rivers": len(river_features), "dams": len(dam_features), "stations": len(station_features), "cascadeEdges": len(cascade_edges), "catchments": manifest["catchmentCount"]}, ensure_ascii=False))
 

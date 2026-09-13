@@ -62,6 +62,7 @@ export interface HydroDataBundle {
   catchment: HydrologyFeatureCollection;
   hes177Relations: Hes177Relations | null;
   manifest: HydroDataManifest | null;
+  hes177Manifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
   geoglows: GeoglowsPayload | null;
   epias: EpiasPayload | null;

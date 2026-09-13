@@ -42,6 +42,7 @@ interface AppState {
   catchment: HydrologyFeatureCollection;
   hes177Relations: Hes177Relations | null;
   dataManifest: HydroDataManifest | null;
+  hes177Manifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
   geoglows: GeoglowsPayload | null;
   epias: EpiasPayload | null;
@@ -102,6 +103,7 @@ export const useAppStore = create<AppState>((set) => ({
   catchment: emptyFeatureCollection(),
   hes177Relations: null,
   dataManifest: null,
+  hes177Manifest: null,
   mappingManifest: null,
   geoglows: null,
   epias: null,
@@ -147,6 +149,7 @@ export const useAppStore = create<AppState>((set) => ({
         catchment: data.catchment,
         hes177Relations: data.hes177Relations,
         dataManifest: data.manifest,
+        hes177Manifest: data.hes177Manifest,
         mappingManifest: data.mappingManifest,
         geoglows: data.geoglows,
         epias: data.epias,

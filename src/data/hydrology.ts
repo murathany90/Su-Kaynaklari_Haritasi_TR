@@ -225,10 +225,10 @@ export function isElectricProducer(properties: Record<string, unknown>, hasHesMa
   return hasHesMatch || [properties.isHes, properties.isHES, properties.hes, properties.energyProducer, properties.producer, properties.isProducer].some((value) => value === true || value === 'true' || value === 1);
 }
 
-/** Stable demo fullness for MOCK mode. It never depends on render order. */
-export function mockFullness(id: string, dateKey: string | number | null = null): number {
+/** Stable fallback fullness for MOCK mode. It is keyed only by the physical HES id. */
+export function mockFullness(id: string): number {
   let hash = 2166136261;
-  for (const character of `${id}:${dateKey ?? 'static'}`) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
   return 25 + (Math.abs(hash) % 66);
 }
 
@@ -238,20 +238,47 @@ function numericValue(value: unknown): number | null {
   return Number.isFinite(result) ? result : null;
 }
 
+const ACTIVE_VOLUME_KEYS = ['activeVolumeHm3', 'activeVolume', 'active_volume', 'aktifHacim', 'aktif_hacim', 'hacim', 'volume', 'suHacmi'];
+const MIN_VOLUME_KEYS = ['minVolumeHm3', 'minimumVolumeHm3', 'minVolume', 'minimumVolume', 'min_volume', 'minimum_volume', 'minimumHacim', 'minHacim'];
+const MAX_VOLUME_KEYS = ['maxVolumeHm3', 'maximumVolumeHm3', 'maxVolume', 'maximumVolume', 'max_volume', 'maximum_volume', 'maximumHacim', 'maxHacim'];
+
+function firstNumeric(source: Record<string, unknown> | null | undefined, keys: string[]): number | null {
+  if (!source) return null;
+  for (const key of keys) {
+    const value = numericValue(source[key]);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
+export function fullnessFromVolumes(source: Record<string, unknown> | null | undefined): number | null {
+  const active = firstNumeric(source, ACTIVE_VOLUME_KEYS);
+  const minimum = firstNumeric(source, MIN_VOLUME_KEYS);
+  const maximum = firstNumeric(source, MAX_VOLUME_KEYS);
+  if (active === null || minimum === null || maximum === null || maximum <= minimum) return null;
+  return Math.min(100, Math.max(0, ((active - minimum) / (maximum - minimum)) * 100));
+}
+
 /** Single fullness rule shared by the map, sidebar and HES popup. */
 export function getHesFullness(
   hesId: string,
   dataMode: 'mock' | 'epias',
   epiasRecord?: Record<string, unknown> | null,
-  dateKey: string | number | null = null,
+  canonicalProperties?: Record<string, unknown> | null,
 ): number | null {
-  if (dataMode === 'mock') return mockFullness(hesId, dateKey);
-  if (!epiasRecord) return null;
-  for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
-    const value = numericValue(epiasRecord[key]);
-    if (value !== null) return Math.min(100, Math.max(0, value));
+  if (dataMode === 'epias' && epiasRecord) {
+    for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
+      const value = numericValue(epiasRecord[key]);
+      if (value !== null) return Math.min(100, Math.max(0, value));
+    }
+    const epiasVolumeFullness = fullnessFromVolumes(epiasRecord);
+    if (epiasVolumeFullness !== null) return epiasVolumeFullness;
   }
-  return null;
+  const canonicalFullness = numericValue(canonicalProperties?.fullnessPercent ?? canonicalProperties?.fullness ?? canonicalProperties?.occupancy);
+  if (canonicalFullness !== null) return Math.min(100, Math.max(0, canonicalFullness));
+  const volumeFullness = fullnessFromVolumes(canonicalProperties);
+  if (volumeFullness !== null) return volumeFullness;
+  return dataMode === 'mock' ? mockFullness(hesId) : null;
 }
 
 export type RiverDamRelation = { ids: Set<string>; stationIds: Set<string>; confidence: 'name/spatial' | 'basin' };
