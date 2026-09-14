@@ -12,10 +12,7 @@ import {
 const STATIC_FILES = {
   basins: '/data/hes177/hes_basins.geojson',
   rivers: '/data/hes177/hes_rivers.geojson',
-  flowStations: '',
-  hesStations: '/data/hes177/hes_stations_177.geojson',
   damStations: '/data/hes177/hes_dam_points.geojson',
-  lakes: '',
   hes177: '/data/hes177/hes_177.geojson',
   cascades: '/data/hes177/hes_cascades.geojson',
   catchment: '',
@@ -48,8 +45,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
     Object.entries(STATIC_FILES).map(async ([key, path]) => [key, path ? asFeatureCollection(await readJson(path), path) : emptyFeatureCollection()] as const),
   );
   const bundle: HydroDataBundle = {
-    basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), flowStations: emptyFeatureCollection(),
-    hesStations: emptyFeatureCollection(), damStations: emptyFeatureCollection(), lakes: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), hes177Relations: null,
+    basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), damStations: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), hes177Relations: null,
     manifest: null, hes177Manifest: null, mappingManifest: null, geoglows: null, epias: null, errors: [],
   };
   entries.forEach((entry, index) => {

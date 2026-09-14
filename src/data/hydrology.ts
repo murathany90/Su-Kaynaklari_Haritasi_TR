@@ -268,32 +268,51 @@ export function fullnessFromCurrentVolume(source: Record<string, unknown> | null
   return Math.min(100, Math.max(0, ((current - minimum) / (maximum - minimum)) * 100));
 }
 
+export type FullnessSource = 'E' | 'H' | 'M' | '—';
+export type HesFullness = { value: number | null; source: FullnessSource };
+
+function clampedPercent(value: unknown): number | null {
+  const numeric = numericValue(value);
+  return numeric === null ? null : Math.min(100, Math.max(0, numeric));
+}
+
 /** Single fullness rule shared by the map, sidebar and HES popup. */
+export function getHesFullnessMeta(
+  hesId: string,
+  dataMode: 'mock' | 'epias',
+  epiasRecord?: Record<string, unknown> | null,
+  canonicalProperties?: Record<string, unknown> | null,
+): HesFullness {
+  if (dataMode === 'epias' && epiasRecord) {
+    // EPİAŞ's explicit fullness fields are already percentages. Never divide
+    // activeFullnessAmount by a capacity a second time.
+    for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
+      const value = clampedPercent(epiasRecord[key]);
+      if (value !== null) return { value, source: 'E' };
+    }
+    const explicitAmount = clampedPercent(epiasRecord.activeFullnessAmount);
+    if (explicitAmount !== null) return { value: explicitAmount, source: 'E' };
+    const epiasActiveVolumeFullness = fullnessFromActiveVolume(epiasRecord);
+    if (epiasActiveVolumeFullness !== null) return { value: epiasActiveVolumeFullness, source: 'E' };
+    const epiasCurrentVolumeFullness = fullnessFromCurrentVolume(epiasRecord);
+    if (epiasCurrentVolumeFullness !== null) return { value: epiasCurrentVolumeFullness, source: 'E' };
+  }
+  const canonicalFullness = clampedPercent(canonicalProperties?.fullnessPercent ?? canonicalProperties?.fullness ?? canonicalProperties?.occupancy);
+  if (canonicalFullness !== null) return { value: canonicalFullness, source: 'H' };
+  const activeVolumeFullness = fullnessFromActiveVolume(canonicalProperties);
+  if (activeVolumeFullness !== null) return { value: activeVolumeFullness, source: 'H' };
+  const currentVolumeFullness = fullnessFromCurrentVolume(canonicalProperties);
+  if (currentVolumeFullness !== null) return { value: currentVolumeFullness, source: 'H' };
+  return dataMode === 'mock' ? { value: mockFullness(hesId), source: 'M' } : { value: null, source: '—' };
+}
+
 export function getHesFullness(
   hesId: string,
   dataMode: 'mock' | 'epias',
   epiasRecord?: Record<string, unknown> | null,
   canonicalProperties?: Record<string, unknown> | null,
 ): number | null {
-  if (dataMode === 'epias' && epiasRecord) {
-    const activeFullness = fullnessFromActiveVolume(epiasRecord, ['activeFullnessAmount']);
-    if (activeFullness !== null) return activeFullness;
-    for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
-      const value = numericValue(epiasRecord[key]);
-      if (value !== null) return Math.min(100, Math.max(0, value));
-    }
-    const epiasActiveVolumeFullness = fullnessFromActiveVolume(epiasRecord);
-    if (epiasActiveVolumeFullness !== null) return epiasActiveVolumeFullness;
-    const epiasCurrentVolumeFullness = fullnessFromCurrentVolume(epiasRecord);
-    if (epiasCurrentVolumeFullness !== null) return epiasCurrentVolumeFullness;
-  }
-  const canonicalFullness = numericValue(canonicalProperties?.fullnessPercent ?? canonicalProperties?.fullness ?? canonicalProperties?.occupancy);
-  if (canonicalFullness !== null) return Math.min(100, Math.max(0, canonicalFullness));
-  const activeVolumeFullness = fullnessFromActiveVolume(canonicalProperties);
-  if (activeVolumeFullness !== null) return activeVolumeFullness;
-  const currentVolumeFullness = fullnessFromCurrentVolume(canonicalProperties);
-  if (currentVolumeFullness !== null) return currentVolumeFullness;
-  return dataMode === 'mock' ? mockFullness(hesId) : null;
+  return getHesFullnessMeta(hesId, dataMode, epiasRecord, canonicalProperties).value;
 }
 
 export type RiverDamRelation = { ids: Set<string>; stationIds: Set<string>; confidence: 'name/spatial' | 'basin' };

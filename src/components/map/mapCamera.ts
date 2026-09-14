@@ -5,10 +5,7 @@ export type Selection = { type: string; id: string };
 export type FocusDatasets = {
   rivers: FeatureCollection<Geometry, GeoJsonProperties>;
   basins: FeatureCollection<Geometry, GeoJsonProperties>;
-  flowStations: FeatureCollection<Geometry, GeoJsonProperties>;
-  hesStations: FeatureCollection<Geometry, GeoJsonProperties>;
   dams: FeatureCollection<Geometry, GeoJsonProperties>;
-  lakes: FeatureCollection<Geometry, GeoJsonProperties>;
   hes177: FeatureCollection<Geometry, GeoJsonProperties>;
   cascades: FeatureCollection<Geometry, GeoJsonProperties>;
   riverGroups?: Map<string, Feature<Geometry, GeoJsonProperties>>;
@@ -38,7 +35,7 @@ function positions(geometry: Geometry | null): Position[] {
 
 function findFeature(selection: Selection, datasets: FocusDatasets): Feature<Geometry, GeoJsonProperties> | null {
   if (selection.type === 'river' && datasets.riverGroups?.has(selection.id)) return datasets.riverGroups.get(selection.id) ?? null;
-  const collection = datasets[selection.type === 'river' ? 'rivers' : selection.type === 'basin' ? 'basins' : selection.type === 'lake' ? 'lakes' : selection.type === 'dam' ? 'dams' : selection.type === 'hes' ? 'hes177' : 'hesStations'];
+  const collection = datasets[selection.type === 'river' ? 'rivers' : selection.type === 'basin' ? 'basins' : selection.type === 'dam' ? 'dams' : selection.type === 'hes' ? 'hes177' : 'rivers'];
   return collection?.features.find((feature) => (selection.type === 'basin' ? basinFeatureId(feature) : featureId(feature)) === selection.id) ?? null;
 }
 
@@ -56,11 +53,10 @@ export function focusSelectedEntity(map: MapLibreMap, selection: Selection, data
   if (!points.length) return false;
   if (selection.type === 'hes') {
     const relation = (feature.properties ?? {}) as Record<string, unknown>;
-    const relatedIds = new Set([selection.id, ...(Array.isArray(relation.damIds) ? relation.damIds.map(String) : []), ...(Array.isArray(relation.stationIds) ? relation.stationIds.map(String) : [])]);
+    const relatedIds = new Set([selection.id, ...(Array.isArray(relation.damIds) ? relation.damIds.map(String) : [])]);
     const relatedPoints = [
       ...datasets.hes177.features,
       ...datasets.dams.features,
-      ...datasets.hesStations.features,
     ].filter((candidate) => { const id = featureId(candidate); return id !== null && relatedIds.has(id); }).flatMap((candidate) => positions(candidate.geometry));
     if (relatedPoints.length > 1) {
       const relatedBounds = boundsFor(relatedPoints);

@@ -1,128 +1,59 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowUpDown, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
-import { displayName, getHesFullness, isUnknownName } from '../../data/hydrology';
-import { getForecastTimestamps } from '../../services/hydroData';
+import { getHesFullnessMeta } from '../../data/hydrology';
 import { useAppStore, type TabType } from '../../store/useAppStore';
 
-type Detail = { label: string; value: string };
-type Item = { id: string; name: string; subtitle?: string; basinName?: string; riverName?: string; metric?: string; status?: string; sourceBadge?: 'TATUS' | 'GEOGLOWS' | 'EPİAŞ'; sourceTime?: string; details: Detail[]; isProducer?: boolean; typeLabel: string; location: string; powerValue: number; fullnessValue: number | null; fullnessSource?: 'E' | 'M'; sortText: string };
-type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness';
-type ItemKind = TabType | 'dams' | 'lakes';
-type FeatureCollectionLike = { features: Array<{ id?: string | number; properties?: Record<string, unknown> | null }> };
+type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness' | 'source' | 'count' | 'forecast' | 'cascade';
+type FullnessSource = 'E' | 'H' | 'M' | '—';
+type Row = {
+  id: string;
+  type: 'hes' | 'river' | 'basin';
+  name: string;
+  basin: string;
+  river: string;
+  power: number;
+  fullness: number | null;
+  source: FullnessSource;
+  count: number;
+  forecast: boolean;
+  cascadeCount: number;
+  riverNames: string;
+  details?: Record<string, unknown>;
+};
 
-function numeric(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const result = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(result) ? result : null;
+type Column = { key: SortKey; label: string; className?: string; value: (row: Row) => React.ReactNode };
+
+function numberOf(value: unknown): number | null {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-function firstValue(properties: Record<string, unknown>, keys: string[]): number | null {
-  for (const key of keys) {
-    const value = numeric(properties[key]);
-    if (value !== null) return value;
-  }
-  return null;
+function formatMw(value: number): string {
+  return `${Math.round(value).toLocaleString('tr-TR')} MW`;
 }
 
-function textValue(properties: Record<string, unknown>, keys: string[]): string | undefined {
-  const value = keys.map((key) => properties[key]).find((candidate) => !isUnknownName(candidate));
-  return value === undefined ? undefined : String(value);
+function weightedFullness(rows: Array<{ power: number; fullness: number | null }>): number | null {
+  const eligible = rows.filter((row) => row.fullness !== null && row.power > 0);
+  const weight = eligible.reduce((sum, row) => sum + row.power, 0);
+  return weight ? eligible.reduce((sum, row) => sum + (row.fullness ?? 0) * row.power, 0) / weight : null;
 }
 
-function liveValue(record: unknown, keys: string[]): number | null {
-  if (!record || typeof record !== 'object') return null;
-  const source = record as Record<string, unknown>;
-  return firstValue(source, keys);
+function sourceFor(rows: Array<{ source: FullnessSource; fullness: number | null }>): FullnessSource {
+  if (!rows.some((row) => row.fullness !== null)) return '—';
+  if (rows.some((row) => row.source === 'E')) return 'E';
+  if (rows.some((row) => row.source === 'H')) return 'H';
+  return rows.some((row) => row.source === 'M') ? 'M' : '—';
 }
 
-function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] }>, dataMode: 'mock' | 'epias' = 'mock', epiasByHes = new Map<string, Record<string, unknown>>): Item[] {
-  return collection.features.map((feature) => {
-    const properties = feature.properties ?? {};
-    const id = String(kind === 'basins' ? properties.basinId ?? properties.ID ?? properties.id ?? feature.id ?? '' : properties.id ?? properties.entityId ?? feature.id ?? '');
-    const entityKind = kind === 'rivers' ? 'river' : kind === 'dams' ? 'dam' : kind === 'hes' ? 'hes' : 'basin';
-    const name = displayName(properties, entityKind, id);
-    const officialBasin = textValue(properties, ['officialBasinName', 'basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']);
-    const basin = kind === 'hes' ? textValue(properties, ['displayBasinName', 'officialBasinName', 'basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']) : officialBasin;
-    const flow = kind === 'rivers' ? liveFlows.get(id) : undefined;
-    const damLive = kind === 'dams' ? liveDams.get(name.toLocaleLowerCase('tr-TR')) : undefined;
-    const linkedHesId = kind === 'dams' && Array.isArray(properties.hesIds) && properties.hesIds.length ? String(properties.hesIds[0]) : id;
-    const occupancy = kind === 'hes' || kind === 'dams' ? getHesFullness(linkedHesId, dataMode, kind === 'hes' ? epiasByHes.get(id) : damLive?.record ?? null, properties) : firstValue(properties, ['occupancy', 'doluluk']);
-    const area = firstValue(properties, ['areaKm2', 'ALAN_KM2']);
-    const length = firstValue(properties, ['lengthKm']);
-    const activeVolume = damLive ? firstValue(damLive.record, ['activeVolume', 'active_volume', 'hacim']) : firstValue(properties, ['activeVolume', 'active_volume', 'activeVolumeHm3']);
-    const level = damLive ? firstValue(damLive.record, ['waterLevel', 'level', 'suSeviyesi']) : firstValue(properties, ['waterLevel', 'level']);
-    const power = damLive ? firstValue(damLive.record, ['installedPower', 'power', 'kuruluGuc']) : firstValue(properties, ['installedPower', 'power', 'kuruluGuc', 'installedPowerMw']);
-    const riverPower = firstValue(properties, ['installedPowerMw', 'totalPowerMw', 'installedPower']);
-    const producer = kind === 'hes' ? Boolean(properties.isProducer) : kind === 'dams' && (Boolean(properties.isProducer) || (Array.isArray(properties.hesIds) && properties.hesIds.length > 0)) || Boolean(damLive);
-    const sourceBadge: Item['sourceBadge'] = flow ? 'GEOGLOWS' : damLive ? 'EPİAŞ' : undefined;
-    const sourceTime = flow?.timestamp ?? damLive?.timestamp ?? generatedAt;
-    const details: Detail[] = [];
-    if (basin) details.push({ label: 'Havza', value: basin });
-    if (kind === 'rivers') {
-      if (length !== null) details.push({ label: 'Uzunluk', value: `${length.toLocaleString('tr-TR')} km` });
-      details.push({ label: 'HES', value: `${Number(properties.hesCount ?? 0).toLocaleString('tr-TR')} tesis` });
-      if (riverPower !== null) details.push({ label: 'Kurulu güç', value: `${riverPower.toLocaleString('tr-TR')} MW` });
-      details.push({ label: 'GEOGLOWS', value: flow ? `${flow.value.toLocaleString('tr-TR')} m³/s` : 'Tahmin yok' });
-      details.push({ label: 'Durum', value: flow ? 'Gerçek zaman serisi' : String(properties.status ?? 'veri yok') });
-    } else if (kind === 'dams') {
-      if (occupancy !== null) details.push({ label: 'Doluluk', value: `%${Math.round(occupancy)}` });
-      if (activeVolume !== null) details.push({ label: 'Aktif hacim', value: activeVolume.toLocaleString('tr-TR') });
-      if (level !== null) details.push({ label: 'Su seviyesi', value: level.toLocaleString('tr-TR') });
-      if (power !== null) details.push({ label: 'Kurulu güç', value: power.toLocaleString('tr-TR') });
-      details.push({ label: 'Tip', value: producer ? 'Elektrik üretimi doğrulandı' : 'Baraj / HES niteliği yok' });
-    } else if (kind === 'hes') {
-      if (power !== null) details.push({ label: 'Kurulu güç', value: `${power.toLocaleString('tr-TR')} MW` });
-      const flowRate = firstValue(properties, ['unitFlowM3s']);
-      if (flowRate !== null) details.push({ label: 'Ünite debisi', value: `${flowRate.toLocaleString('tr-TR')} m³/sn` });
-      if (properties.damName) details.push({ label: 'Baraj / rezervuar', value: String(properties.damName) });
-      if (properties.cascadeName && !/^[0-9.]+$/.test(String(properties.cascadeName))) details.push({ label: 'Kaskad', value: String(properties.cascadeName) });
-      details.push({ label: 'Doluluk', value: occupancy === null ? '—' : `%${Math.round(occupancy)}` });
-      details.push({ label: 'Resmi havza', value: officialBasin ?? '—' });
-      details.push({ label: 'Veri kalitesi', value: String(properties.dataQuality ?? '—') });
-    } else if (kind === 'lakes') {
-      if (area !== null) details.push({ label: 'Alan', value: `${area.toLocaleString('tr-TR')} km²` });
-      details.push({ label: 'Gözlem', value: String(properties.status ?? 'veri yok') });
-    } else {
-      const summary = basinSummaries.get(String(properties.basinId ?? properties.HAVZA_ID ?? id));
-      if (summary) {
-        if (summary.areaKm2 !== null) details.push({ label: 'Alan', value: `${summary.areaKm2.toLocaleString('tr-TR')} km²` });
-        details.push({ label: 'Akarsu', value: `${summary.riverCount} · ${summary.riverLengthKm.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} km` });
-        details.push({ label: 'Baraj', value: String(summary.damCount) });
-        details.push({ label: 'HES', value: String(summary.hesCount) });
-        details.push({ label: 'HES ist.', value: String(summary.hesStationCount) });
-        details.push({ label: 'Göl ist.', value: String(summary.lakeStationCount) });
-        if (summary.mainRiverNames.length) details.push({ label: 'Ana akarsular', value: summary.mainRiverNames.join(', ') });
-      }
-    }
-    const metric = kind === 'rivers' ? `${Number(properties.hesCount ?? 0).toLocaleString('tr-TR')} HES · ${riverPower !== null ? `${riverPower.toLocaleString('tr-TR')} MW` : length !== null ? `${length.toLocaleString('tr-TR')} km` : '—'}` : kind === 'dams' ? activeVolume !== null ? `${activeVolume.toLocaleString('tr-TR')} hacim` : occupancy !== null ? `%${Math.round(occupancy)}` : undefined : kind === 'hes' ? power !== null ? `${power.toLocaleString('tr-TR')} MW` : undefined : kind === 'lakes' || kind === 'basins' ? area !== null ? `${Math.round(area).toLocaleString('tr-TR')} km²` : undefined : undefined;
-    const status = kind === 'rivers' ? flow ? 'GEOGLOWS tahmin mevcut' : 'GEOGLOWS tahmini yok' : kind === 'dams' ? damLive ? 'EPİAŞ verisi mevcut' : 'EPİAŞ doluluk verisi yok' : kind === 'hes' ? `177 HES · ${String(properties.dataQuality ?? 'kalite yok')}` : String(properties.status ?? 'veri yok');
-    const typeLabel = kind === 'rivers' ? 'Akarsu' : kind === 'dams' ? 'Baraj/HES' : kind === 'hes' ? 'HES' : kind === 'lakes' ? 'Göl ist.' : 'Havza';
-    const province = textValue(properties, ['Il', 'IL', 'il']);
-    const location = kind === 'dams' ? province ?? basin ?? '—' : kind === 'hes' ? province ? `${province} · ${basin ?? '—'}` : basin ?? '—' : kind === 'basins' ? name : basin ?? province ?? '—';
-    const rowSubtitle = kind === 'hes' ? textValue(properties, ['riverName']) ?? basin : basin;
-    const riverName = kind === 'hes' ? textValue(properties, ['riverName']) : kind === 'rivers' ? name : undefined;
-    const fullnessSource: Item['fullnessSource'] = occupancy === null ? undefined : dataMode === 'epias' && epiasByHes.has(id) ? 'E' : dataMode === 'mock' && (properties.fullnessSource === 'mock' || properties.fullnessSource === 'missing') ? 'M' : undefined;
-    return { id, name, subtitle: rowSubtitle, basinName: basin, riverName, metric, status, sourceBadge, sourceTime, details, isProducer: producer, typeLabel, location, powerValue: kind === 'hes' ? power ?? 0 : riverPower ?? 0, fullnessValue: kind === 'hes' ? occupancy : null, fullnessSource, sortText: `${typeLabel} ${name} ${basin ?? ''} ${riverName ?? ''} ${location} ${status} ${String(properties.damName ?? '')}` };
-  }).filter((item) => item.id && item.name);
-}
-
-function stationItemsFrom(collection: FeatureCollectionLike): Item[] {
-  return collection.features.map((feature) => {
-    const properties = feature.properties ?? {};
-    const id = String(properties.id ?? properties.entityId ?? feature.id ?? '');
-    const name = textValue(properties, ['IstAdi', 'name']) ?? `HES istasyonu · ${id}`;
-    const water = textValue(properties, ['SuAdi']);
-    const location = textValue(properties, ['Il', 'IL', 'il', 'HavzaAdi']) ?? 'Fırat-Dicle';
-    return { id, name, subtitle: water, basinName: location, riverName: water, metric: 'HES', status: 'TATUS tesisi', sourceBadge: 'TATUS' as const, details: [{ label: 'Su', value: water ?? '—' }, { label: 'Konum', value: location }], typeLabel: 'Baraj/HES', location, powerValue: 0, fullnessValue: null, sortText: `Baraj HES ${name} ${water ?? ''} ${location}` };
-  });
+function isValidRiver(value: unknown): value is string {
+  const normalized = String(value ?? '').trim().toLocaleLowerCase('tr-TR');
+  return Boolean(normalized && !['—', 'bilinmiyor', 'akarsu adı doğrulanamadı'].includes(normalized));
 }
 
 export const Sidebar: React.FC = () => {
   const theme = useAppStore((s) => s.theme);
   const currentTab = useAppStore((s) => s.currentTab);
   const setTab = useAppStore((s) => s.setTab);
-  const currentFilter = useAppStore((s) => s.currentFilter);
-  const setFilter = useAppStore((s) => s.setFilter);
   const searchQuery = useAppStore((s) => s.searchQuery);
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const selectedEntity = useAppStore((s) => s.selectedEntity);
@@ -131,156 +62,114 @@ export const Sidebar: React.FC = () => {
   const toggleLayer = useAppStore((s) => s.toggleLayer);
   const layers = useAppStore((s) => s.layers);
   const rivers = useAppStore((s) => s.rivers);
-  const dams = useAppStore((s) => s.damStations);
-  const hesStations = useAppStore((s) => s.hesStations);
-  const hes177 = useAppStore((s) => s.hes177);
-  const hes177Relations = useAppStore((s) => s.hes177Relations);
+  const hes = useAppStore((s) => s.hes177);
   const basins = useAppStore((s) => s.basins);
   const geoglows = useAppStore((s) => s.geoglows);
   const epias = useAppStore((s) => s.epias);
-  const manifest = useAppStore((s) => s.dataManifest);
-  const timelineIndex = useAppStore((s) => s.timelineIndex);
   const dataMode = useAppStore((s) => s.dataMode);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
   const isLight = theme === 'light';
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const basinSummaries = useMemo(() => new Map((hes177Relations?.basinSummaries ?? []).map((summary) => [String(summary.basinId), {
-    areaKm2: numeric(summary.areaKm2), riverCount: Number(summary.riverCount ?? 0), riverLengthKm: Number(summary.riverLengthKm ?? 0), damCount: Number(summary.damCount ?? 0), hesCount: Number(summary.hesCount ?? 0), hesStationCount: Number(summary.hesStationCount ?? 0), lakeCount: 0, lakeStationCount: Number(summary.lakeStationCount ?? 0), mainRiverNames: Array.isArray(summary.knownRiverNames) ? summary.knownRiverNames.map(String) : [],
-  }])), [hes177Relations]);
-  const basinLabels = useMemo(() => new Map(basins.features.map((feature) => [String(feature.properties?.basinId ?? feature.properties?.ID ?? feature.id ?? ''), textValue(feature.properties ?? {}, ['name', 'HAVZA_ADI']) ?? ''])), [basins]);
-
-  const liveMaps = useMemo(() => {
-    const timestamps = getForecastTimestamps(geoglows);
-    const timestamp = timestamps[timelineIndex];
-    const flowMap = new Map<string, { value: number; timestamp?: string }>();
-    (geoglows?.records ?? []).forEach((record) => {
-      const rows = Array.isArray(record.data) ? record.data : [];
-      const row = rows.find((candidate) => !timestamp || (candidate && typeof candidate === 'object' && (candidate as Record<string, unknown>).datetime === timestamp));
-      const value = liveValue(row, ['flow_median', 'flow', 'discharge', 'streamflow', 'value']);
-      if (value !== null && record.localRiverId) flowMap.set(String(record.localRiverId), { value, timestamp: row && typeof row === 'object' ? String((row as Record<string, unknown>).datetime ?? '') : undefined });
-    });
-    const damMap = new Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>();
-    (epias?.records ?? []).forEach((record) => {
-      const value = liveValue(record, ['occupancy', 'fullness', 'activeFullness', 'doluluk']);
-      const name = record.damName ?? record.name;
-      if (value !== null && name) damMap.set(String(name).toLocaleLowerCase('tr-TR'), { value, timestamp: record.datetime ? String(record.datetime) : undefined, record });
-    });
-    return { flowMap, damMap };
-  }, [epias?.records, geoglows, timelineIndex]);
-  const epiasByHes = useMemo(() => {
-    const records = epias?.records ?? [];
-    return new Map(hes177.features.map((feature) => {
-      const properties = feature.properties ?? {};
-      const id = String(properties.id ?? feature.id ?? '');
-      const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
-      const record = records.find((candidate) => {
-        const ids = [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String);
-        const recordNames = [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
-        return ids.includes(id) || recordNames.some((name) => names.includes(name));
-      });
-      return [id, record] as const;
-    }).filter((entry): entry is readonly [string, Record<string, unknown>] => Boolean(entry[1])));
-  }, [epias?.records, hes177.features]);
-
-  const source = currentTab === 'rivers' ? rivers : currentTab === 'hes' ? hes177 : basins;
-  const labeledSource = useMemo(() => {
-    const withLabels = source.features.map((feature) => ({ ...feature, properties: { ...feature.properties, basinName: basinLabels.get(String(feature.properties?.basinId ?? feature.properties?.HAVZA_ID ?? '')) ?? feature.properties?.basinName } }));
-    if (currentTab !== 'rivers') return { features: withLabels };
-    return { features: withLabels.filter((feature) => { const properties = feature.properties as Record<string, unknown> | null | undefined; return !isUnknownName(properties?.riverName ?? properties?.name); }) };
-  }, [basinLabels, currentTab, source]);
-  const list = useMemo(() => {
-    const items = itemsFrom(labeledSource, currentTab, liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, epiasByHes);
-    return items;
-  }, [basinSummaries, currentTab, dataMode, epiasByHes, labeledSource, liveMaps, manifest?.generatedAt]);
-  const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) ?? null : null;
-  const selectedRiverHesIds = useMemo(() => {
-    if (!selectedRiver) return new Set<string>();
-    const directRiverHesIds = Array.isArray(selectedRiver.properties?.hesIds) ? selectedRiver.properties.hesIds.map(String) : [];
-    if (directRiverHesIds.length) return new Set(directRiverHesIds);
-    return new Set(hes177.features.filter((feature) => {
-      const id = String(feature.properties?.id ?? feature.id ?? '');
-      const relation = hes177Relations?.byHesId?.[id];
-      return Boolean(relation?.riverIds?.map(String).includes(String(selectedRiver.properties?.id ?? selectedRiver.id ?? '')));
-    }).map((feature) => String(feature.properties?.id ?? feature.id ?? '')));
-  }, [hes177.features, hes177Relations, selectedRiver]);
-  const selectedRiverDamIds = useMemo(() => new Set([...selectedRiverHesIds].flatMap((id) => hes177Relations?.byHesId?.[id]?.damIds?.map(String) ?? [])), [hes177Relations, selectedRiverHesIds]);
-  const selectedHes = useMemo(() => {
-    const feature = selectedEntity?.type === 'hes' ? hes177.features.find((candidate) => String(candidate.properties?.id ?? candidate.id ?? '') === selectedEntity.id) : null;
-    if (!feature) return null;
+  const epiasByHes = useMemo(() => new Map(hes.features.flatMap((feature) => {
     const properties = feature.properties ?? {};
-    const fullness = getHesFullness(String(properties.id ?? feature.id ?? ''), dataMode, epiasByHes.get(String(properties.id ?? feature.id ?? '')), properties);
-    return { ...feature, properties: { ...properties, basinName: `${properties.displayBasinName ?? properties.basinName ?? '—'} · Resmî TATUS Havzası: ${properties.officialBasinName ?? properties.basinName ?? '—'}`, dataQuality: `${properties.dataQuality ?? '—'} · Doluluk: ${fullness === null ? '—' : `%${Math.round(fullness)}`}` } } as typeof feature;
-  }, [dataMode, epiasByHes, hes177.features, selectedEntity]);
-  const relatedDams = useMemo(() => {
-    const related = dams.features.filter((feature) => {
-      const id = String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? '');
-      const hesIds = Array.isArray(feature.properties?.hesIds) ? feature.properties.hesIds.map(String) : [];
-      return selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId));
+    const id = String(properties.id ?? feature.id ?? '');
+    const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
+    const record = (epias?.records ?? []).find((candidate) => {
+      const ids = [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String);
+      const recordNames = [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
+      return ids.includes(id) || recordNames.some((name) => names.includes(name));
     });
-    return itemsFrom({ features: related }, 'dams', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, epiasByHes).slice(0, 12);
-  }, [basinSummaries, dams.features, dataMode, epiasByHes, liveMaps, manifest?.generatedAt, selectedRiverDamIds, selectedRiverHesIds]);
-  const relatedStations = useMemo(() => {
-    if (!selectedRiverHesIds.size) return [];
-    const stationIds = new Set([...selectedRiverHesIds].flatMap((id) => hes177Relations?.byHesId?.[id]?.stationIds?.map(String) ?? []));
-    return stationItemsFrom({ features: hesStations.features.filter((feature) => stationIds.has(String(feature.properties?.id ?? feature.properties?.entityId ?? feature.id ?? ''))) });
-  }, [hes177Relations, hesStations.features, selectedRiverHesIds]);
-  const relatedHes = useMemo(() => itemsFrom({ features: hes177.features.filter((feature) => selectedRiverHesIds.has(String(feature.properties?.id ?? feature.id ?? ''))) }, 'hes', liveMaps.flowMap, liveMaps.damMap, manifest?.generatedAt, basinSummaries, dataMode, epiasByHes), [basinSummaries, dataMode, epiasByHes, hes177.features, liveMaps, manifest?.generatedAt, selectedRiverHesIds]);
-  const relatedFacilities = useMemo(() => [...relatedHes, ...relatedDams, ...relatedStations].slice(0, 12), [relatedDams, relatedHes, relatedStations]);
-  const filtered = useMemo(() => list.filter((item) => {
+    return record ? [[id, record] as const] : [];
+  })), [epias?.records, hes.features]);
+
+  const hesRows = useMemo<Row[]>(() => hes.features.map((feature) => {
+    const properties = feature.properties ?? {};
+    const id = String(properties.id ?? feature.id ?? '');
+    const fullness = getHesFullnessMeta(id, dataMode, epiasByHes.get(id), properties);
+    return {
+      id, type: 'hes' as const, name: String(properties.name ?? 'HES'), basin: String(properties.displayBasinName ?? properties.basinName ?? '—'), river: isValidRiver(properties.riverName) ? String(properties.riverName) : '—', power: numberOf(properties.installedPowerMw) ?? 0,
+      fullness: fullness.value, source: fullness.source, count: 1, forecast: false, cascadeCount: Number(Boolean(properties.cascadeToId)) + (Array.isArray(properties.cascadeFromIds) ? properties.cascadeFromIds.length : 0), riverNames: '', details: properties,
+    };
+  }), [dataMode, epiasByHes, hes.features]);
+
+  const hesById = useMemo(() => new Map(hesRows.map((row) => [row.id, row])), [hesRows]);
+  const basinLabels = useMemo(() => new Map(basins.features.map((feature) => [String(feature.properties?.basinId ?? feature.properties?.ID ?? feature.id ?? ''), String(feature.properties?.name ?? feature.properties?.HAVZA_ADI ?? 'Havza')])), [basins.features]);
+
+  const riverRows = useMemo<Row[]>(() => rivers.features.map((feature) => {
+    const properties = feature.properties ?? {};
+    const id = String(properties.id ?? feature.id ?? '');
+    const members = (Array.isArray(properties.hesIds) ? properties.hesIds : []).map(String).map((hesId) => hesById.get(hesId)).filter((row): row is Row => Boolean(row));
+    const localIds = Array.isArray(properties.geoglowsLocalRiverIds) ? properties.geoglowsLocalRiverIds.map(String) : [];
+    const forecast = (geoglows?.records ?? []).some((record) => localIds.includes(String(record.localRiverId ?? '')) && Array.isArray(record.data) && record.data.length > 1);
+    const displayBasins = [...new Set(members.map((row) => row.basin).filter((name) => name !== '—'))];
+    return {
+      id, type: 'river' as const, name: String(properties.riverName ?? properties.name ?? 'Akarsu'), basin: displayBasins.join(' / ') || basinLabels.get(String(properties.basinId ?? '')) || '—', river: String(properties.riverName ?? properties.name ?? 'Akarsu'),
+      power: members.reduce((sum, row) => sum + row.power, 0), fullness: weightedFullness(members), source: sourceFor(members), count: members.length, forecast, cascadeCount: 0, riverNames: '', details: properties,
+    };
+  }).filter((row) => row.count > 0), [basinLabels, geoglows?.records, hesById, rivers.features]);
+
+  const basinRows = useMemo<Row[]>(() => basins.features.map((feature) => {
+    const properties = feature.properties ?? {};
+    const id = String(properties.basinId ?? properties.HAVZA_ID ?? properties.ID ?? feature.id ?? '');
+    const members = hesRows.filter((row) => String(row.details?.basinId ?? '') === id);
+    const riverNames = [...new Set(members.map((row) => row.river).filter((name) => name !== '—'))];
+    return {
+      id, type: 'basin' as const, name: String(properties.name ?? properties.HAVZA_ADI ?? 'Havza'), basin: String(properties.name ?? properties.HAVZA_ADI ?? 'Havza'), river: '', power: members.reduce((sum, row) => sum + row.power, 0),
+      fullness: weightedFullness(members), source: sourceFor(members), count: members.length, forecast: false, cascadeCount: members.reduce((sum, row) => sum + row.cascadeCount, 0), riverNames: riverNames.slice(0, 3).join(', ') || '—', details: properties,
+    };
+  }).filter((row) => row.count > 0), [basins.features, hesRows]);
+
+  const rows = currentTab === 'hes' ? hesRows : currentTab === 'rivers' ? riverRows : basinRows;
+  const filteredRows = useMemo(() => {
     const query = searchQuery.trim().toLocaleLowerCase('tr-TR');
-    const majorRiverQuery = ['fırat', 'dicle', 'kızılırmak', 'sakarya', 'yeşilırmak', 'çoruh', 'seyhan', 'ceyhan'].includes(query);
-    const queryMatch = majorRiverQuery && currentTab === 'hes' ? item.subtitle?.toLocaleLowerCase('tr-TR') === query : majorRiverQuery && currentTab === 'rivers' ? item.name.toLocaleLowerCase('tr-TR').includes(query) : item.sortText.toLocaleLowerCase('tr-TR').includes(query);
-    const normalizedStatus = (item.status ?? '').toLocaleLowerCase('tr-TR');
-    const filterMatch = currentFilter === 'all' || normalizedStatus.includes(currentFilter === 'drought' ? 'kurak' : currentFilter === 'flood' ? 'taşkın' : 'normal');
-    return queryMatch && filterMatch;
-  }), [currentFilter, currentTab, list, searchQuery]);
-  const sorted = useMemo(() => [...filtered].sort((left, right) => {
+    if (!query) return rows;
+    return rows.filter((row) => `${row.name} ${row.basin} ${row.river} ${row.riverNames}`.toLocaleLowerCase('tr-TR').includes(query));
+  }, [rows, searchQuery]);
+  const sortedRows = useMemo(() => [...filteredRows].sort((left, right) => {
     const direction = sortDirection === 'asc' ? 1 : -1;
-    if (sortKey === 'power') return (left.powerValue - right.powerValue) * direction;
-    if (sortKey === 'fullness') return ((left.fullnessValue ?? -1) - (right.fullnessValue ?? -1)) * direction;
-    const leftValue = sortKey === 'name' ? left.name : sortKey === 'type' ? left.typeLabel : sortKey === 'basin' ? left.basinName ?? '' : left.riverName ?? '';
-    const rightValue = sortKey === 'name' ? right.name : sortKey === 'type' ? right.typeLabel : sortKey === 'basin' ? right.basinName ?? '' : right.riverName ?? '';
+    const numericKeys: SortKey[] = ['power', 'fullness', 'count', 'cascade'];
+    if (numericKeys.includes(sortKey)) {
+      const numeric = (row: Row) => sortKey === 'power' ? row.power : sortKey === 'fullness' ? row.fullness ?? -1 : sortKey === 'count' ? row.count : row.cascadeCount;
+      return (numeric(left) - numeric(right)) * direction;
+    }
+    if (sortKey === 'forecast') return (Number(left.forecast) - Number(right.forecast)) * direction;
+    const leftValue = sortKey === 'type' ? left.type : sortKey === 'name' ? left.name : sortKey === 'basin' ? left.basin : sortKey === 'river' ? left.river : sortKey === 'source' ? left.source : left.name;
+    const rightValue = sortKey === 'type' ? right.type : sortKey === 'name' ? right.name : sortKey === 'basin' ? right.basin : sortKey === 'river' ? right.river : sortKey === 'source' ? right.source : right.name;
     return leftValue.localeCompare(rightValue, 'tr-TR') * direction;
-  }), [filtered, sortDirection, sortKey]);
+  }), [filteredRows, sortDirection, sortKey]);
 
-  const tabs: Array<{ id: TabType; label: string; icon: React.ReactNode; count: number }> = [
-    { id: 'hes', label: '177 HES', icon: <Mountain className="h-4 w-4" />, count: hes177.features.length },
-    { id: 'rivers', label: 'Akarsular', icon: <Waves className="h-4 w-4" />, count: rivers.features.filter((feature) => !isUnknownName(feature.properties?.riverName ?? feature.properties?.name)).length },
-    { id: 'basins', label: 'Havzalar', icon: <Gauge className="h-4 w-4" />, count: basins.features.length },
-  ];
-  const selectionType = currentTab === 'rivers' ? 'river' : currentTab === 'hes' ? 'hes' : 'basin';
-  const showFilters = currentTab === 'rivers';
-  const layerControls: Array<{ key: keyof typeof layers; label: string }> = [
-    { key: 'basins', label: 'Havzalar' }, { key: 'rivers', label: 'Akarsular' }, { key: 'dams', label: 'Barajlar' },
-  ];
-   const sortLabels: Record<SortKey, string> = { type: 'Tip', name: 'HES Adı', basin: 'Havza', river: 'Akarsu', power: 'Kurulu Güç', fullness: 'Doluluk' };
-   const renderItem = (item: Item, type: string) => <button key={`${type}-${item.id}`} onClick={() => setSelectedEntity({ type, id: item.id })} className={`group mb-1 w-full rounded-lg border px-2 py-1.5 text-left transition ${isLight ? 'border-slate-200 bg-slate-50 hover:border-cyan-500/40 hover:bg-cyan-50' : 'border-transparent bg-slate-900/60 hover:border-cyan-500/30 hover:bg-slate-800/80'} ${selectedEntity?.type === type && selectedEntity.id === item.id ? 'ring-1 ring-cyan-400/70' : ''}`}>
-     <div className="grid grid-cols-[2.7rem_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_4.4rem_3.1rem] items-center gap-1.5">
-      <span className="truncate font-mono text-[9px] uppercase text-slate-500">{item.typeLabel}</span>
-      <span className={`flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold ${isLight ? 'text-slate-700 group-hover:text-cyan-600' : 'text-slate-200 group-hover:text-cyan-300'}`}>{item.isProducer && <Zap className="h-3 w-3 shrink-0 text-amber-400" />}{item.name}</span>
-      <span className="truncate text-[9px] text-slate-400" title={item.basinName}>{item.basinName ?? '—'}</span>
-      <span className="truncate text-[9px] text-cyan-400/80" title={item.riverName}>{item.riverName ?? '—'}</span>
-      <span className="truncate text-right font-mono text-[9px] text-cyan-500" title={item.metric}>{item.typeLabel === 'HES' && item.powerValue ? `${item.powerValue.toLocaleString('tr-TR')} MW` : item.metric ?? '—'}</span>
-      <span className="truncate text-right font-mono text-[9px] text-sky-300" title={item.fullnessValue === null ? 'Doluluk verisi yok' : `Doluluk %${Math.round(item.fullnessValue)}${item.fullnessSource ? ` · ${item.fullnessSource === 'E' ? 'EPİAŞ' : 'MOCK'}` : ''}`}>{item.fullnessValue === null ? '—' : `%${Math.round(item.fullnessValue)}${item.fullnessSource ? ` ${item.fullnessSource}` : ''}`}</span>
-     </div>{item.typeLabel === 'Havza' && <div className="mt-2 grid grid-cols-3 gap-x-2 gap-y-1 border-t border-slate-700/20 pt-1.5 text-[8px] text-slate-500">{item.details.filter((detail) => ['Alan', 'Akarsu', 'Baraj', 'HES', 'HES ist.', 'Göl ist.', 'Ana akarsular'].includes(detail.label)).map((detail) => <span key={detail.label} className="truncate" title={detail.value}><b className="text-slate-400">{detail.label}:</b> {detail.value}</span>)}</div>}
-   </button>;
+  const columns = useMemo<Column[]>(() => currentTab === 'hes' ? [
+    { key: 'type', label: 'Tip', value: () => 'HES' }, { key: 'name', label: 'HES adı', value: (row) => <span className="flex min-w-0 items-center gap-1"><Zap className="h-3 w-3 shrink-0 text-amber-400" />{row.name}</span> }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'river', label: 'Akarsu', value: (row) => row.river }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` }, { key: 'source', label: 'Kaynak', className: 'text-right', value: (row) => row.source },
+  ] : currentTab === 'rivers' ? [
+    { key: 'type', label: 'Tip', value: () => 'Nehir' }, { key: 'name', label: 'Akarsu adı', value: (row) => row.name }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'forecast', label: 'Tahmin', className: 'text-right', value: (row) => row.forecast ? 'Var' : 'Yok' }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` },
+  ] : [
+    { key: 'type', label: 'Tip', value: () => 'Havza' }, { key: 'name', label: 'Havza adı', value: (row) => row.name }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'river', label: 'Ana akarsular', value: (row) => row.riverNames }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` }, { key: 'cascade', label: 'Kaskat', className: 'text-right', value: (row) => row.cascadeCount || '—' },
+  ], [currentTab]);
+  const gridTemplate = currentTab === 'hes' ? '2.2rem minmax(0,1.65fr) minmax(0,.85fr) minmax(0,.9fr) 4.15rem 3.55rem 2.6rem' : currentTab === 'rivers' ? '2.7rem minmax(0,1.5fr) minmax(0,.9fr) 2.2rem 4.15rem 2.8rem 3.55rem' : '2.7rem minmax(0,1.3fr) 2.2rem 4.15rem minmax(0,1.1fr) 3.55rem 2.8rem';
+  const selectedHes = selectedEntity?.type === 'hes' ? hesRows.find((row) => row.id === selectedEntity.id) : null;
+  const selectedRiver = selectedEntity?.type === 'river' ? riverRows.find((row) => row.id === selectedEntity.id) : null;
+  const relatedRiverRows = selectedRiver ? hesRows.filter((row) => (selectedRiver.details?.hesIds as unknown[] ?? []).map(String).includes(row.id)) : [];
+  const tabs: Array<{ id: TabType; label: string; icon: React.ReactNode; count: number }> = [{ id: 'hes', label: 'HES', icon: <Mountain className="h-4 w-4" />, count: hesRows.length }, { id: 'rivers', label: 'Akarsular', icon: <Waves className="h-4 w-4" />, count: riverRows.length }, { id: 'basins', label: 'Havzalar', icon: <Gauge className="h-4 w-4" />, count: basinRows.length }];
+  const layerControls: Array<{ key: keyof typeof layers; label: string }> = [{ key: 'basins', label: 'Havzalar' }, { key: 'rivers', label: 'Akarsular' }, { key: 'dams', label: 'Barajlar' }];
+  const selectRow = (row: Row) => setSelectedEntity({ type: row.type, id: row.id });
+  const onSort = (key: SortKey) => { if (sortKey === key) setSortDirection((direction) => direction === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDirection('asc'); } };
 
-  return (
-    <aside className={`flex h-full min-h-0 w-full flex-col border-r shadow-2xl transition-colors ${isLight ? 'light-scrollbar border-slate-200 bg-white/95 text-slate-800' : 'border-slate-700/60 bg-slate-950/90 text-slate-100'}`}>
-      <div className={`border-b p-4 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-3 flex items-center justify-between"><div><div className="flex items-center gap-2 text-sm font-bold"><Activity className="h-4 w-4 text-cyan-400" />HES & Hidroenerji</div><div className="mt-1 font-mono text-[9px] text-slate-500">TATUS · EPSG:4326 · {dataStatus === 'loading' ? 'yükleniyor' : dataStatus === 'failed' ? 'veri hatası' : 'kaynak veri'}</div></div><button onClick={() => useAppStore.getState().toggleSidebar()} className={`rounded-lg p-1.5 ${isLight ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-700' : 'text-slate-500 hover:bg-slate-800 hover:text-white'}`} aria-label="Paneli kapat"><X className="h-4 w-4" /></button></div><div className="relative"><Search className={`absolute left-3 top-2.5 h-4 w-4 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Katmanlarda ara..." className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${isLight ? 'border-slate-200 bg-slate-50 text-slate-700 placeholder:text-slate-400 focus:border-cyan-500/70' : 'border-slate-700 bg-slate-900/70 placeholder:text-slate-600 focus:border-cyan-500/70'}`} /></div></div>
-      <div className={`grid grid-cols-4 gap-1 border-b p-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{tabs.map((tab) => <button key={tab.id} onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[9px] transition ${currentTab === tab.id ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'text-slate-500 hover:bg-slate-100' : 'text-slate-500 hover:bg-slate-800/70 hover:text-slate-300'}`}>{tab.icon}<span className="text-center leading-3">{tab.label}</span><span className="font-mono text-[8px] opacity-70">{tab.count.toLocaleString('tr-TR')}</span></button>)}</div>
-      <div className={`border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-slate-600'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div></div>
-      {showFilters && <div className={`flex gap-1 overflow-x-auto border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{[['all', 'Tümü'], ['drought', 'Kuraklık'], ['normal', 'Normal'], ['flood', 'Taşkın']].map(([value, label]) => <button key={value} onClick={() => setFilter(value as typeof currentFilter)} className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[9px] ${currentFilter === value ? isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-700 text-slate-100' : isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-500 hover:text-slate-300'}`}>{label}</button>)}</div>}
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
-        <div className="mb-1 flex items-center justify-between rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span><span>{sorted.length.toLocaleString('tr-TR')} kayıt</span></div>
-        <div className={`mb-2 grid grid-cols-[2.7rem_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_4.4rem_3.1rem] items-center gap-1.5 rounded-lg px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-slate-500 ${isLight ? 'bg-slate-100' : 'bg-slate-900/80'}`}>{(Object.keys(sortLabels) as SortKey[]).map((key) => <button key={key} type="button" onClick={() => { if (sortKey === key) setSortDirection((value) => value === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDirection('asc'); } }} className={`truncate text-left transition hover:text-cyan-400 ${key === 'power' || key === 'fullness' ? 'text-right' : ''}`} title={`${sortLabels[key]} göre sırala`}>{sortLabels[key]} {sortKey === key ? <ArrowUpDown className="inline h-3 w-3" /> : null}</button>)}</div>
-        {selectedHes && <div className={`mb-3 rounded-xl border p-2 ${isLight ? 'border-cyan-200 bg-cyan-50' : 'border-cyan-500/20 bg-cyan-500/5'}`}><div className="flex items-center justify-between gap-2"><span className="truncate text-[11px] font-semibold text-cyan-400">{String(selectedHes.properties?.name ?? 'HES')}</span><span className="font-mono text-[9px] text-amber-400">{selectedHes.properties?.isProducer ? '⚡ ' : ''}{String(selectedHes.properties?.dataQuality ?? '—')}</span></div><div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] text-slate-500"><span>Havza: {String(selectedHes.properties?.basinName ?? '—')}</span><span>İl: {String(selectedHes.properties?.province ?? '—')}</span><span>Güç: {numeric(selectedHes.properties?.installedPowerMw)?.toLocaleString('tr-TR') ?? '—'} MW</span><span>Debi: {numeric(selectedHes.properties?.unitFlowM3s)?.toLocaleString('tr-TR') ?? '—'} m³/sn</span><span>Min / max seviye: {numeric(selectedHes.properties?.minWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} / {numeric(selectedHes.properties?.maxWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} m</span><span>Min / max hacim: {numeric(selectedHes.properties?.minVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} / {numeric(selectedHes.properties?.maxVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Aktif hacim: {numeric(selectedHes.properties?.activeVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Kaskat: {String(selectedHes.properties?.cascadeName ?? '—')}</span><span>Akarsu: {String(selectedHes.properties?.riverName ?? '—')}</span><span>Baraj: {String(selectedHes.properties?.damName ?? '—')}</span></div><div className="mt-2 grid grid-cols-2 gap-1"><button onClick={() => { const riverId = Array.isArray(selectedHes.properties?.riverIds) ? String(selectedHes.properties.riverIds[0] ?? '') : ''; if (riverId) setSelectedEntity({ type: 'river', id: riverId }); }} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Akarsuyu Göster</button><button onClick={() => toggleCatchment(String(selectedHes.properties?.id ?? selectedHes.id ?? ''))} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Su Alanını Göster</button><button onClick={() => { const cascadeId = selectedHes.properties?.cascadeToId ? String(selectedHes.properties.cascadeToId) : null; if (cascadeId) setSelectedEntity({ type: 'hes', id: cascadeId }); }} className="rounded border border-amber-500/25 px-1.5 py-1 text-[8px] text-amber-400">Kaskadı Göster</button><button onClick={() => { const basinId = String(selectedHes.properties?.basinId ?? ''); if (basinId) setSelectedEntity({ type: 'basin', id: basinId }); }} className="rounded border border-violet-500/25 px-1.5 py-1 text-[8px] text-violet-400">Havzayı Göster</button></div></div>}
-        {currentTab === 'rivers' && selectedRiver && relatedFacilities.length > 0 && <div className="mb-3 rounded-xl border border-cyan-500/25 bg-cyan-500/5 p-2"><div className="mb-1 text-[10px] font-semibold text-cyan-500">{selectedRiverHesIds.size > 0 ? 'İlgili Barajlar / HES' : 'Aynı Havzadaki Tesisler'}</div><div className="mb-2 text-[9px] text-slate-500">{selectedRiverHesIds.size > 0 ? 'Canonical HES v3 akarsu ilişkisi.' : 'Yalnızca basinId üzerinden eşleşen tesisler · kesin kaskad ilişkisi değildir.'}</div>{relatedFacilities.slice(0, 4).map((item) => renderItem(item, item.typeLabel === 'HES' ? 'hes' : item.typeLabel === 'Baraj/HES' && item.status === 'TATUS tesisi' ? 'station' : 'dam'))}</div>}
-        {dataStatus === 'loading' && <div className="p-4 text-center text-xs text-slate-500">Gerçek TATUS verileri yükleniyor…</div>}{dataStatus !== 'loading' && !sorted.length && <div className="p-6 text-center text-xs leading-5 text-slate-500">Bu filtre için kayıt yok.<br />Kaynakta veri bulunmuyorsa sentetik kayıt gösterilmez.</div>}{sorted.map((item) => renderItem(item, selectionType))}
-      </div>
-      <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}><details><summary className="cursor-pointer text-slate-500">Veri Kaynakları</summary><div className="mt-2 space-y-1 leading-4">Geometri: TATUS + HydroRIVERS + OSM<br />Debi/Tahmin: GEOGLOWS / ECMWF<br />HES Teknik Veri: HES 177 v3<br />Baraj/Rezervuar: TATUS + GDW + OSM<br />Havza: TATUS</div></details><div className="mt-2">Seçim haritada otomatik yakınlaştırılır · Kaynakta olmayan alanlar gizlenir</div></div>
-    </aside>
-  );
+  return <aside className={`flex h-full min-h-0 w-full flex-col border-r shadow-2xl transition-colors ${isLight ? 'light-scrollbar border-slate-200 bg-white/95 text-slate-800' : 'border-slate-700/60 bg-slate-950/90 text-slate-100'}`}>
+    <div className={`border-b p-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+      <div className="mb-3 flex items-center justify-between"><div><div className="flex items-center gap-2 text-sm font-bold"><Activity className="h-4 w-4 text-cyan-400" />HESLER</div><div className="mt-1 font-mono text-[9px] text-slate-500">20 MW+ · TATUS · EPSG:4326 · {dataStatus === 'loading' ? 'yükleniyor' : 'kanonik veri'}</div></div><button onClick={() => useAppStore.getState().toggleSidebar()} className={`rounded-lg p-1.5 ${isLight ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-700' : 'text-slate-500 hover:bg-slate-800 hover:text-white'}`} aria-label="Paneli kapat"><X className="h-4 w-4" /></button></div>
+      <div className="relative"><Search className={`absolute left-3 top-2.5 h-4 w-4 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="HES, akarsu veya havza ara..." className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${isLight ? 'border-slate-200 bg-slate-50 text-slate-700 placeholder:text-slate-400 focus:border-cyan-500/70' : 'border-slate-700 bg-slate-900/70 placeholder:text-slate-600 focus:border-cyan-500/70'}`} /></div>
+    </div>
+    <div className={`grid grid-cols-3 gap-1 border-b p-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>{tabs.map((tab) => <button key={tab.id} onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[9px] transition ${currentTab === tab.id ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'text-slate-500 hover:bg-slate-100' : 'text-slate-500 hover:bg-slate-800/70 hover:text-slate-300'}`}>{tab.icon}<span>{tab.label}</span><span className="font-mono text-[8px] opacity-70">{tab.count.toLocaleString('tr-TR')}</span></button>)}</div>
+    <div className={`border-b px-3 py-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/15 text-cyan-500' : isLight ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-slate-600'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div></div>
+    <div className="min-h-0 flex-1 overflow-auto p-2">
+      <div className="mb-1 flex items-center justify-between rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span><span>{sortedRows.length.toLocaleString('tr-TR')} kayıt</span></div>
+      <div className={`mb-1 grid min-w-[405px] items-center gap-1 rounded-lg px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-slate-500 ${isLight ? 'bg-slate-100' : 'bg-slate-900/80'}`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => <button key={column.key} type="button" onClick={() => onSort(column.key)} className={`truncate text-left hover:text-cyan-400 ${column.className ?? ''}`} title={`${column.label} göre sırala`}>{column.label}{sortKey === column.key ? <ArrowUpDown className="ml-0.5 inline h-2.5 w-2.5" /> : null}</button>)}</div>
+      {selectedHes && <div className={`mb-2 rounded-xl border p-2 ${isLight ? 'border-cyan-200 bg-cyan-50' : 'border-cyan-500/20 bg-cyan-500/5'}`}><div className="flex items-center justify-between gap-2"><span className="truncate text-[11px] font-semibold text-cyan-400">⚡ {selectedHes.name}</span><span className="font-mono text-[9px] text-sky-300">{selectedHes.fullness === null ? '—' : `%${Math.round(selectedHes.fullness)} ${selectedHes.source}`}</span></div><div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] text-slate-500"><span>Havza: {selectedHes.basin}</span><span>Resmî havza: {String(selectedHes.details?.officialBasinName ?? '—')}</span><span>Akarsu: {selectedHes.river}</span><span>Güç: {formatMw(selectedHes.power)}</span><span>Debi: {numberOf(selectedHes.details?.unitFlowM3s)?.toLocaleString('tr-TR') ?? '—'} m³/sn</span><span>Baraj: {String(selectedHes.details?.damName ?? '—')}</span><span>Min / max kot: {numberOf(selectedHes.details?.minWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} m</span><span>Min / max hacim: {numberOf(selectedHes.details?.minVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Aktif hacim: {numberOf(selectedHes.details?.activeVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Kaskat: {String(selectedHes.details?.cascadeName ?? '—')}</span></div><div className="mt-2 grid grid-cols-2 gap-1"><button onClick={() => { const id = String(selectedHes.details?.riverSystemId ?? ''); if (id) setSelectedEntity({ type: 'river', id }); }} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Akarsuyu göster</button><button onClick={() => { const id = String(selectedHes.details?.basinId ?? ''); if (id) setSelectedEntity({ type: 'basin', id }); }} className="rounded border border-violet-500/25 px-1.5 py-1 text-[8px] text-violet-400">Havzayı göster</button><button onClick={() => { const id = String(selectedHes.details?.cascadeToId ?? ''); if (id) setSelectedEntity({ type: 'hes', id }); }} className="rounded border border-amber-500/25 px-1.5 py-1 text-[8px] text-amber-400">Kaskadı göster</button><button onClick={() => toggleCatchment(selectedHes.id)} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Su alanını göster</button></div></div>}
+      {selectedRiver && relatedRiverRows.length > 0 && <div className="mb-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-2"><div className="text-[10px] font-semibold text-cyan-400">İlgili HES tesisleri</div><div className="mb-1 text-[9px] text-slate-500">Kanonik logical akarsu ilişkisi · {relatedRiverRows.length} HES</div>{relatedRiverRows.slice(0, 4).map((row) => <button key={row.id} onClick={() => selectRow(row)} className="block w-full truncate py-0.5 text-left text-[9px] text-slate-300 hover:text-cyan-300">⚡ {row.name} · {formatMw(row.power)}</button>)}</div>}
+      {dataStatus === 'loading' ? <div className="p-4 text-center text-xs text-slate-500">Kanonik HES verisi yükleniyor…</div> : sortedRows.map((row) => <button key={row.id} onClick={() => selectRow(row)} className={`mb-1 grid min-w-[405px] w-full items-center gap-1 rounded-lg border px-2 py-1.5 text-left transition ${isLight ? 'border-slate-200 bg-slate-50 hover:border-cyan-500/40 hover:bg-cyan-50' : 'border-transparent bg-slate-900/60 hover:border-cyan-500/30 hover:bg-slate-800/80'} ${selectedEntity?.type === row.type && selectedEntity.id === row.id ? 'ring-1 ring-cyan-400/70' : ''}`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => <span key={column.key} title={typeof column.value(row) === 'string' ? String(column.value(row)) : undefined} className={`truncate text-[9px] ${column.key === 'name' ? 'font-semibold text-slate-200' : column.key === 'river' ? 'text-cyan-400/80' : column.className ?? 'text-slate-400'}`}>{column.value(row)}</span>)}</button>)}
+    </div>
+    <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}>20 MW+ HES envanteri · seçim haritada uygun ölçeğe yaklaşır · doluluk: E EPİAŞ, H hacim, M mock</div>
+  </aside>;
 };

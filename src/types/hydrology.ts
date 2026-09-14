@@ -53,10 +53,7 @@ export type HydroLoadStatus = 'idle' | 'loading' | 'ready' | 'partial' | 'failed
 export interface HydroDataBundle {
   basins: HydrologyFeatureCollection;
   rivers: HydrologyFeatureCollection;
-  flowStations: HydrologyFeatureCollection;
-  hesStations: HydrologyFeatureCollection;
   damStations: HydrologyFeatureCollection;
-  lakes: HydrologyFeatureCollection;
   hes177: HydrologyFeatureCollection;
   cascades: HydrologyFeatureCollection;
   catchment: HydrologyFeatureCollection;
@@ -87,7 +84,6 @@ export interface Hes177Relation {
   riverIds?: string[];
   riverSystemId?: string | null;
   riverSystemIds?: string[];
-  stationIds?: string[];
   catchmentUrl?: string | null;
   cascadeToId?: string | null;
   cascadeFromIds?: string[];

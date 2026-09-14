@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ChevronDown, Map as MapIcon, Menu, Moon, RefreshCw, Sun, X } from 'lucide-react';
-import { formatDataDate, fullnessFromActiveVolume, fullnessFromCurrentVolume } from '../../data/hydrology';
+import { formatDataDate, getHesFullnessMeta } from '../../data/hydrology';
 import { useAppStore } from '../../store/useAppStore';
 
 export const Header: React.FC = () => {
@@ -30,9 +30,16 @@ export const Header: React.FC = () => {
   };
   const kpis = useMemo(() => {
     const totalPower = hes177.features.reduce((sum, feature) => { const value = Number(feature.properties?.installedPowerMw); return sum + (Number.isFinite(value) ? value : 0); }, 0);
-    const epiasFullnessCount = (epias?.records ?? []).filter((record) => ['occupancy', 'fullness', 'activeFullness', 'doluluk'].some((key) => record[key] !== null && record[key] !== undefined && record[key] !== '' && Number.isFinite(Number(record[key]))) || fullnessFromActiveVolume(record, ['activeFullnessAmount']) !== null || fullnessFromActiveVolume(record) !== null || fullnessFromCurrentVolume(record) !== null).length;
-    const volumeFullnessCount = Number(hes177Manifest?.volumeCalculatedFullnessCount ?? 0);
-    const fallbackMockCount = Number(hes177Manifest?.fallbackMockFullnessCount ?? Math.max(0, hes177.features.length - volumeFullnessCount));
+    const fullnessSources = hes177.features.map((feature) => {
+      const properties = feature.properties ?? {};
+      const id = String(properties.id ?? feature.id ?? '');
+      const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
+      const record = dataMode === 'epias' ? (epias?.records ?? []).find((candidate) => [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String).includes(id) || [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR')).some((name) => names.includes(name))) : undefined;
+      return getHesFullnessMeta(id, dataMode, record, properties).source;
+    });
+    const volumeFullnessCount = fullnessSources.filter((source) => source === 'H').length;
+    const epiasFullnessCount = fullnessSources.filter((source) => source === 'E').length;
+    const fallbackMockCount = fullnessSources.filter((source) => source === 'M').length;
     return {
       rivers: Number(hes177Manifest?.logicalRiverCount ?? rivers.features.length),
       dams: hes177.features.length,
@@ -40,7 +47,7 @@ export const Header: React.FC = () => {
       totalPower,
       basins: Number(hes177Manifest?.basinCount ?? basins.features.length),
       cascades: Number(hes177Manifest?.cascadeEdgeCount ?? hes177Relations?.cascadeEdges?.length ?? 0),
-      fullness: dataMode === 'epias' ? epiasFullnessCount : hes177.features.length,
+      fullness: fullnessSources.filter((source) => source !== '—').length,
       calculatedFullness: volumeFullnessCount,
       epiasFullness: epiasFullnessCount,
       fallbackMock: fallbackMockCount,
@@ -53,7 +60,7 @@ export const Header: React.FC = () => {
       <div className="flex min-w-0 items-center gap-3">
         <button onClick={toggleSidebar} className={`rounded-lg border p-1.5 transition ${isLight ? 'border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200' : 'border-slate-700 bg-slate-900 text-slate-300 hover:text-white'}`} title="Paneli aç/kapa" aria-label="Paneli aç/kapa">{isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 shadow-lg shadow-cyan-500/25"><Activity className="h-5 w-5 text-white" /></div>
-        <div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-xs font-bold tracking-tight sm:text-sm">TÜRKİYE HİDROLOJİ & ENERJİ</h1><span className="rounded border border-cyan-500/30 bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold text-cyan-400">FAZ 2</span></div><div className="flex items-center gap-2 font-mono text-[9px] text-slate-500"><span className={dataStatus === 'ready' ? 'text-emerald-400' : dataStatus === 'loading' ? 'text-amber-400' : 'text-rose-400'}>{dataStatus === 'ready' ? 'VERİ HAZIR' : dataStatus === 'loading' ? 'VERİ YÜKLENİYOR' : dataStatus === 'partial' ? 'KISMİ VERİ' : 'VERİ BEKLENİYOR'}</span>{lastRefreshAt && <span>· {formatDataDate(lastRefreshAt)}</span>}</div></div>
+        <div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-xs font-bold tracking-tight sm:text-sm">PDHES · HESLER</h1><span className="rounded border border-cyan-500/30 bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold text-cyan-400">20 MW+</span></div><div className="flex items-center gap-2 font-mono text-[9px] text-slate-500"><span className={dataStatus === 'ready' ? 'text-emerald-400' : dataStatus === 'loading' ? 'text-amber-400' : 'text-rose-400'}>{dataStatus === 'ready' ? 'VERİ HAZIR' : dataStatus === 'loading' ? 'VERİ YÜKLENİYOR' : dataStatus === 'partial' ? 'KISMİ VERİ' : 'VERİ BEKLENİYOR'}</span>{lastRefreshAt && <span>· {formatDataDate(lastRefreshAt)}</span>}</div></div>
       </div>
       <div className="hidden items-center gap-3 xl:flex">
         <div className="text-right"><div className="font-mono text-sm font-bold text-violet-400">{kpis.dams.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">HES</div></div>
@@ -62,7 +69,7 @@ export const Header: React.FC = () => {
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.cascades.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Kaskat</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-emerald-400">{kpis.rivers.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Nehir sistemi</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-blue-400">{kpis.coordinates.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Konumlu HES</div></div>
-        <div className="text-right"><div className="font-mono text-sm font-bold text-teal-300">{kpis.fullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Doluluk gösterimi</div><div className="font-mono text-[8px] text-slate-600">Hesap {kpis.calculatedFullness} · Mock {kpis.fallbackMock}</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-teal-300">{kpis.fullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Doluluk verisi</div><div className="font-mono text-[8px] text-slate-600">H {kpis.calculatedFullness} · M {kpis.fallbackMock}</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.epiasFullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">EPİAŞ doluluk</div></div>
         <div className="flex items-center rounded-lg border border-slate-700 p-0.5 text-[9px]"><button onClick={() => setDataMode('mock')} className={`rounded px-2 py-1 ${dataMode === 'mock' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-500'}`}>MOCK</button><button onClick={() => setDataMode('epias')} className={`rounded px-2 py-1 ${dataMode === 'epias' ? 'bg-violet-500/20 text-violet-300' : 'text-slate-500'}`}>EPİAŞ</button></div>
         <button onClick={() => void refreshHydroData()} disabled={dataStatus === 'loading'} className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-[10px] font-semibold text-cyan-300 transition hover:bg-cyan-500/20 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${dataStatus === 'loading' ? 'animate-spin' : ''}`} />Yenile</button>

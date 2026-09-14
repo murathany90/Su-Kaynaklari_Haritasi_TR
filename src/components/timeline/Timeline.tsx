@@ -20,8 +20,10 @@ export const Timeline: React.FC = () => {
   const timestamps = useMemo(() => getForecastTimestamps(geoglows), [geoglows]);
   const activeIndex = Math.min(index, Math.max(0, timestamps.length - 1));
   const activeTimestamp = timestamps[activeIndex];
-  const selectedRiver = selectedEntity?.type === 'river' ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === selectedEntity.id) : null;
-  const hasSelectedForecast = Boolean(selectedRiver && (Number(selectedRiver.properties?.hesCount ?? 0) > 0 || (relations?.byHesId && Object.values(relations.byHesId).some((relation) => relation.riverIds?.map(String).includes(selectedEntity?.id ?? '') && timestamps.length > 1))));
+  const selectedRiverId = selectedEntity?.type === 'river' ? selectedEntity.id : selectedEntity?.type === 'hes' ? relations?.byHesId?.[selectedEntity.id]?.riverSystemId ?? relations?.byHesId?.[selectedEntity.id]?.riverIds?.[0] : null;
+  const selectedRiver = selectedRiverId ? rivers.features.find((feature) => String(feature.properties?.id ?? feature.id ?? '') === String(selectedRiverId)) : null;
+  const forecastLocalIds = Array.isArray(selectedRiver?.properties?.geoglowsLocalRiverIds) ? selectedRiver.properties.geoglowsLocalRiverIds.map(String) : [String(selectedRiver?.properties?.representativeLocalRiverId ?? '')].filter(Boolean);
+  const hasSelectedForecast = (geoglows?.records ?? []).some((record) => forecastLocalIds.includes(String(record.localRiverId ?? '')) && Array.isArray(record.data) && record.data.length > 1);
 
   useEffect(() => {
     if (index >= timestamps.length && timestamps.length) setIndex(0);
