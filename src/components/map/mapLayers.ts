@@ -47,15 +47,15 @@ const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
 const failedDamImages = new WeakMap<MapLibreMap, Set<string>>();
 
 function damPieSvg(percent: number | null): string {
-  const base = '<circle cx="32" cy="32" r="27" fill="#a5f3fc" fill-opacity="0.72"/>';
+  const base = '<circle cx="32" cy="32" r="27" fill="#1e293b" fill-opacity="0.86"/>';
   const frame = '<circle cx="32" cy="32" r="29" fill="none" stroke="#f8fafc" stroke-width="2.5"/><circle cx="32" cy="32" r="25" fill="none" stroke="#0e7490" stroke-opacity="0.7" stroke-width="1"/>';
   if (percent === null || percent <= 0) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${frame}</svg>`;
-  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#075985" fill-opacity="0.94"/>${frame}</svg>`;
+  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#38bdf8" fill-opacity="0.96"/>${frame}</svg>`;
   const end = (Math.PI * 2 * percent) / 100 - Math.PI / 2;
   const x = 32 + 27 * Math.cos(end);
   const y = 32 + 27 * Math.sin(end);
   const largeArc = percent > 50 ? 1 : 0;
-  const wedge = `<path d="M32 32 L32 5 A27 27 0 ${largeArc} 1 ${x} ${y} Z" fill="#075985" fill-opacity="0.94"/>`;
+  const wedge = `<path d="M32 32 L32 5 A27 27 0 ${largeArc} 1 ${x} ${y} Z" fill="#38bdf8" fill-opacity="0.96"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${wedge}${frame}</svg>`;
 }
 
