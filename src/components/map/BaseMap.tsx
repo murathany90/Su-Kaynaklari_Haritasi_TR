@@ -154,7 +154,7 @@ export function BaseMap() {
     const basinFeatures = basins.features.map((feature) => {
       const id = String(feature.properties?.basinId ?? feature.properties?.ID ?? feature.id ?? '');
       const selectedBasinId = selectedEntity?.type === 'basin' ? selectedEntity.id : selectedEntity?.type === 'hes' ? String(hes177.features.find((candidate) => String(candidate.properties?.id ?? candidate.id ?? '') === selectedEntity.id)?.properties?.basinId ?? '') : null;
-      return { ...feature, properties: { ...feature.properties, color: getBasinColor(id, theme), dimmed: Boolean(selectedBasinId && id !== selectedBasinId) } };
+      return { ...feature, properties: { ...feature.properties, color: getBasinColor(id, theme), selected: Boolean(selectedBasinId && id === selectedBasinId), dimmed: Boolean(selectedBasinId && id !== selectedBasinId) } };
     });
     const riverFeatures = rivers.features.map((feature) => {
       const id = String(feature.properties?.id ?? feature.id ?? '');
@@ -168,7 +168,7 @@ export function BaseMap() {
       const width = flow !== null ? Math.min(8, Math.max(2.8, Math.log10(Math.max(flow, 0) + 1) * 2.8)) : numberFrom(feature.properties?.width) ?? 2.8;
       const relationRiverSelected = selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id]?.riverIds?.map(String).includes(id) : false;
       const riverRelevant = selectedEntity?.type === 'river' ? id === selectedEntity.id : relationRiverSelected;
-      return { ...feature, properties: { ...feature.properties, name: displayName(feature.properties ?? {}, 'river', id), riverName: feature.properties?.riverName ?? feature.properties?.name, basinName: basinNames.get(String(feature.properties?.basinId ?? '')), flow, color, width, selectedRiver: selectedRiverHesIds.size > 0 ? Array.isArray(feature.properties?.hesIds) && feature.properties.hesIds.some((hesId) => selectedRiverHesIds.has(String(hesId))) : relationRiverSelected, dimmed: Boolean(selectedEntity && !riverRelevant) } };
+      return { ...feature, properties: { ...feature.properties, name: displayName(feature.properties ?? {}, 'river', id), riverName: feature.properties?.riverName ?? feature.properties?.name, basinName: basinNames.get(String(feature.properties?.basinId ?? '')), flow, color, width, selectedRiver: selectedEntity?.type === 'river' ? id === selectedEntity.id : selectedRiverHesIds.size > 0 ? Array.isArray(feature.properties?.hesIds) && feature.properties.hesIds.some((hesId) => selectedRiverHesIds.has(String(hesId))) : relationRiverSelected, dimmed: Boolean(selectedEntity && !riverRelevant) } };
     });
     const damFeatures = damStations.features.map((feature) => {
       const properties = feature.properties ?? {};
@@ -182,10 +182,10 @@ export function BaseMap() {
       const fullnessSeedId = hesIds[0] ?? id;
       const seededOccupancy = getHesFullness(fullnessSeedId, dataMode, live ?? null, linkedHesProperties);
       const damRelevant = selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId)) || relatedToSelectedHes || selectedEntity?.type === 'dam' && selectedEntity.id === id;
-      return { ...feature, properties: { ...properties, name, basinName: properties.basinName ?? properties.HavzaAdi, occupancy: seededOccupancy, damIcon: damIconBucket(seededOccupancy), isProducer: hesIds.length > 0, hesMatchIds: hesIds, relatedToSelected: damRelevant, dimmed: Boolean(selectedEntity && !damRelevant), color: seededOccupancy === null ? '#94a3b8' : getDamColor(seededOccupancy), radius: seededOccupancy === null ? 8 : Math.min(13, Math.max(6, seededOccupancy / 8)) } };
+      return { ...feature, properties: { ...properties, name, basinName: properties.basinName ?? properties.HavzaAdi, occupancy: seededOccupancy, damIcon: damIconBucket(seededOccupancy), isProducer: hesIds.length > 0, hesMatchIds: hesIds, selected: selectedEntity?.type === 'dam' && selectedEntity.id === id, relatedToSelected: damRelevant, dimmed: Boolean(selectedEntity && !damRelevant), color: seededOccupancy === null ? '#94a3b8' : getDamColor(seededOccupancy), radius: seededOccupancy === null ? 8 : Math.min(13, Math.max(6, seededOccupancy / 8)) } };
     });
     const selectedStationIds = new Set([...selectedRiverHesIds].flatMap((id) => hes177Relations?.byHesId?.[id]?.stationIds?.map(String) ?? []));
-    const enrichedHesStations = { ...hesStations, features: hesStations.features.map((feature) => ({ ...feature, properties: { ...feature.properties, relatedToSelected: selectedStationIds.has(String(feature.properties?.id ?? feature.id ?? '')) } })) };
+    const enrichedHesStations = { ...hesStations, features: hesStations.features.map((feature) => ({ ...feature, properties: { ...feature.properties, selected: selectedEntity?.type === 'station' && selectedEntity.id === String(feature.properties?.id ?? feature.id ?? ''), relatedToSelected: selectedStationIds.has(String(feature.properties?.id ?? feature.id ?? '')) } })) };
     const enrichedHes177 = { ...hes177, features: hes177.features.map((feature) => {
       const id = String(feature.properties?.id ?? feature.id ?? '');
       const relation = hes177Relations?.byHesId?.[id];
