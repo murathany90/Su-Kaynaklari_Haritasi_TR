@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ChevronDown, Map as MapIcon, Menu, Moon, RefreshCw, Sun, X } from 'lucide-react';
-import { formatDataDate, fullnessFromVolumes } from '../../data/hydrology';
+import { formatDataDate, fullnessFromActiveVolume, fullnessFromCurrentVolume } from '../../data/hydrology';
 import { useAppStore } from '../../store/useAppStore';
 
 export const Header: React.FC = () => {
@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
   };
   const kpis = useMemo(() => {
     const totalPower = hes177.features.reduce((sum, feature) => { const value = Number(feature.properties?.installedPowerMw); return sum + (Number.isFinite(value) ? value : 0); }, 0);
-    const epiasFullnessCount = (epias?.records ?? []).filter((record) => ['occupancy', 'fullness', 'activeFullness', 'doluluk'].some((key) => record[key] !== null && record[key] !== undefined && record[key] !== '' && Number.isFinite(Number(record[key]))) || fullnessFromVolumes(record) !== null).length;
+    const epiasFullnessCount = (epias?.records ?? []).filter((record) => ['occupancy', 'fullness', 'activeFullness', 'doluluk'].some((key) => record[key] !== null && record[key] !== undefined && record[key] !== '' && Number.isFinite(Number(record[key]))) || fullnessFromActiveVolume(record, ['activeFullnessAmount']) !== null || fullnessFromActiveVolume(record) !== null || fullnessFromCurrentVolume(record) !== null).length;
     const volumeFullnessCount = Number(hes177Manifest?.volumeCalculatedFullnessCount ?? 0);
     const fallbackMockCount = Number(hes177Manifest?.fallbackMockFullnessCount ?? Math.max(0, hes177.features.length - volumeFullnessCount));
     return {
@@ -62,7 +62,7 @@ export const Header: React.FC = () => {
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.cascades.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Kaskat</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-emerald-400">{kpis.rivers.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Nehir sistemi</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-blue-400">{kpis.coordinates.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Konumlu HES</div></div>
-        <div className="text-right"><div className="font-mono text-sm font-bold text-teal-300">{kpis.fullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Doluluk verisi olan HES</div><div className="font-mono text-[8px] text-slate-600">Hesap {kpis.calculatedFullness} · Mock {kpis.fallbackMock}</div></div>
+        <div className="text-right"><div className="font-mono text-sm font-bold text-teal-300">{kpis.fullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Doluluk gösterimi</div><div className="font-mono text-[8px] text-slate-600">Hesap {kpis.calculatedFullness} · Mock {kpis.fallbackMock}</div></div>
         <div className="text-right"><div className="font-mono text-sm font-bold text-amber-300">{kpis.epiasFullness.toLocaleString('tr-TR')}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">EPİAŞ doluluk</div></div>
         <div className="flex items-center rounded-lg border border-slate-700 p-0.5 text-[9px]"><button onClick={() => setDataMode('mock')} className={`rounded px-2 py-1 ${dataMode === 'mock' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-500'}`}>MOCK</button><button onClick={() => setDataMode('epias')} className={`rounded px-2 py-1 ${dataMode === 'epias' ? 'bg-violet-500/20 text-violet-300' : 'text-slate-500'}`}>EPİAŞ</button></div>
         <button onClick={() => void refreshHydroData()} disabled={dataStatus === 'loading'} className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-[10px] font-semibold text-cyan-300 transition hover:bg-cyan-500/20 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${dataStatus === 'loading' ? 'animate-spin' : ''}`} />Yenile</button>

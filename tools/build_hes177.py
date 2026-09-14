@@ -44,13 +44,13 @@ def number(value: Any) -> float | None:
     return result if math.isfinite(result) else None
 
 
-def fullness_from_volumes(properties: dict[str, Any]) -> float | None:
+def fullness_from_active_volume(properties: dict[str, Any]) -> float | None:
     active = number(properties.get("activeVolumeHm3"))
     minimum = number(properties.get("minVolumeHm3"))
     maximum = number(properties.get("maxVolumeHm3"))
     if active is None or minimum is None or maximum is None or maximum <= minimum:
         return None
-    return max(0, min(100, ((active - minimum) / (maximum - minimum)) * 100))
+    return max(0, min(100, (active / (maximum - minimum)) * 100))
 
 
 def normalize(value: Any) -> str:
@@ -311,6 +311,8 @@ RIVER_BASINS = {
     "BUYUK MENDERES": {"7"}, "GEDIZ": {"5"},
 }
 
+MAJOR_RIVER_NAMES = {"FIRAT", "DICLE", "KIZILIRMAK", "SAKARYA", "YESILIRMAK", "CORUH", "SEYHAN", "CEYHAN", "BUYUK MENDERES", "GEDIZ", "MURAT", "KARASU", "ARAS"}
+
 BASIN_MAIN_RIVER = {"5": "Gediz", "7": "Büyük Menderes", "12": "Sakarya", "14": "Yeşilırmak", "15": "Kızılırmak", "18": "Seyhan", "20": "Ceyhan", "23": "Çoruh"}
 
 
@@ -410,7 +412,8 @@ def main() -> None:
             "riverNameSource": row.get("Akarsu Eşleme Durumu"), "riverCode": None, "riverQueryUrl": row.get("Akarsu Polyline GeoJSON URL"), "catchmentUrl": row.get("Su Toplama Alanı Polygon GeoJSON URL"),
             "catchmentLabel": row.get("Su Toplama Alanı Popup"), "gisConfidence": row.get("GIS Güven"), "gisNote": row.get("GIS Notu"), "hasDamMatch": False,
         }
-        properties["fullnessPercent"] = fullness_from_volumes(properties)
+        properties["fullnessPercent"] = fullness_from_active_volume(properties)
+        properties["fullnessSource"] = "active-volume-calculated" if properties["fullnessPercent"] is not None else "missing"
         properties["riverNameWorkbook"] = row.get("Akarsu / Nehir (Ön Eşleme)")
         properties["officialBasinId"] = properties["basinId"]
         properties["officialBasinName"] = properties["basinName"]
@@ -526,7 +529,7 @@ def main() -> None:
         dam_basin_id = owner.get("basinId", record["basinId"])
         dam_basin_name = owner.get("basinName", record["basinName"])
         for hes_id in record["hesIds"]: dam_by_hes[hes_id].append(dam_id)
-        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": record.get("coordinateSource", "TATUS Layer 7"), "sourceIds": record["sourceIds"], "isProducer": bool(record["hesIds"]), "minVolumeHm3": owner.get("minVolumeHm3"), "maxVolumeHm3": owner.get("maxVolumeHm3"), "activeVolumeHm3": owner.get("activeVolumeHm3"), "fullnessPercent": owner.get("fullnessPercent")}})
+        dam_features.append({"type": "Feature", "id": dam_id, "geometry": {"type": "Point", "coordinates": center}, "properties": {"id": dam_id, "entityId": dam_id, "entityType": "hesDamPoints", "name": record["name"], "damName": record["name"], "basinId": dam_basin_id, "basinName": dam_basin_name, "hesIds": record["hesIds"], "pointCount": len(points), "coordinateSource": record.get("coordinateSource", "TATUS Layer 7"), "sourceIds": record["sourceIds"], "isProducer": bool(record["hesIds"]), "minVolumeHm3": owner.get("minVolumeHm3"), "maxVolumeHm3": owner.get("maxVolumeHm3"), "activeVolumeHm3": owner.get("activeVolumeHm3"), "fullnessPercent": owner.get("fullnessPercent"), "fullnessSource": owner.get("fullnessSource", "missing")}})
 
     # Layer 4 station names are a controlled fallback for HES records whose
     # Layer 8 query is empty. Accept only same-basin nearest stations.
@@ -627,7 +630,7 @@ def main() -> None:
         if not river_name:
             continue
         normalized_name = normalize(river_name)
-        major_system = normalized_name in {"FIRAT", "DICLE", "KIZILIRMAK", "SAKARYA", "YESILIRMAK", "CORUH", "SEYHAN", "CEYHAN", "BUYUK MENDERES", "GEDIZ", "MURAT", "KARASU", "ARAS"}
+        major_system = normalized_name in MAJOR_RIVER_NAMES
         system_key = f"major:{normalized_name}" if major_system else f"{record['basinId']}:{normalized_name}"
         system = river_systems.setdefault(system_key, {"name": river_name, "basinId": record["basinId"], "basinIds": [], "hesIds": [], "codes": [], "geometries": [], "lengthKm": 0.0, "matchMethods": set(), "confidences": set()})
         if record["basinId"] not in system["basinIds"]: system["basinIds"].append(record["basinId"])
@@ -651,7 +654,7 @@ def main() -> None:
         if not river_name:
             continue
         normalized_name = normalize(river_name)
-        major_system = normalized_name in {"FIRAT", "DICLE", "KIZILIRMAK", "SAKARYA", "YESILIRMAK", "CORUH", "SEYHAN", "CEYHAN", "BUYUK MENDERES", "GEDIZ", "MURAT", "KARASU", "ARAS"}
+        major_system = normalized_name in MAJOR_RIVER_NAMES
         system_key = f"major:{normalized_name}" if major_system else f"{properties['basinId']}:{normalized_name}"
         system = river_systems.setdefault(system_key, {"name": river_name, "basinId": properties["basinId"], "basinIds": [], "hesIds": [], "codes": [], "geometries": [], "lengthKm": 0.0, "matchMethods": set(), "confidences": set()})
         if properties["basinId"] not in system["basinIds"]:

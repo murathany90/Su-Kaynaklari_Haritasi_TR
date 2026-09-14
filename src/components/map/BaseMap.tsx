@@ -56,11 +56,12 @@ function powerRadius(value: unknown): number {
 }
 
 function visualPowerRadius(value: unknown): number {
-  const scale = powerRadius(value);
-  if (scale <= 1.33) return 5;
-  if (scale <= 2) return 6 + ((scale - 1.33) / 0.67) * 2;
-  if (scale <= 4) return 8 + ((scale - 2) / 2) * 4.5;
-  return 12.5 + ((Math.min(scale, 7) - 4) / 3) * 4.5;
+  const power = numberFrom(value);
+  if (power === null || power < 30) return 7;
+  if (power <= 100) return 7 + ((power - 30) / 70) * 2;
+  if (power <= 700) return 9 + ((power - 100) / 600) * 4;
+  if (power <= 2400) return 13 + ((power - 700) / 1700) * 5;
+  return 18;
 }
 
 const VECTOR_BASEMAP_PALETTES = {

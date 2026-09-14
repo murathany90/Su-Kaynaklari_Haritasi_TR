@@ -238,7 +238,8 @@ function numericValue(value: unknown): number | null {
   return Number.isFinite(result) ? result : null;
 }
 
-const ACTIVE_VOLUME_KEYS = ['activeVolumeHm3', 'activeVolume', 'active_volume', 'aktifHacim', 'aktif_hacim', 'hacim', 'volume', 'suHacmi'];
+const ACTIVE_VOLUME_KEYS = ['activeFullnessAmount', 'activeVolumeHm3', 'activeVolume', 'active_volume', 'aktifHacim', 'aktif_hacim'];
+const CURRENT_VOLUME_KEYS = ['currentVolumeHm3', 'currentVolume', 'current_volume', 'dailyVolume', 'daily_volume', 'operatingVolume', 'operating_volume', 'hacim', 'volume', 'suHacmi'];
 const MIN_VOLUME_KEYS = ['minVolumeHm3', 'minimumVolumeHm3', 'minVolume', 'minimumVolume', 'min_volume', 'minimum_volume', 'minimumHacim', 'minHacim'];
 const MAX_VOLUME_KEYS = ['maxVolumeHm3', 'maximumVolumeHm3', 'maxVolume', 'maximumVolume', 'max_volume', 'maximum_volume', 'maximumHacim', 'maxHacim'];
 
@@ -251,12 +252,20 @@ function firstNumeric(source: Record<string, unknown> | null | undefined, keys: 
   return null;
 }
 
-export function fullnessFromVolumes(source: Record<string, unknown> | null | undefined): number | null {
-  const active = firstNumeric(source, ACTIVE_VOLUME_KEYS);
+export function fullnessFromActiveVolume(source: Record<string, unknown> | null | undefined, activeKeys = ACTIVE_VOLUME_KEYS): number | null {
+  const active = firstNumeric(source, activeKeys);
   const minimum = firstNumeric(source, MIN_VOLUME_KEYS);
   const maximum = firstNumeric(source, MAX_VOLUME_KEYS);
   if (active === null || minimum === null || maximum === null || maximum <= minimum) return null;
-  return Math.min(100, Math.max(0, ((active - minimum) / (maximum - minimum)) * 100));
+  return Math.min(100, Math.max(0, (active / (maximum - minimum)) * 100));
+}
+
+export function fullnessFromCurrentVolume(source: Record<string, unknown> | null | undefined): number | null {
+  const current = firstNumeric(source, CURRENT_VOLUME_KEYS);
+  const minimum = firstNumeric(source, MIN_VOLUME_KEYS);
+  const maximum = firstNumeric(source, MAX_VOLUME_KEYS);
+  if (current === null || minimum === null || maximum === null || maximum <= minimum) return null;
+  return Math.min(100, Math.max(0, ((current - minimum) / (maximum - minimum)) * 100));
 }
 
 /** Single fullness rule shared by the map, sidebar and HES popup. */
@@ -267,17 +276,23 @@ export function getHesFullness(
   canonicalProperties?: Record<string, unknown> | null,
 ): number | null {
   if (dataMode === 'epias' && epiasRecord) {
+    const activeFullness = fullnessFromActiveVolume(epiasRecord, ['activeFullnessAmount']);
+    if (activeFullness !== null) return activeFullness;
     for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
       const value = numericValue(epiasRecord[key]);
       if (value !== null) return Math.min(100, Math.max(0, value));
     }
-    const epiasVolumeFullness = fullnessFromVolumes(epiasRecord);
-    if (epiasVolumeFullness !== null) return epiasVolumeFullness;
+    const epiasActiveVolumeFullness = fullnessFromActiveVolume(epiasRecord);
+    if (epiasActiveVolumeFullness !== null) return epiasActiveVolumeFullness;
+    const epiasCurrentVolumeFullness = fullnessFromCurrentVolume(epiasRecord);
+    if (epiasCurrentVolumeFullness !== null) return epiasCurrentVolumeFullness;
   }
   const canonicalFullness = numericValue(canonicalProperties?.fullnessPercent ?? canonicalProperties?.fullness ?? canonicalProperties?.occupancy);
   if (canonicalFullness !== null) return Math.min(100, Math.max(0, canonicalFullness));
-  const volumeFullness = fullnessFromVolumes(canonicalProperties);
-  if (volumeFullness !== null) return volumeFullness;
+  const activeVolumeFullness = fullnessFromActiveVolume(canonicalProperties);
+  if (activeVolumeFullness !== null) return activeVolumeFullness;
+  const currentVolumeFullness = fullnessFromCurrentVolume(canonicalProperties);
+  if (currentVolumeFullness !== null) return currentVolumeFullness;
   return dataMode === 'mock' ? mockFullness(hesId) : null;
 }
 
@@ -337,7 +352,7 @@ export function buildBasinSummaries(basins: FeatureCollection<Geometry, GeoJsonP
 
 export function damIconBucket(occupancy: number | null): string {
   if (occupancy === null) return 'dam-pie-neutral';
-  return `dam-pie-${Math.min(100, Math.max(0, Math.round(occupancy / 10) * 10))}`;
+  return `dam-pie-${Math.min(100, Math.max(0, Math.round(occupancy)))}`;
 }
 
 export function formatDataDate(value?: string | null): string {

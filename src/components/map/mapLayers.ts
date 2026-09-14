@@ -34,7 +34,7 @@ export type OverlayOptions = {
 
 const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes', 'hes177', 'cascades', 'catchment'] as const;
 const HES_PIE_LAYER_ID = 'hes177-pie';
-export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 11 }, (_, index) => String(index * 10))];
+export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 101 }, (_, index) => String(index))];
 export const DAM_PIE_LAYER_IDS = DAM_PIE_BUCKETS.map((bucket) => `dams-pie-${bucket}`);
 const OVERLAY_LAYER_IDS = [
     'basins-fill', 'basins-outline', 'rivers-glow', 'rivers-core',
@@ -44,6 +44,7 @@ const OVERLAY_LAYER_IDS = [
 ] as const;
 
 const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
+const failedDamImages = new WeakMap<MapLibreMap, Set<string>>();
 
 function damPieSvg(percent: number | null): string {
   const base = '<circle cx="32" cy="32" r="27" fill="#a5f3fc" fill-opacity="0.72"/>';
@@ -60,17 +61,25 @@ function damPieSvg(percent: number | null): string {
 
 function ensureDamPieImages(map: MapLibreMap, onReady: () => void): boolean {
   const pending = pendingDamImages.get(map) ?? new Set<string>();
+  const failed = failedDamImages.get(map) ?? new Set<string>();
   pendingDamImages.set(map, pending);
+  failedDamImages.set(map, failed);
   let ready = true;
   DAM_PIE_BUCKETS.forEach((bucket) => {
     const id = `dam-pie-${bucket}`;
-    if (map.hasImage(id) || pending.has(id)) return;
+    if (map.hasImage(id) || pending.has(id) || failed.has(id)) return;
     ready = false;
     pending.add(id);
     const image = new Image();
     image.onload = () => {
       pending.delete(id);
       if (map.isStyleLoaded() && !map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+      if (!pending.size) onReady();
+    };
+    image.onerror = () => {
+      pending.delete(id);
+      failed.add(id);
+      console.warn(`[hydrology] pie icon yüklenemedi: ${id}`);
       if (!pending.size) onReady();
     };
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(damPieSvg(bucket === 'neutral' ? null : Number(bucket)))}`;
@@ -108,7 +117,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   });
   addLayerIfMissing(map, {
     id: 'hes177-points', type: 'circle', source: 'hes177', minzoom: 4,
-    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 6], 'circle-color': ['case', ['get', 'dimmed'], '#64748b', '#38bdf8'], 'circle-opacity': ['case', ['get', 'dimmed'], 0.2, 0.96], 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 7], 'circle-color': 'transparent', 'circle-opacity': ['case', ['get', 'dimmed'], 0.2, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
   });
   addLayerIfMissing(map, {
     id: 'hes177-related', type: 'circle', source: 'hes177', minzoom: 4,
@@ -123,7 +132,7 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   addLayerIfMissing(map, {
     id: 'hes177-producer', type: 'symbol', source: 'hes177', minzoom: 4,
     filter: ['==', ['get', 'isProducer'], true],
-    layout: { 'text-field': '⚡', 'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 13], 'text-offset': [0.9, -0.9], 'text-allow-overlap': true, 'text-ignore-placement': true },
+    layout: { 'text-field': '⚡', 'text-size': ['interpolate', ['linear'], ['get', 'visualRadius'], 7, 7, 18, 12], 'text-offset': ['interpolate', ['linear'], ['get', 'visualRadius'], 7, ['literal', [0.7, -0.7]], 18, ['literal', [1.1, -1.1]]], 'text-allow-overlap': true, 'text-ignore-placement': true },
     paint: { 'text-color': '#fbbf24', 'text-halo-color': '#0f172a', 'text-halo-width': 1, 'text-opacity': ['case', ['get', 'dimmed'], 0.2, 1] },
   });
   addLayerIfMissing(map, {

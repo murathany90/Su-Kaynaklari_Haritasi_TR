@@ -5,7 +5,7 @@ import { getForecastTimestamps } from '../../services/hydroData';
 import { useAppStore, type TabType } from '../../store/useAppStore';
 
 type Detail = { label: string; value: string };
-type Item = { id: string; name: string; subtitle?: string; basinName?: string; riverName?: string; metric?: string; status?: string; sourceBadge?: 'TATUS' | 'GEOGLOWS' | 'EPİAŞ'; sourceTime?: string; details: Detail[]; isProducer?: boolean; typeLabel: string; location: string; powerValue: number; fullnessValue: number | null; sortText: string };
+type Item = { id: string; name: string; subtitle?: string; basinName?: string; riverName?: string; metric?: string; status?: string; sourceBadge?: 'TATUS' | 'GEOGLOWS' | 'EPİAŞ'; sourceTime?: string; details: Detail[]; isProducer?: boolean; typeLabel: string; location: string; powerValue: number; fullnessValue: number | null; fullnessSource?: 'E' | 'M'; sortText: string };
 type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness';
 type ItemKind = TabType | 'dams' | 'lakes';
 type FeatureCollectionLike = { features: Array<{ id?: string | number; properties?: Record<string, unknown> | null }> };
@@ -101,7 +101,8 @@ function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows:
     const location = kind === 'dams' ? province ?? basin ?? '—' : kind === 'hes' ? province ? `${province} · ${basin ?? '—'}` : basin ?? '—' : kind === 'basins' ? name : basin ?? province ?? '—';
     const rowSubtitle = kind === 'hes' ? textValue(properties, ['riverName']) ?? basin : basin;
     const riverName = kind === 'hes' ? textValue(properties, ['riverName']) : kind === 'rivers' ? name : undefined;
-    return { id, name, subtitle: rowSubtitle, basinName: basin, riverName, metric, status, sourceBadge, sourceTime, details, isProducer: producer, typeLabel, location, powerValue: kind === 'hes' ? power ?? 0 : riverPower ?? 0, fullnessValue: kind === 'hes' ? occupancy : null, sortText: `${typeLabel} ${name} ${basin ?? ''} ${riverName ?? ''} ${location} ${status} ${String(properties.damName ?? '')}` };
+    const fullnessSource: Item['fullnessSource'] = occupancy === null ? undefined : dataMode === 'epias' && epiasByHes.has(id) ? 'E' : dataMode === 'mock' && (properties.fullnessSource === 'mock' || properties.fullnessSource === 'missing') ? 'M' : undefined;
+    return { id, name, subtitle: rowSubtitle, basinName: basin, riverName, metric, status, sourceBadge, sourceTime, details, isProducer: producer, typeLabel, location, powerValue: kind === 'hes' ? power ?? 0 : riverPower ?? 0, fullnessValue: kind === 'hes' ? occupancy : null, fullnessSource, sortText: `${typeLabel} ${name} ${basin ?? ''} ${riverName ?? ''} ${location} ${status} ${String(properties.damName ?? '')}` };
   }).filter((item) => item.id && item.name);
 }
 
@@ -262,7 +263,7 @@ export const Sidebar: React.FC = () => {
       <span className="truncate text-[9px] text-slate-400" title={item.basinName}>{item.basinName ?? '—'}</span>
       <span className="truncate text-[9px] text-cyan-400/80" title={item.riverName}>{item.riverName ?? '—'}</span>
       <span className="truncate text-right font-mono text-[9px] text-cyan-500" title={item.metric}>{item.typeLabel === 'HES' && item.powerValue ? `${item.powerValue.toLocaleString('tr-TR')} MW` : item.metric ?? '—'}</span>
-      <span className="truncate text-right font-mono text-[9px] text-sky-300" title={item.fullnessValue === null ? 'Doluluk verisi yok' : `Doluluk %${Math.round(item.fullnessValue)}`}>{item.fullnessValue === null ? '—' : `%${Math.round(item.fullnessValue)}`}</span>
+      <span className="truncate text-right font-mono text-[9px] text-sky-300" title={item.fullnessValue === null ? 'Doluluk verisi yok' : `Doluluk %${Math.round(item.fullnessValue)}${item.fullnessSource ? ` · ${item.fullnessSource === 'E' ? 'EPİAŞ' : 'MOCK'}` : ''}`}>{item.fullnessValue === null ? '—' : `%${Math.round(item.fullnessValue)}${item.fullnessSource ? ` ${item.fullnessSource}` : ''}`}</span>
      </div>{item.typeLabel === 'Havza' && <div className="mt-2 grid grid-cols-3 gap-x-2 gap-y-1 border-t border-slate-700/20 pt-1.5 text-[8px] text-slate-500">{item.details.filter((detail) => ['Alan', 'Akarsu', 'Baraj', 'HES', 'HES ist.', 'Göl ist.', 'Ana akarsular'].includes(detail.label)).map((detail) => <span key={detail.label} className="truncate" title={detail.value}><b className="text-slate-400">{detail.label}:</b> {detail.value}</span>)}</div>}
    </button>;
 
