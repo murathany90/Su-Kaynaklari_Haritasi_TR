@@ -238,7 +238,8 @@ function numericValue(value: unknown): number | null {
   return Number.isFinite(result) ? result : null;
 }
 
-const ACTIVE_VOLUME_KEYS = ['activeFullnessAmount', 'activeVolumeHm3', 'activeVolume', 'active_volume', 'aktifHacim', 'aktif_hacim'];
+const FULLNESS_PERCENT_KEYS = ['occupancy', 'fullness', 'activeFullness', 'doluluk', 'fullnessPercent', 'activeFullnessAmount'];
+const ACTIVE_VOLUME_KEYS = ['activeVolumeHm3', 'activeVolume', 'active_volume', 'aktifHacim', 'aktif_hacim'];
 const CURRENT_VOLUME_KEYS = ['currentVolumeHm3', 'currentVolume', 'current_volume', 'dailyVolume', 'daily_volume', 'operatingVolume', 'operating_volume', 'hacim', 'volume', 'suHacmi'];
 const MIN_VOLUME_KEYS = ['minVolumeHm3', 'minimumVolumeHm3', 'minVolume', 'minimumVolume', 'min_volume', 'minimum_volume', 'minimumHacim', 'minHacim'];
 const MAX_VOLUME_KEYS = ['maxVolumeHm3', 'maximumVolumeHm3', 'maxVolume', 'maximumVolume', 'max_volume', 'maximum_volume', 'maximumHacim', 'maxHacim'];
@@ -286,18 +287,16 @@ export function getHesFullnessMeta(
   if (dataMode === 'epias' && epiasRecord) {
     // EPİAŞ's explicit fullness fields are already percentages. Never divide
     // activeFullnessAmount by a capacity a second time.
-    for (const key of ['occupancy', 'fullness', 'activeFullness', 'doluluk']) {
+    for (const key of FULLNESS_PERCENT_KEYS) {
       const value = clampedPercent(epiasRecord[key]);
       if (value !== null) return { value, source: 'E' };
     }
-    const explicitAmount = clampedPercent(epiasRecord.activeFullnessAmount);
-    if (explicitAmount !== null) return { value: explicitAmount, source: 'E' };
     const epiasActiveVolumeFullness = fullnessFromActiveVolume(epiasRecord);
     if (epiasActiveVolumeFullness !== null) return { value: epiasActiveVolumeFullness, source: 'E' };
     const epiasCurrentVolumeFullness = fullnessFromCurrentVolume(epiasRecord);
     if (epiasCurrentVolumeFullness !== null) return { value: epiasCurrentVolumeFullness, source: 'E' };
   }
-  const canonicalFullness = clampedPercent(canonicalProperties?.fullnessPercent ?? canonicalProperties?.fullness ?? canonicalProperties?.occupancy);
+  const canonicalFullness = clampedPercent(firstNumeric(canonicalProperties, FULLNESS_PERCENT_KEYS));
   if (canonicalFullness !== null) return { value: canonicalFullness, source: 'H' };
   const activeVolumeFullness = fullnessFromActiveVolume(canonicalProperties);
   if (activeVolumeFullness !== null) return { value: activeVolumeFullness, source: 'H' };

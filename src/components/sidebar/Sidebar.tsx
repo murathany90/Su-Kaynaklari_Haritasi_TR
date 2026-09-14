@@ -32,17 +32,15 @@ function formatMw(value: number): string {
   return `${Math.round(value).toLocaleString('tr-TR')} MW`;
 }
 
-function weightedFullness(rows: Array<{ power: number; fullness: number | null }>): number | null {
-  const eligible = rows.filter((row) => row.fullness !== null && row.power > 0);
-  const weight = eligible.reduce((sum, row) => sum + row.power, 0);
-  return weight ? eligible.reduce((sum, row) => sum + (row.fullness ?? 0) * row.power, 0) / weight : null;
-}
-
-function sourceFor(rows: Array<{ source: FullnessSource; fullness: number | null }>): FullnessSource {
-  if (!rows.some((row) => row.fullness !== null)) return '—';
-  if (rows.some((row) => row.source === 'E')) return 'E';
-  if (rows.some((row) => row.source === 'H')) return 'H';
-  return rows.some((row) => row.source === 'M') ? 'M' : '—';
+function volumeFullness(rows: Array<{ details?: Record<string, unknown> }>): number | null {
+  const eligible = rows.map((row) => ({
+    active: numberOf(row.details?.activeVolumeHm3),
+    minimum: numberOf(row.details?.minVolumeHm3),
+    maximum: numberOf(row.details?.maxVolumeHm3),
+  })).filter((row) => row.active !== null && row.minimum !== null && row.maximum !== null && row.maximum > row.minimum);
+  const usableVolume = eligible.reduce((sum, row) => sum + (row.maximum ?? 0) - (row.minimum ?? 0), 0);
+  const activeVolume = eligible.reduce((sum, row) => sum + (row.active ?? 0), 0);
+  return usableVolume > 0 ? Math.min(100, Math.max(0, (activeVolume / usableVolume) * 100)) : null;
 }
 
 function fullnessCell(row: Row): React.ReactNode {
@@ -110,9 +108,10 @@ export const Sidebar: React.FC = () => {
     const localIds = Array.isArray(properties.geoglowsLocalRiverIds) ? properties.geoglowsLocalRiverIds.map(String) : [];
     const forecast = (geoglows?.records ?? []).some((record) => localIds.includes(String(record.localRiverId ?? '')) && Array.isArray(record.data) && record.data.length > 1);
     const displayBasins = [...new Set(members.map((row) => row.basin).filter((name) => name !== '—'))];
+    const fullness = volumeFullness(members);
     return {
       id, type: 'river' as const, name: String(properties.riverName ?? properties.name ?? 'Akarsu'), basin: displayBasins.join(' / ') || basinLabels.get(String(properties.basinId ?? '')) || '—', river: String(properties.riverName ?? properties.name ?? 'Akarsu'),
-      power: members.reduce((sum, row) => sum + row.power, 0), fullness: weightedFullness(members), source: sourceFor(members), count: members.length, forecast, cascadeCount: 0, riverNames: '', details: properties,
+      power: members.reduce((sum, row) => sum + row.power, 0), fullness, source: (fullness === null ? '—' : 'H') as FullnessSource, count: members.length, forecast, cascadeCount: 0, riverNames: '', details: properties,
     };
   }).filter((row) => row.count > 0), [basinLabels, geoglows?.records, hesById, rivers.features]);
 
@@ -121,9 +120,10 @@ export const Sidebar: React.FC = () => {
     const id = String(properties.basinId ?? properties.HAVZA_ID ?? properties.ID ?? feature.id ?? '');
     const members = hesRows.filter((row) => String(row.details?.basinId ?? '') === id);
     const riverNames = [...new Set(members.map((row) => row.river).filter((name) => name !== '—'))];
+    const fullness = volumeFullness(members);
     return {
       id, type: 'basin' as const, name: String(properties.name ?? properties.HAVZA_ADI ?? 'Havza'), basin: String(properties.name ?? properties.HAVZA_ADI ?? 'Havza'), river: '', power: members.reduce((sum, row) => sum + row.power, 0),
-      fullness: weightedFullness(members), source: sourceFor(members), count: members.length, forecast: false, cascadeCount: members.reduce((sum, row) => sum + row.cascadeCount, 0), riverNames: riverNames.slice(0, 3).join(', ') || '—', details: properties,
+      fullness, source: (fullness === null ? '—' : 'H') as FullnessSource, count: members.length, forecast: false, cascadeCount: members.reduce((sum, row) => sum + row.cascadeCount, 0), riverNames: riverNames.slice(0, 3).join(', ') || '—', details: properties,
     };
   }).filter((row) => row.count > 0), [basins.features, hesRows]);
 
@@ -149,11 +149,11 @@ export const Sidebar: React.FC = () => {
   const columns = useMemo<Column[]>(() => currentTab === 'hes' ? [
     { key: 'name', label: 'HES adı', value: (row) => <span className="flex min-w-0 items-center gap-1"><Zap className="h-3 w-3 shrink-0 text-amber-400" />{row.name}</span> }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'river', label: 'Akarsu', value: (row) => row.river }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: fullnessCell },
   ] : currentTab === 'rivers' ? [
-    { key: 'type', label: 'Tip', value: () => 'Nehir' }, { key: 'name', label: 'Akarsu adı', value: (row) => row.name }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'forecast', label: 'Tahmin', className: 'text-right', value: (row) => row.forecast ? 'Var' : 'Yok' }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` },
+    { key: 'name', label: 'Akarsu adı', value: (row) => row.name }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'forecast', label: 'Tahmin', className: 'text-right', value: (row) => row.forecast ? 'Var' : 'Yok' }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` },
   ] : [
-    { key: 'type', label: 'Tip', value: () => 'Havza' }, { key: 'name', label: 'Havza adı', value: (row) => row.name }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'river', label: 'Ana akarsular', value: (row) => row.riverNames }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` }, { key: 'cascade', label: 'Kaskat', className: 'text-right', value: (row) => row.cascadeCount || '—' },
+    { key: 'name', label: 'Havza adı', value: (row) => row.name }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'river', label: 'Ana akarsular', value: (row) => row.riverNames }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` }, { key: 'cascade', label: 'Kaskat', className: 'text-right', value: (row) => row.cascadeCount || '—' },
   ], [currentTab]);
-  const gridTemplate = currentTab === 'hes' ? 'minmax(0,1.65fr) minmax(0,.84fr) minmax(0,.92fr) 4rem 3.9rem' : currentTab === 'rivers' ? '2.7rem minmax(0,1.5fr) minmax(0,.9fr) 2.2rem 4.15rem 2.8rem 3.55rem' : '2.7rem minmax(0,1.3fr) 2.2rem 4.15rem minmax(0,1.1fr) 3.55rem 2.8rem';
+  const gridTemplate = currentTab === 'hes' ? 'minmax(0,1.65fr) minmax(0,.84fr) minmax(0,.92fr) 4rem 3.9rem' : currentTab === 'rivers' ? 'minmax(0,1.5fr) minmax(0,.9fr) 2.2rem 4.15rem 2.8rem 3.55rem' : 'minmax(0,1.3fr) 2.2rem 4.15rem minmax(0,1.1fr) 3.55rem 2.8rem';
   const selectedHes = selectedEntity?.type === 'hes' ? hesRows.find((row) => row.id === selectedEntity.id) : null;
   const selectedRiver = selectedEntity?.type === 'river' ? riverRows.find((row) => row.id === selectedEntity.id) : null;
   const relatedRiverRows = selectedRiver ? hesRows.filter((row) => (selectedRiver.details?.hesIds as unknown[] ?? []).map(String).includes(row.id)) : [];
