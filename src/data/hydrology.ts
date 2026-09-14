@@ -352,7 +352,7 @@ export function buildBasinSummaries(basins: FeatureCollection<Geometry, GeoJsonP
 
 export function damIconBucket(occupancy: number | null): string {
   if (occupancy === null) return 'dam-pie-neutral';
-  return `dam-pie-${Math.min(100, Math.max(0, Math.round(occupancy)))}`;
+  return `dam-pie-${Math.min(100, Math.max(0, Math.round(occupancy / 5) * 5))}`;
 }
 
 export function formatDataDate(value?: string | null): string {

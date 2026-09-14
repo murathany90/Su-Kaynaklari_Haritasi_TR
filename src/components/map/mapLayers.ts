@@ -34,7 +34,7 @@ export type OverlayOptions = {
 
 const SOURCE_IDS = ['basins', 'rivers', 'flowStations', 'hesStations', 'dams', 'lakes', 'hes177', 'cascades', 'catchment'] as const;
 const HES_PIE_LAYER_ID = 'hes177-pie';
-export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 101 }, (_, index) => String(index))];
+export const DAM_PIE_BUCKETS = ['neutral', ...Array.from({ length: 21 }, (_, index) => String(index * 5))];
 export const DAM_PIE_LAYER_IDS = DAM_PIE_BUCKETS.map((bucket) => `dams-pie-${bucket}`);
 const OVERLAY_LAYER_IDS = [
     'basins-fill', 'basins-outline', 'rivers-glow', 'rivers-core',
@@ -47,16 +47,16 @@ const pendingDamImages = new WeakMap<MapLibreMap, Set<string>>();
 const failedDamImages = new WeakMap<MapLibreMap, Set<string>>();
 
 function damPieSvg(percent: number | null): string {
-  const base = '<circle cx="32" cy="32" r="27" fill="#1e293b" fill-opacity="0.86"/>';
-  const center = '<circle cx="32" cy="32" r="2.6" fill="#0f172a" stroke="#f8fafc" stroke-width="1"/>';
-  const frame = '<circle cx="32" cy="32" r="29" fill="none" stroke="#f8fafc" stroke-width="2.5"/><circle cx="32" cy="32" r="25" fill="none" stroke="#0e7490" stroke-opacity="0.7" stroke-width="1"/>';
+  const base = '<circle cx="32" cy="32" r="27" fill="#a5f3fc" fill-opacity="0.72"/>';
+  const center = '<circle cx="32" cy="32" r="2.8" fill="#1d4ed8" stroke="#f8fafc" stroke-width="1.2"/>';
+  const frame = '<circle cx="32" cy="32" r="29" fill="none" stroke="#f8fafc" stroke-width="1.8"/>';
   if (percent === null || percent <= 0) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${center}${frame}</svg>`;
-  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#38bdf8" fill-opacity="0.96"/>${center}${frame}</svg>`;
+  if (percent >= 100) return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#1d4ed8" fill-opacity="0.96"/>${center}${frame}</svg>`;
   const end = (Math.PI * 2 * percent) / 100 - Math.PI / 2;
   const x = 32 + 27 * Math.cos(end);
   const y = 32 + 27 * Math.sin(end);
   const largeArc = percent > 50 ? 1 : 0;
-  const wedge = `<path d="M32 32 L32 5 A27 27 0 ${largeArc} 1 ${x} ${y} Z" fill="#38bdf8" fill-opacity="0.96"/>`;
+  const wedge = `<path d="M32 32 L32 5 A27 27 0 ${largeArc} 1 ${x} ${y} Z" fill="#1d4ed8" fill-opacity="0.96"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${base}${wedge}${center}${frame}</svg>`;
 }
 
@@ -74,7 +74,7 @@ function ensureDamPieImages(map: MapLibreMap, onReady: () => void): boolean {
     const image = new Image();
     image.onload = () => {
       pending.delete(id);
-      if (map.isStyleLoaded() && !map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+      if (!map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
       if (!pending.size) onReady();
     };
     image.onerror = () => {
@@ -118,14 +118,14 @@ export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCol
   });
   addLayerIfMissing(map, {
     id: 'hes177-points', type: 'circle', source: 'hes177', minzoom: 4,
-    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 7], 'circle-color': 'transparent', 'circle-opacity': ['case', ['get', 'dimmed'], 0.2, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
+    paint: { 'circle-radius': ['coalesce', ['get', 'visualRadius'], 7], 'circle-color': '#1e293b', 'circle-opacity': ['case', ['get', 'dimmed'], 0.18, 0.58], 'circle-stroke-width': 0 },
   });
   addLayerIfMissing(map, {
     id: 'hes177-related', type: 'circle', source: 'hes177', minzoom: 4,
     filter: ['==', ['get', 'relatedToSelected'], true],
     paint: { 'circle-radius': ['+', ['coalesce', ['get', 'visualRadius'], 6], 4], 'circle-color': '#67e8f9', 'circle-opacity': 0.96, 'circle-stroke-width': 2, 'circle-stroke-color': '#f8fafc' },
   });
-  if (pieImagesReady) addLayerIfMissing(map, {
+  addLayerIfMissing(map, {
     id: HES_PIE_LAYER_ID, type: 'symbol', source: 'hes177', minzoom: 4,
     layout: { 'icon-image': ['get', 'damIcon'], 'icon-size': ['/', ['coalesce', ['get', 'markerDiameterPx'], 12], 29], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
     paint: { 'icon-opacity': ['case', ['get', 'dimmed'], 0.2, 1] },
