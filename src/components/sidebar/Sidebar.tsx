@@ -38,7 +38,7 @@ function liveValue(record: unknown, keys: string[]): number | null {
 function itemsFrom(collection: FeatureCollectionLike, kind: ItemKind, liveFlows: Map<string, { value: number; timestamp?: string }>, liveDams: Map<string, { value: number; timestamp?: string; record: Record<string, unknown> }>, generatedAt: string | undefined, basinSummaries: Map<string, { areaKm2: number | null; riverCount: number; riverLengthKm: number; damCount: number; hesCount: number; hesStationCount: number; lakeCount: number; lakeStationCount: number; mainRiverNames: string[] }>, dataMode: 'mock' | 'epias' = 'mock', epiasByHes = new Map<string, Record<string, unknown>>): Item[] {
   return collection.features.map((feature) => {
     const properties = feature.properties ?? {};
-    const id = String(properties.id ?? properties.entityId ?? feature.id ?? '');
+    const id = String(kind === 'basins' ? properties.basinId ?? properties.ID ?? properties.id ?? feature.id ?? '' : properties.id ?? properties.entityId ?? feature.id ?? '');
     const entityKind = kind === 'rivers' ? 'river' : kind === 'dams' ? 'dam' : kind === 'hes' ? 'hes' : 'basin';
     const name = displayName(properties, entityKind, id);
     const officialBasin = textValue(properties, ['officialBasinName', 'basinName', 'HavzaAdi', 'HAVZA_ADI', 'Havza_Id_Text']);
