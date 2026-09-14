@@ -2,6 +2,36 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+:root {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --panel: #111827;
+  --panel2: #172033;
+  --line: #293548;
+  --text: #e5edf7;
+  --muted: #7f8ea3;
+  --primary: #22b8cf;
+  --cyan: #22d3ee;
+  --blue: #3b82f6;
+  --warning: #d99a35;
+  --map-bg: #152033;
+}
+
+.hes-app[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --panel2: #f0f4f8;
+  --line: #d8e1ea;
+  --text: #172033;
+  --muted: #66758a;
+  --primary: #087f9a;
+  --cyan: #0ea5c9;
+  --blue: #2563eb;
+  --warning: #b7791f;
+  --map-bg: #dbe5ee;
+}
+
 @layer base {
   * {
     font-family: 'Plus Jakarta Sans', sans-serif;
@@ -17,7 +47,8 @@
 
   body {
     overflow: hidden;
-    background: #07111f;
+    background: var(--bg);
+    color: var(--text);
   }
 }
 
@@ -27,10 +58,14 @@
   }
 
   .glass-cockpit {
-    background: rgba(11, 17, 33, 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(51, 65, 85, 0.55);
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+
+  .hes-global-shell,
+  .hes-toolbar {
+    background: var(--panel);
+    color: var(--text);
   }
 }
 
@@ -47,14 +82,14 @@
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: var(--panel);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--line);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--muted);
 }
 
 /* Custom Scrollbar — Light (via parent class) */
@@ -70,15 +105,13 @@
 
 /* MapLibre Popup Overrides */
 .maplibregl-popup-content {
-  background: rgba(11, 17, 33, 0.94) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(56, 189, 248, 0.4) !important;
-  color: #f1f5f9 !important;
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--text) !important;
   font-size: 12px !important;
   border-radius: 10px !important;
   padding: 8px 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.28) !important;
 }
 .maplibregl-popup-close-button {
   color: #94a3b8 !important;
@@ -91,7 +124,7 @@
   background: transparent !important;
 }
 .maplibregl-popup-tip {
-  border-top-color: rgba(11, 17, 33, 0.94) !important;
+  border-top-color: var(--panel) !important;
 }
 .hydro-tooltip-light .maplibregl-popup-content {
   background: rgba(255, 255, 255, 0.96) !important;
@@ -137,7 +170,7 @@
 input[type=range] {
   -webkit-appearance: none;
   appearance: none;
-  background: #1e293b;
+  background: var(--line);
   height: 6px;
   border-radius: 9999px;
 }
@@ -147,14 +180,14 @@ input[type=range]::-webkit-slider-thumb {
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  background: #06b6d4;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+  background: var(--cyan);
+  box-shadow: 0 1px 4px rgba(6, 182, 212, 0.32);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 input[type=range]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  background: #38bdf8;
+  background: var(--primary);
 }
 
 .timeline-range {
@@ -167,7 +200,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   width: 16px;
   border: 0;
   border-radius: 50%;
-  background: #06b6d4;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+  background: var(--cyan);
+  box-shadow: 0 1px 4px rgba(6, 182, 212, 0.32);
   cursor: pointer;
 }
