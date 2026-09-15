@@ -54,6 +54,25 @@ alternatiflerin istasyon/ürün eşleşmesi kanıtlanmadan kapsam metriğine ekl
 [DAHITI API docs](https://dahiti.dgfi.tum.de/en/api/doc/v2/) ve
 [Hydroweb.next help](https://hydroweb.next.theia-land.fr/help).
 
+`tools/hydro/fetch_observation_catalogs.py`, Hydroweb STAC ve Copernicus CLMS
+lake-water-level ürün kataloglarından yalnız küçük keşif metadata'sı indirir.
+Katalog eşleşmesi ölçüm değeri değildir: API anahtarı/token olmadan kayıtlar
+`catalog_available` olarak audit'e girer, doluluk yüzdesine çevrilmez. DAHITI,
+SWOT, DSİ ve G-REALM erişimi için gereken kimlik bilgileri yalnız CI secret
+olarak verilebilir; frontend'e taşınmaz. Copernicus ürün kataloğu için
+[CLMS lake water level](https://land.copernicus.eu/en/products/water-bodies/water-level-lakes-near-real-time-v2.0)
+ve [CDSE CLMS documentation](https://documentation.dataspace.copernicus.eu/Data/CopernicusServices/CLMS.html)
+kullanılır. `public/data/static/mappings/observation_catalogs.json` kaynak,
+indirilen zaman, sürüm, ETag ve checksum bilgisini saklar.
+
+Kanonik koordinat kalite enum'u `hes`, `dam`, `reservoir`, `transformer`,
+`approximate`, `unresolved` değerleridir. `transformer` kaydı yalnız elektrik
+bağlantı referansıdır; havza doğrulamasını override etmez, gerçek HES/nehir
+ankrajı sayılmaz. Akarsu sistemi geometrisi, HES/dam ankrajları arasında
+HydroRIVERS ağı üzerinde route edilir; provider'dan geometri gelmezse yalnız
+isimli, geometrisi olmayan kanonik kayıt tutulur ve bu durum `geometryAvailable`
+ile açıkça belirtilir.
+
 ## Harita davranışı
 
 Sidebar'daki canonical HES kayıtlarına tıklamak `flyTo` veya `fitBounds` ile

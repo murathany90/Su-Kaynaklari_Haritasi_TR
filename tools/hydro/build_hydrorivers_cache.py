@@ -187,10 +187,10 @@ def main() -> None:
                 if dam_geometry.get("type") == "Point":
                     geometry, anchor_method = dam_geometry, "dam-point"
                 else:
-                    # A transformer is an explicitly low-confidence last
-                    # resort, but remains useful for a network anchor when no
-                    # HES or dam point exists.
-                    anchor_method = "transformer"
+                    # Transformer coordinates are electrical references, not
+                    # hydrography observations; never use them as river
+                    # anchors when no HES or dam point exists.
+                    continue
             if geometry.get("type") != "Point": continue
             point = (float(geometry["coordinates"][0]), float(geometry["coordinates"][1]))
             index, distance = nearest(point)

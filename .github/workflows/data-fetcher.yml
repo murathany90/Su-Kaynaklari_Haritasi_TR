@@ -44,6 +44,14 @@ jobs:
           EPIAS_PASSWORD: ${{ secrets.EPIAS_PASSWORD }}
           EPIAS_TGT_URL: ${{ secrets.EPIAS_TGT_URL }}
           EPIAS_DAM_ENDPOINT: ${{ secrets.EPIAS_DAM_ENDPOINT }}
+      - name: Discover fullness observation catalogs
+        continue-on-error: true
+        run: python tools/hydro/fetch_observation_catalogs.py
+        env:
+          DAHITI_API_KEY: ${{ secrets.DAHITI_API_KEY }}
+          HYDROWEB_API_KEY: ${{ secrets.HYDROWEB_API_KEY }}
+          COPERNICUS_ACCESS_TOKEN: ${{ secrets.COPERNICUS_ACCESS_TOKEN }}
+          EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
       - name: Build, audit and validate canonical package
         run: |
           python tools/build_hes177.py

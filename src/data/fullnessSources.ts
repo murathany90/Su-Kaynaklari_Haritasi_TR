@@ -2,7 +2,7 @@ import type { FullnessPayload, FullnessResult } from '../types/hydrology';
 
 type Properties = Record<string, unknown>;
 
-const PERCENT_KEYS = ['fullnessPercent', 'occupancy', 'fullness', 'activeFullness', 'doluluk'];
+const PERCENT_KEYS = ['fullnessPercent', 'occupancy', 'fullness', 'activeFullness', 'activeFullnessAmount', 'doluluk'];
 const ENABLE_MOCK = import.meta.env.VITE_ENABLE_MOCK_HYDROLOGY === 'true';
 
 function numberOf(value: unknown): number | null {
@@ -30,6 +30,14 @@ function calculatedStorage(properties: Properties): number | null {
   const maximum = firstNumber(properties, ['maxVolumeHm3', 'maximumVolumeHm3', 'maxVolume', 'maximumVolume']);
   if (active === null || minimum === null || maximum === null || maximum <= minimum) return null;
   return clamp((active / (maximum - minimum)) * 100);
+}
+
+function calculatedCurrentStorage(properties: Properties): number | null {
+  const current = firstNumber(properties, ['currentVolumeHm3', 'currentVolume', 'current_volume', 'dailyVolume', 'daily_volume', 'operatingVolume', 'operating_volume', 'hacim', 'volume', 'suHacmi']);
+  const minimum = firstNumber(properties, ['minVolumeHm3', 'minimumVolumeHm3', 'minVolume', 'minimumVolume']);
+  const maximum = firstNumber(properties, ['maxVolumeHm3', 'maximumVolumeHm3', 'maxVolume', 'maximumVolume']);
+  if (current === null || minimum === null || maximum === null || maximum <= minimum) return null;
+  return clamp(((current - minimum) / (maximum - minimum)) * 100);
 }
 
 function isRunOfRiver(properties: Properties): boolean {
@@ -64,6 +72,7 @@ function resultFromRecord(record: Record<string, unknown>, hesId: string): Fulln
     sourceStationId: typeof record.sourceStationId === 'string' ? record.sourceStationId : null,
     uncertainty: numberOf(record.uncertainty),
     qualityFlags: Array.isArray(record.qualityFlags) ? record.qualityFlags.map(String) : [],
+    reasonUnavailable: typeof record.reasonUnavailable === 'string' ? record.reasonUnavailable : undefined,
   };
 }
 
@@ -84,9 +93,10 @@ export function resolveHesFullness(
   const canonicalResult = source.fullnessResult && typeof source.fullnessResult === 'object' ? resultFromRecord(source.fullnessResult as Record<string, unknown>, hesId) : null;
   if (canonicalResult) return canonicalResult;
   const direct = clamp(firstNumber(source, PERCENT_KEYS));
-  const calculated = direct ?? calculatedStorage(source);
+  const calculated = direct ?? calculatedStorage(source) ?? calculatedCurrentStorage(source);
   if (calculated !== null) {
-    return { hesId, fullnessPercent: calculated, status: String(source.fullnessStatus ?? 'available') as FullnessResult['status'], sourceClass: 'calculated_storage', source: 'canonical', method: direct !== null ? 'canonical-percent' : 'active-volume/(max-volume-min-volume)', observedAt: typeof source.epiasDate === 'string' ? source.epiasDate : null, fetchedAt: null, freshnessDays: null, confidence: 'medium', isEstimated: true, rawValue: calculated, rawUnit: '%', qualityFlags: direct !== null ? [] : ['derived_from_inventory_volume'] };
+    const activeAvailable = calculatedStorage(source) !== null;
+    return { hesId, fullnessPercent: calculated, status: String(source.fullnessStatus ?? 'available') as FullnessResult['status'], sourceClass: 'calculated_storage', source: 'canonical', method: direct !== null ? 'canonical-percent' : activeAvailable ? 'active-volume/(max-volume-min-volume)' : 'current-volume/(max-volume-min-volume)', observedAt: typeof source.epiasDate === 'string' ? source.epiasDate : null, fetchedAt: null, freshnessDays: null, confidence: 'medium', isEstimated: true, rawValue: calculated, rawUnit: '%', qualityFlags: direct !== null ? [] : [activeAvailable ? 'derived_from_inventory_volume' : 'derived_from_current_volume'] };
   }
   if (dataMode === 'mock' && ENABLE_MOCK) {
     return { hesId, fullnessPercent: mockValue(hesId), status: 'available', sourceClass: 'mock', source: 'mock', method: 'development-seeded-value', observedAt: null, fetchedAt: null, freshnessDays: null, confidence: 'low', isEstimated: true, qualityFlags: ['development_only'] };

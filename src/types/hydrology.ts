@@ -14,7 +14,6 @@ export interface HydroDataManifest {
   version?: string | number;
   generatedAt?: string;
   dataVersion?: string;
-  sourceCommit?: string | null;
   buildBaseCommit?: string | null;
   status?: string;
   source?: string;

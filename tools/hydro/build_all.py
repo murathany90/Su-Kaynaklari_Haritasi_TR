@@ -20,6 +20,8 @@ def main() -> None:
     if os.getenv("HYDRO_FETCH") == "1":
         run("tools/hydro/fetch_tatus.py")
         run("tools/hydro/build_river_reach_map.py")
+    if os.getenv("HYDRO_FETCH") == "1" or os.getenv("FULLNESS_FETCH") == "1":
+        run("tools/hydro/fetch_observation_catalogs.py")
     run("tools/build_hes177.py")
     run("tools/hydro/build_reservoirs.py")
     run("tools/hydro/audit_fullness_sources.py")

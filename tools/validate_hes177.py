@@ -10,6 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "public" / "data" / "hes177"
+LIVE = ROOT / "public" / "data" / "live" / "hes_fullness_latest.json"
 MIN_POWER_MW = 20.0
 WATERBODY_WORDS = ("GOL", "GOLU", "GOLLER", "BARAJ", "REZERVUAR", "LAGUN")
 
@@ -44,6 +45,7 @@ def main() -> None:
     dams = load("hes_dam_points.geojson").get("features", [])
     reservoirs = load("hes_reservoirs.geojson").get("features", []) if (DATA / "hes_reservoirs.geojson").exists() else []
     relations = load("hes_177_relations.json").get("byHesId", {})
+    live = json.loads(LIVE.read_text(encoding="utf-8")) if LIVE.exists() else {}
     topology = load("river_topology_audit.json") if (DATA / "river_topology_audit.json").exists() else {"rivers": []}
     hes_ids = {str(feature.get("properties", {}).get("id") or feature.get("id")) for feature in hes}
     river_ids = {str(feature.get("properties", {}).get("riverSystemId") or feature.get("id")) for feature in rivers}
@@ -56,6 +58,11 @@ def main() -> None:
     fullness_semantic_errors = [feature["properties"].get("name") for feature in hes if feature["properties"].get("hydroPlantStorageType") == "run_of_river" and feature["properties"].get("fullnessPercent") is not None]
     missing_fullness_result = [feature["properties"].get("name") for feature in hes if not isinstance(feature["properties"].get("fullnessResult"), dict)]
     transformer_verified = [feature["properties"].get("name") for feature in hes if feature["properties"].get("coordinateKind") == "transformer" and feature["properties"].get("coordinateVerified") is True]
+    invalid_coordinate_kinds = [feature["properties"].get("name") for feature in hes if feature["properties"].get("coordinateKind") not in {"hes", "dam", "reservoir", "transformer", "approximate", "unresolved"}]
+    missing_relations = [str(feature["properties"].get("id")) for feature in hes if str(feature["properties"].get("id")) not in relations]
+    fullness_audit_fields = ("epiasMatch", "dsiMatch", "dahitiMatch", "hydrowebMatch", "copernicusMatch", "swotMatch", "gRealmMatch", "gdwMatch", "candidateSourceCount", "fullnessDirectlyAvailable", "fullnessCanBeCalculated")
+    missing_fullness_audit = [feature["properties"].get("name") for feature in hes if not all(field in (feature["properties"].get("fullnessResult") or {}) for field in fullness_audit_fields)]
+    storage_fullness_errors = [feature["properties"].get("name") for feature in hes if feature["properties"].get("hydroPlantStorageType") == "run_of_river" and (feature["properties"].get("fullnessResult") or {}).get("status") != "not_applicable"]
     invalid_reservoirs = [feature.get("id") for feature in reservoirs if not feature.get("geometry") or not isinstance((feature.get("properties") or {}).get("hesIds"), list) or (feature.get("properties") or {}).get("validated") is not True]
     cross_mismatch = [feature["properties"].get("name") for feature in hes if feature["properties"].get("basinId") == "21" and ((normalize(feature["properties"].get("riverName")) == "FIRAT" and normalize(feature["properties"].get("name")) in {"ILISU", "DICLE", "KRALKIZI"}) or (normalize(feature["properties"].get("riverName")) == "DICLE" and normalize(feature["properties"].get("name")) in {"ATATURK", "KEBAN", "KARAKAYA"}))]
     duplicate_ids = len(hes_ids) != len(hes)
@@ -65,13 +72,14 @@ def main() -> None:
     report = {
         "dataVersion": manifest.get("dataVersion"),
         "generatedAt": manifest.get("generatedAt"),
-        "sourceCommit": manifest.get("sourceCommit"),
+        "buildBaseCommit": manifest.get("buildBaseCommit"),
         "HES": len(hes),
         "Producer": f"{manifest.get('producerCount', 0)}/{len(hes)}",
         "River matched": f"{manifest.get('riverMatchedCount', 0)}/{len(hes)}",
         "River named": f"{manifest.get('riverNamedCount', 0)}/{len(hes)}",
         "River spatial verified": f"{manifest.get('riverSpatialVerifiedCount', 0)}/{len(hes)}",
         "River corridor coverage": manifest.get("riverCorridorCoverage", 0),
+        "River corridor eligible": manifest.get("riverCorridorEligibleCount", 0),
         "River unmatched": len(river_unmatched),
         "River unmatched names": river_unmatched,
         "Official basin": f"{manifest.get('officialBasinCount', 0)}/{len(hes)}",
@@ -94,6 +102,12 @@ def main() -> None:
         "Reservoir polygons": len(reservoirs),
         "Invalid reservoir polygons": len(invalid_reservoirs),
         "Transformer marked verified": len(transformer_verified),
+        "Invalid coordinate kinds": len(invalid_coordinate_kinds),
+        "Missing canonical relations": len(missing_relations),
+        "Missing fullness audit fields": len(missing_fullness_audit),
+        "Storage fullness semantic errors": len(storage_fullness_errors),
+        "Manifest has ambiguous sourceCommit": "sourceCommit" in manifest,
+        "Live coverage": live.get("coverage", {}),
         "Duplicate HES ids": duplicate_ids,
         "Duplicate HES names": duplicate_names,
         "Invalid HES coordinates": sum(not point_is_valid(feature) for feature in hes if feature.get("geometry")),
@@ -106,7 +120,7 @@ def main() -> None:
         },
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    failures = [key for key, value in report.items() if key in {"Fırat/Dicle cross mismatch", "Basin selection mismatch", "GEOGLOWS accepted over 25 km", "Waterbody names used as river", "Fullness out of range", "Invalid relation ids"} and value not in (0, False)]
+    failures = [key for key, value in report.items() if key in {"Fırat/Dicle cross mismatch", "Basin selection mismatch", "GEOGLOWS accepted over 25 km", "Waterbody names used as river", "Fullness out of range", "Invalid relation ids", "Invalid coordinate kinds", "Missing canonical relations", "Missing fullness audit fields", "Storage fullness semantic errors", "Manifest has ambiguous sourceCommit"} and value not in (0, False)]
     failures.extend(key for key, value in report["Manifest count mismatches"].items() if value)
     failures.extend(key for key in ("Fullness semantic errors", "Missing FullnessResult", "Invalid reservoir polygons", "Transformer marked verified") if report[key] != 0)
     raise SystemExit(1 if failures else 0)

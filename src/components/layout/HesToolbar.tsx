@@ -34,7 +34,7 @@ export const HesToolbar: React.FC = () => {
       const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
       const record = dataMode === 'epias' ? (epias?.records ?? []).find((candidate) => [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String).includes(id) || [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR')).some((name) => names.includes(name))) : undefined;
       const result = resolveHesFullness(id, properties, fullnessByHes.get(id) ?? record, dataMode);
-      return result.sourceClass === 'mock' ? 'M' : result.source === 'epias' ? 'E' : result.fullnessPercent === null ? '—' : 'H';
+      return result;
     });
     return {
       hes: hes177.features.length,
@@ -43,10 +43,13 @@ export const HesToolbar: React.FC = () => {
       rivers: Number(manifest?.logicalRiverCount ?? rivers.features.length),
       cascades: Number(manifest?.cascadeEdgeCount ?? relations?.cascadeEdges?.length ?? 0),
       located: Number(manifest?.coordinateCount ?? hes177.features.filter((feature) => Boolean(feature.geometry)).length),
-      calculated: sources.filter((source) => source === 'H').length,
-      mock: sources.filter((source) => source === 'M').length,
-      epias: sources.filter((source) => source === 'E').length,
-      unavailable: sources.filter((source) => source === '—').length,
+      calculated: sources.filter((source) => source.sourceClass === 'calculated_storage' && source.fullnessPercent !== null).length,
+      mock: sources.filter((source) => source.sourceClass === 'mock').length,
+      epias: sources.filter((source) => source.source === 'epias').length,
+      satellite: sources.filter((source) => source.sourceClass === 'satellite_altimetry' || source.sourceClass === 'satellite_area').length,
+      stale: sources.filter((source) => source.status === 'stale').length,
+      notApplicable: sources.filter((source) => source.status === 'not_applicable').length,
+      unavailable: sources.filter((source) => source.status === 'unavailable').length,
     };
   }, [basins.features.length, dataMode, epias?.records, fullnessPayload, hes177.features, manifest, relations?.cascadeEdges?.length, rivers.features.length]);
 
@@ -70,7 +73,7 @@ export const HesToolbar: React.FC = () => {
         <Kpi label="Akarsu" value={kpis.rivers.toLocaleString('tr-TR')} />
         <Kpi label="Kaskat" value={kpis.cascades.toLocaleString('tr-TR')} className="hidden md:flex" />
         <Kpi label="Konumlu" value={kpis.located.toLocaleString('tr-TR')} className="hidden lg:flex" />
-        <Kpi label="Doluluk" value={`H ${kpis.calculated} · M ${kpis.mock} · E ${kpis.epias} · N/A ${kpis.unavailable}`} className="hidden xl:flex" />
+        <Kpi label="Doluluk" value={`${kpis.calculated + kpis.epias + kpis.satellite}/${kpis.hes} · N/A ${kpis.unavailable + kpis.notApplicable}`} className="hidden xl:flex" title={`Hesaplanan ${kpis.calculated} · EPİAŞ ${kpis.epias} · Uydu ${kpis.satellite} · Eski ${kpis.stale} · Uygulanamaz ${kpis.notApplicable}`} />
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-1.5">
@@ -88,8 +91,8 @@ export const HesToolbar: React.FC = () => {
   );
 };
 
-const Kpi: React.FC<{ label: string; value: string; className?: string }> = ({ label, value, className = 'flex' }) => (
-  <div className={`${className} shrink-0 items-center gap-1 rounded-md px-1.5 py-1`}>
+const Kpi: React.FC<{ label: string; value: string; className?: string; title?: string }> = ({ label, value, className = 'flex', title }) => (
+  <div title={title} className={`${className} shrink-0 items-center gap-1 rounded-md px-1.5 py-1`}>
     <span className="font-mono text-[10px] font-semibold text-[var(--text)]">{value}</span>
     <span className="text-[8px] uppercase tracking-wide text-[var(--muted)]">{label}</span>
   </div>

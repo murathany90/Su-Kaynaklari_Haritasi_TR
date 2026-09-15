@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowUpDown, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
-import { fullnessRecordsByHes, resolveHesFullness } from '../../data/fullnessSources';
+import { fullnessRecordsByHes, fullnessSourceLabel, resolveHesFullness } from '../../data/fullnessSources';
 import { useAppStore, type TabType } from '../../store/useAppStore';
+import type { FullnessResult } from '../../types/hydrology';
 
 type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness' | 'source' | 'count' | 'forecast' | 'cascade';
 type FullnessSource = string;
@@ -18,6 +19,8 @@ type Row = {
   forecast: boolean;
   cascadeCount: number;
   riverNames: string;
+  fullnessStatus?: string;
+  fullnessSourceClass?: string;
   details?: Record<string, unknown>;
 };
 
@@ -33,6 +36,14 @@ function formatMw(value: number): string {
   return `${Math.round(value).toLocaleString('tr-TR')} MW`;
 }
 
+function fullnessCode(result: FullnessResult): string {
+  if (result.fullnessPercent === null) return result.status === 'not_applicable' ? 'N/A' : '—';
+  if (result.sourceClass === 'mock') return 'M';
+  if (result.sourceClass === 'official') return 'E';
+  if (result.sourceClass === 'satellite_altimetry' || result.sourceClass === 'satellite_area') return 'U';
+  return 'H';
+}
+
 function volumeFullness(rows: Array<{ details?: Record<string, unknown> }>): number | null {
   const eligible = rows.map((row) => ({
     details: row.details,
@@ -46,7 +57,8 @@ function volumeFullness(rows: Array<{ details?: Record<string, unknown> }>): num
 }
 
 function fullnessCell(row: Row): React.ReactNode {
-  const sourceLabel = row.source === 'E' ? 'EPİAŞ doğrulanmış değer' : row.source === 'H' ? 'Aktif hacimden hesaplanan değer' : row.source === 'M' ? 'Geliştirme mock senaryosu' : 'Doğrulanmış doluluk verisi yok';
+  const result = row.details?.fullnessResult as FullnessResult | undefined;
+  const sourceLabel = result ? `${fullnessSourceLabel(result)} · ${result.method}` : 'Doğrulanmış doluluk verisi yok';
   if (row.fullness === null) return <span title={sourceLabel}>{row.source}</span>;
   return <span title={sourceLabel}>{`%${Math.round(row.fullness)} · ${row.source}`}</span>;
 }
@@ -78,6 +90,7 @@ export const Sidebar: React.FC = () => {
   const isLight = theme === 'light';
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [fullnessFilter, setFullnessFilter] = useState<'all' | 'available' | 'official' | 'satellite' | 'calculated' | 'unavailable' | 'not_applicable'>('all');
   const fullnessByHes = useMemo(() => fullnessRecordsByHes(fullnessPayload), [fullnessPayload]);
 
   const epiasByHes = useMemo(() => new Map(hes.features.flatMap((feature) => {
@@ -98,7 +111,7 @@ export const Sidebar: React.FC = () => {
     const fullnessResult = resolveHesFullness(id, properties, fullnessByHes.get(id) ?? epiasByHes.get(id), dataMode);
     return {
       id, type: 'hes' as const, name: String(properties.name ?? 'HES'), basin: String(properties.displayBasinName ?? properties.basinName ?? '—'), river: isValidRiver(properties.riverName) ? String(properties.riverName) : '—', power: numberOf(properties.installedPowerMw) ?? 0,
-      fullness: fullnessResult.fullnessPercent, source: fullnessResult.fullnessPercent === null ? (fullnessResult.status === 'not_applicable' ? 'N/A' : '—') : fullnessResult.source === 'epias' ? 'E' : fullnessResult.source === 'mock' ? 'M' : 'H', count: 1, forecast: false, cascadeCount: Number(Boolean(properties.cascadeToId)) + (Array.isArray(properties.cascadeFromIds) ? properties.cascadeFromIds.length : 0), riverNames: '', details: { ...properties, fullnessResult },
+      fullness: fullnessResult.fullnessPercent, source: fullnessCode(fullnessResult), fullnessStatus: fullnessResult.status, fullnessSourceClass: fullnessResult.sourceClass, count: 1, forecast: false, cascadeCount: Number(Boolean(properties.cascadeToId)) + (Array.isArray(properties.cascadeFromIds) ? properties.cascadeFromIds.length : 0), riverNames: '', details: { ...properties, fullnessResult },
     };
   }), [dataMode, epiasByHes, fullnessByHes, hes.features]);
 
@@ -134,9 +147,14 @@ export const Sidebar: React.FC = () => {
   const rows = currentTab === 'hes' ? hesRows : currentTab === 'rivers' ? riverRows : basinRows;
   const filteredRows = useMemo(() => {
     const query = searchQuery.trim().toLocaleLowerCase('tr-TR');
-    if (!query) return rows;
-    return rows.filter((row) => `${row.name} ${row.basin} ${row.river} ${row.riverNames}`.toLocaleLowerCase('tr-TR').includes(query));
-  }, [rows, searchQuery]);
+    const bySource = currentTab !== 'hes' || fullnessFilter === 'all' ? rows : rows.filter((row) => {
+      if (fullnessFilter === 'official') return row.fullnessSourceClass === 'official';
+      if (fullnessFilter === 'satellite') return row.fullnessSourceClass === 'satellite_altimetry' || row.fullnessSourceClass === 'satellite_area';
+      return row.fullnessStatus === fullnessFilter || (fullnessFilter === 'calculated' && row.fullnessSourceClass === 'calculated_storage' && row.fullness !== null);
+    });
+    if (!query) return bySource;
+    return bySource.filter((row) => `${row.name} ${row.basin} ${row.river} ${row.riverNames}`.toLocaleLowerCase('tr-TR').includes(query));
+  }, [currentTab, fullnessFilter, rows, searchQuery]);
   const sortedRows = useMemo(() => [...filteredRows].sort((left, right) => {
     const direction = sortDirection === 'asc' ? 1 : -1;
     const numericKeys: SortKey[] = ['power', 'fullness', 'count', 'cascade'];
@@ -159,6 +177,7 @@ export const Sidebar: React.FC = () => {
   ], [currentTab]);
   const gridTemplate = currentTab === 'hes' ? 'minmax(0,1.65fr) minmax(0,.84fr) minmax(0,.92fr) 4rem 3.9rem' : currentTab === 'rivers' ? 'minmax(0,1.5fr) minmax(0,.9fr) 2.2rem 4.15rem 2.8rem 3.55rem' : 'minmax(0,1.3fr) 2.2rem 4.15rem minmax(0,1.1fr) 3.55rem 2.8rem';
   const selectedHes = selectedEntity?.type === 'hes' ? hesRows.find((row) => row.id === selectedEntity.id) : null;
+  const selectedFullness = selectedHes?.details?.fullnessResult as FullnessResult | undefined;
   const selectedRiver = selectedEntity?.type === 'river' ? riverRows.find((row) => row.id === selectedEntity.id) : null;
   const relatedRiverRows = selectedRiver ? hesRows.filter((row) => (selectedRiver.details?.hesIds as unknown[] ?? []).map(String).includes(row.id)) : [];
   const tabs: Array<{ id: TabType; label: string; icon: React.ReactNode; count: number }> = [{ id: 'hes', label: 'HES', icon: <Mountain className="h-4 w-4" />, count: hesRows.length }, { id: 'rivers', label: 'Akarsular', icon: <Waves className="h-4 w-4" />, count: riverRows.length }, { id: 'basins', label: 'Havzalar', icon: <Gauge className="h-4 w-4" />, count: basinRows.length }];
@@ -174,12 +193,12 @@ export const Sidebar: React.FC = () => {
     <div className="grid grid-cols-3 gap-1 border-b border-[var(--line)] p-2">{tabs.map((tab) => <button key={tab.id} onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-[9px] transition ${currentTab === tab.id ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)] hover:bg-[var(--panel2)]'}`}>{tab.icon}<span>{tab.label}</span><span className="font-mono text-[8px] opacity-70">{tab.count.toLocaleString('tr-TR')}</span></button>)}</div>
     <div className="border-b border-[var(--line)] px-3 py-2"><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-[var(--muted)]">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/12 text-[var(--primary)]' : 'bg-[var(--panel2)] text-[var(--muted)]'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div></div>
     <div className="min-h-0 flex-1 overflow-auto p-2">
-      <div className="mb-1 flex items-center justify-between rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span><span>{sortedRows.length.toLocaleString('tr-TR')} kayıt</span></div>
+      <div className="mb-1 flex items-center justify-between gap-2 rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span>{currentTab === 'hes' ? <select value={fullnessFilter} onChange={(event) => setFullnessFilter(event.target.value as typeof fullnessFilter)} className="max-w-[125px] rounded border border-[var(--line)] bg-[var(--panel2)] px-1 py-0.5 text-[8px] text-[var(--muted)]" aria-label="Doluluk veri filtresi"><option value="all">Tüm doluluk</option><option value="available">Doluluk var</option><option value="official">Resmî</option><option value="satellite">Uydu</option><option value="calculated">Hesaplanan</option><option value="unavailable">Veri yok</option><option value="not_applicable">N/A</option></select> : <span>{sortedRows.length.toLocaleString('tr-TR')} kayıt</span>}</div>
       <div className={`mb-1 grid ${currentTab === 'hes' ? 'min-w-[360px]' : 'min-w-[405px]'} items-center gap-1 rounded-lg bg-[var(--panel2)] px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-[var(--muted)]`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => <button key={column.key} type="button" onClick={() => onSort(column.key)} className={`truncate text-left hover:text-[var(--primary)] ${column.className ?? ''}`} title={`${column.label} göre sırala`}>{column.label}{sortKey === column.key ? <ArrowUpDown className="ml-0.5 inline h-2.5 w-2.5" /> : null}</button>)}</div>
-      {selectedHes && <div className={`mb-2 rounded-xl border p-2 ${isLight ? 'border-cyan-200 bg-cyan-50' : 'border-cyan-500/20 bg-cyan-500/5'}`}><div className="flex items-center justify-between gap-2"><span className="truncate text-[11px] font-semibold text-cyan-400">⚡ {selectedHes.name}</span><span className="font-mono text-[9px] text-sky-300">{selectedHes.fullness === null ? '—' : `%${Math.round(selectedHes.fullness)} ${selectedHes.source}`}</span></div><div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] text-slate-500"><span>Havza: {selectedHes.basin}</span><span>Resmî havza: {String(selectedHes.details?.officialBasinName ?? '—')}</span><span>Akarsu: {selectedHes.river}</span><span>Güç: {formatMw(selectedHes.power)}</span><span>Debi: {numberOf(selectedHes.details?.unitFlowM3s)?.toLocaleString('tr-TR') ?? '—'} m³/sn</span><span>Baraj: {String(selectedHes.details?.damName ?? '—')}</span><span>Min / max kot: {numberOf(selectedHes.details?.minWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} m</span><span>Min / max hacim: {numberOf(selectedHes.details?.minVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Aktif hacim: {numberOf(selectedHes.details?.activeVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Kaskat: {String(selectedHes.details?.cascadeName ?? '—')}</span></div><div className="mt-2 grid grid-cols-2 gap-1"><button onClick={() => { const id = String(selectedHes.details?.riverSystemId ?? ''); if (id) setSelectedEntity({ type: 'river', id }); }} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Akarsuyu göster</button><button onClick={() => { const id = String(selectedHes.details?.basinId ?? ''); if (id) setSelectedEntity({ type: 'basin', id }); }} className="rounded border border-violet-500/25 px-1.5 py-1 text-[8px] text-violet-400">Havzayı göster</button><button onClick={() => { const id = String(selectedHes.details?.cascadeToId ?? ''); if (id) setSelectedEntity({ type: 'hes', id }); }} className="rounded border border-amber-500/25 px-1.5 py-1 text-[8px] text-amber-400">Kaskadı göster</button><button onClick={() => toggleCatchment(selectedHes.id)} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Su alanını göster</button></div></div>}
+      {selectedHes && <div className={`mb-2 rounded-xl border p-2 ${isLight ? 'border-cyan-200 bg-cyan-50' : 'border-cyan-500/20 bg-cyan-500/5'}`}><div className="flex items-center justify-between gap-2"><span className="truncate text-[11px] font-semibold text-cyan-400">⚡ {selectedHes.name}</span><span className="font-mono text-[9px] text-sky-300">{selectedHes.fullness === null ? '—' : `%${Math.round(selectedHes.fullness)} ${selectedHes.source}`}</span></div><div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] text-slate-500"><span>Havza: {selectedHes.basin}</span><span>Resmî havza: {String(selectedHes.details?.officialBasinName ?? '—')}</span><span>Akarsu: {selectedHes.river}</span><span>Güç: {formatMw(selectedHes.power)}</span><span>Doluluk kaynağı: {selectedFullness ? fullnessSourceLabel(selectedFullness) : '—'}</span><span>Yöntem: {selectedFullness?.method ?? '—'}</span><span>Gözlem: {selectedFullness?.observedAt ?? '—'}</span><span>Güven: {selectedFullness?.confidence ?? '—'}{selectedFullness?.isEstimated ? ' · tahmini' : ''}</span><span>Debi: {numberOf(selectedHes.details?.unitFlowM3s)?.toLocaleString('tr-TR') ?? '—'} m³/sn</span><span>Baraj: {String(selectedHes.details?.damName ?? '—')}</span><span>Min / max kot: {numberOf(selectedHes.details?.minWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} m</span><span>Min / max hacim: {numberOf(selectedHes.details?.minVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Aktif hacim: {numberOf(selectedHes.details?.activeVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Kaskat: {String(selectedHes.details?.cascadeName ?? '—')}</span></div><div className="mt-2 grid grid-cols-2 gap-1"><button onClick={() => { const id = String(selectedHes.details?.riverSystemId ?? ''); if (id) setSelectedEntity({ type: 'river', id }); }} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Akarsuyu göster</button><button onClick={() => { const id = String(selectedHes.details?.basinId ?? ''); if (id) setSelectedEntity({ type: 'basin', id }); }} className="rounded border border-violet-500/25 px-1.5 py-1 text-[8px] text-violet-400">Havzayı göster</button><button onClick={() => { const id = String(selectedHes.details?.cascadeToId ?? ''); if (id) setSelectedEntity({ type: 'hes', id }); }} className="rounded border border-amber-500/25 px-1.5 py-1 text-[8px] text-amber-400">Kaskadı göster</button><button onClick={() => toggleCatchment(selectedHes.id)} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Su alanını göster</button></div></div>}
       {selectedRiver && relatedRiverRows.length > 0 && <div className="mb-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-2"><div className="text-[10px] font-semibold text-cyan-400">İlgili HES tesisleri</div><div className="mb-1 text-[9px] text-slate-500">Kanonik logical akarsu ilişkisi · {relatedRiverRows.length} HES</div>{relatedRiverRows.slice(0, 4).map((row) => <button key={row.id} onClick={() => selectRow(row)} className="block w-full truncate py-0.5 text-left text-[9px] text-slate-300 hover:text-cyan-300">⚡ {row.name} · {formatMw(row.power)}</button>)}</div>}
       {dataStatus === 'loading' ? <div className="p-4 text-center text-xs text-[var(--muted)]">Kanonik HES verisi yükleniyor…</div> : sortedRows.map((row) => <button key={row.id} onClick={() => selectRow(row)} className={`mb-1 grid ${currentTab === 'hes' ? 'min-w-[360px]' : 'min-w-[405px]'} w-full items-center gap-1 rounded-lg border border-transparent bg-[var(--panel2)] px-2 py-1.5 text-left transition hover:border-cyan-500/30 ${selectedEntity?.type === row.type && selectedEntity.id === row.id ? 'ring-1 ring-cyan-400/55' : ''}`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => { const content = column.value(row); return <span key={column.key} title={typeof content === 'string' ? content : undefined} className={`truncate text-[9px] ${column.key === 'name' ? 'font-semibold text-[var(--text)]' : column.key === 'river' ? 'text-[var(--primary)]' : column.className ?? 'text-[var(--muted)]'}`}>{content}</span>; })}</button>)}
     </div>
-    <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}>20 MW+ HES envanteri · seçim haritada uygun ölçeğe yaklaşır · doluluk: E EPİAŞ, H hacim, M mock</div>
+    <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}>20 MW+ HES envanteri · seçim haritada uygun ölçeğe yaklaşır · doluluk: E EPİAŞ, H hacim, U uydu, M mock</div>
   </aside>;
 };
