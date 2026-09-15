@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, Map as MapIcon, Menu, RefreshCw, X } from 'lucide-react';
 import { formatDataDate } from '../../data/hydrology';
-import { ENABLE_MOCK, fullnessRecordsByHes, resolveHesFullness } from '../../data/fullnessSources';
+import { ENABLE_MOCK, fullnessRecordsByHes, preferredFullnessRecord, resolveHesFullness } from '../../data/fullnessSources';
 import { useAppStore } from '../../store/useAppStore';
 
 const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr', satellite: 'Uydu', streets: 'Sokak' };
@@ -33,7 +33,7 @@ export const HesToolbar: React.FC = () => {
       const id = String(properties.id ?? feature.id ?? '');
       const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
       const record = dataMode === 'epias' ? (epias?.records ?? []).find((candidate) => [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String).includes(id) || [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR')).some((name) => names.includes(name))) : undefined;
-      const result = resolveHesFullness(id, properties, fullnessByHes.get(id) ?? record, dataMode);
+      const result = resolveHesFullness(id, properties, preferredFullnessRecord(fullnessByHes.get(id), record), dataMode);
       return result;
     });
     return {

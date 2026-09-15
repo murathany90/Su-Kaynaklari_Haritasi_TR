@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowUpDown, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
-import { fullnessRecordsByHes, fullnessSourceLabel, resolveHesFullness } from '../../data/fullnessSources';
+import { fullnessRecordsByHes, fullnessSourceLabel, preferredFullnessRecord, resolveHesFullness } from '../../data/fullnessSources';
 import { useAppStore, type TabType } from '../../store/useAppStore';
 import type { FullnessResult } from '../../types/hydrology';
 
@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
   const hesRows = useMemo<Row[]>(() => hes.features.map((feature) => {
     const properties = feature.properties ?? {};
     const id = String(properties.id ?? feature.id ?? '');
-    const fullnessResult = resolveHesFullness(id, properties, fullnessByHes.get(id) ?? epiasByHes.get(id), dataMode);
+    const fullnessResult = resolveHesFullness(id, properties, preferredFullnessRecord(fullnessByHes.get(id), epiasByHes.get(id)), dataMode);
     return {
       id, type: 'hes' as const, name: String(properties.name ?? 'HES'), basin: String(properties.displayBasinName ?? properties.basinName ?? '—'), river: isValidRiver(properties.riverName) ? String(properties.riverName) : '—', power: numberOf(properties.installedPowerMw) ?? 0,
       fullness: fullnessResult.fullnessPercent, source: fullnessCode(fullnessResult), fullnessStatus: fullnessResult.status, fullnessSourceClass: fullnessResult.sourceClass, count: 1, forecast: false, cascadeCount: Number(Boolean(properties.cascadeToId)) + (Array.isArray(properties.cascadeFromIds) ? properties.cascadeFromIds.length : 0), riverNames: '', details: { ...properties, fullnessResult },

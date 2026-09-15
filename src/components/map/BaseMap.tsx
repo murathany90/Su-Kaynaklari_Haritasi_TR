@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAppStore } from '../../store/useAppStore';
 import { getForecastTimestamps } from '../../services/hydroData';
 import { damIconBucket, displayName, getBasinColor, getDamColor, getFlowScaleColor } from '../../data/hydrology';
-import { fullnessRecordsByHes, resolveHesFullness } from '../../data/fullnessSources';
+import { fullnessRecordsByHes, fullnessSourceLabel, preferredFullnessRecord, resolveHesFullness } from '../../data/fullnessSources';
 import { getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
 import { HES_PIE_LAYER_ID, ensureHydrologyOverlay, type OverlayCollections, type OverlayOptions } from './mapLayers';
 import { focusSelectedEntity } from './mapCamera';
@@ -150,7 +150,7 @@ export function BaseMap() {
     const geoglowsRecords = geoglows?.records ?? [];
     const timestamps = getForecastTimestamps(geoglows);
     const activeTimestamp = timestamps[timelineIndex];
-    const epiasRecords = dataMode === 'epias' && epias?.status === 'ok' ? epias.records ?? [] : [];
+    const epiasRecords = dataMode === 'epias' ? epias?.records ?? [] : [];
     const fullnessByHes = fullnessRecordsByHes(fullness);
     const activeForecastFlows = geoglowsRecords.flatMap((record) => {
       const rows = Array.isArray(record.data) ? record.data : [];
@@ -199,7 +199,7 @@ export function BaseMap() {
       const selectedHesRelation = selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id] : undefined;
       const relatedToSelectedHes = Boolean(selectedHesRelation?.damIds?.map(String).includes(id));
       const fullnessSeedId = hesIds[0] ?? id;
-      const seededOccupancy = resolveHesFullness(fullnessSeedId, linkedHesProperties, fullnessByHes.get(fullnessSeedId) ?? live ?? null, dataMode).fullnessPercent;
+      const seededOccupancy = resolveHesFullness(fullnessSeedId, linkedHesProperties, preferredFullnessRecord(fullnessByHes.get(fullnessSeedId), live), dataMode).fullnessPercent;
       const basinRelevant = selectedEntity?.type === 'basin' && String(properties.basinId ?? '') === selectedEntity.id;
       const damRelevant = selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId) || selectedBasinHesIds.has(hesId)) || relatedToSelectedHes || basinRelevant || selectedEntity?.type === 'dam' && selectedEntity.id === id;
       return { ...feature, properties: { ...properties, name, basinName: properties.basinName ?? properties.HavzaAdi, occupancy: seededOccupancy, damIcon: damIconBucket(seededOccupancy), isProducer: hesIds.length > 0, hesMatchIds: hesIds, selected: selectedEntity?.type === 'dam' && selectedEntity.id === id, relatedToSelected: damRelevant, dimmed: Boolean(selectedEntity && !damRelevant), color: seededOccupancy === null ? '#94a3b8' : getDamColor(seededOccupancy), radius: seededOccupancy === null ? 8 : Math.min(13, Math.max(6, seededOccupancy / 8)) } };
@@ -211,14 +211,14 @@ export function BaseMap() {
       const localRiverIds = Array.isArray(matchingRiver?.properties?.geoglowsLocalRiverIds) ? matchingRiver.properties.geoglowsLocalRiverIds.map(String) : [];
       const live = geoglowsRecords.find((record) => localRiverIds.includes(String(record.localRiverId ?? '')));
       const flow = liveNumber(live?.data, ['flow', 'discharge', 'streamflow', 'flow_median', 'value']);
-      const fullnessResult = resolveHesFullness(id, feature.properties ?? {}, fullnessByHes.get(id) ?? findHesEpiasRecord(epiasRecords, id, feature.properties ?? {}), dataMode);
+      const fullnessResult = resolveHesFullness(id, feature.properties ?? {}, preferredFullnessRecord(fullnessByHes.get(id), findHesEpiasRecord(epiasRecords, id, feature.properties ?? {})), dataMode);
       const selectedRiverName = selectedRiver?.properties?.riverName ?? selectedRiver?.properties?.name;
       const riverSelected = selectedEntity?.type === 'river' && Boolean((relation?.riverIds ?? []).map(String).includes(selectedEntity.id) || (selectedRiverName && relation?.riverName === selectedRiverName));
       const hesSelected = selectedEntity?.type === 'hes' && selectedEntity.id === id;
       const basinSelected = selectedEntity?.type === 'basin' && String(feature.properties?.basinId ?? '') === selectedEntity.id;
       const selectedHesRelation = selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id] : undefined;
       const hesRelated = riverSelected || Boolean(selectedHesRelation?.cascadeFromIds?.map(String).includes(id) || String(selectedHesRelation?.cascadeToId ?? '') === id);
-      const fullnessSourceKey = fullnessResult.fullnessPercent === null ? 'N/A' : fullnessResult.source === 'canonical' ? 'Hacim' : fullnessResult.source === 'epias' ? 'EPİAŞ' : fullnessResult.source === 'mock' ? 'MOCK' : 'N/A';
+      const fullnessSourceKey = fullnessSourceLabel(fullnessResult);
       return { ...feature, properties: { ...feature.properties, color: '#38bdf8', flow, occupancy: fullnessResult.fullnessPercent, fullnessSource: fullnessBadge(fullnessResult), fullnessStatus: fullnessResult.status, fullnessSourceClass: fullnessResult.sourceClass, fullnessSourceKey, fullnessSourceUrl: fullnessResult.sourceUrl, fullnessMethod: fullnessResult.method, fullnessObservedAt: fullnessResult.observedAt, fullnessFreshnessDays: fullnessResult.freshnessDays, fullnessConfidence: fullnessResult.confidence, fullnessEstimated: fullnessResult.isEstimated, fullnessReasonUnavailable: fullnessResult.reasonUnavailable, damIcon: damIconBucket(fullnessResult.fullnessPercent), visualRadius: visualPowerRadius(feature.properties?.installedPowerMw), markerDiameterPx: visualPowerRadius(feature.properties?.installedPowerMw) * 2, damLinked: Boolean(relation?.damIds?.length), isProducer: true, relatedToSelected: riverSelected || basinSelected || hesRelated, selected: hesSelected, dimmed: Boolean(selectedEntity && !hesSelected && !hesRelated && !riverSelected && !basinSelected), cascadeDepth: relation?.cascadeOrder ?? null } };
     }) };
     const reservoirFeatures = reservoirs.features.map((feature) => {

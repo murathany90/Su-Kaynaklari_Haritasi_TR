@@ -53,7 +53,6 @@ function mockValue(id: string): number {
 function resultFromRecord(record: Record<string, unknown>, hesId: string): FullnessResult | null {
   const value = clamp(numberOf(record.fullnessPercent));
   const status = String(record.status ?? (value === null ? 'unavailable' : 'available')) as FullnessResult['status'];
-  if (status === 'unavailable' && value === null) return null;
   return {
     hesId,
     fullnessPercent: value,
@@ -88,10 +87,10 @@ export function resolveHesFullness(
   }
   if (liveRecord) {
     const liveResult = resultFromRecord(liveRecord, hesId);
-    if (liveResult) return liveResult;
+    if (liveResult && !(dataMode === 'mock' && ENABLE_MOCK && liveResult.status === 'unavailable')) return liveResult;
   }
   const canonicalResult = source.fullnessResult && typeof source.fullnessResult === 'object' ? resultFromRecord(source.fullnessResult as Record<string, unknown>, hesId) : null;
-  if (canonicalResult) return canonicalResult;
+  if (canonicalResult && !(dataMode === 'mock' && ENABLE_MOCK && canonicalResult.status === 'unavailable')) return canonicalResult;
   const direct = clamp(firstNumber(source, PERCENT_KEYS));
   const calculated = direct ?? calculatedStorage(source) ?? calculatedCurrentStorage(source);
   if (calculated !== null) {
@@ -102,6 +101,12 @@ export function resolveHesFullness(
     return { hesId, fullnessPercent: mockValue(hesId), status: 'available', sourceClass: 'mock', source: 'mock', method: 'development-seeded-value', observedAt: null, fetchedAt: null, freshnessDays: null, confidence: 'low', isEstimated: true, qualityFlags: ['development_only'] };
   }
   return { hesId, fullnessPercent: null, status: 'unavailable', sourceClass: 'calculated_storage', source: 'canonical', method: 'no-verified-fullness-source', observedAt: null, fetchedAt: null, freshnessDays: null, confidence: 'low', isEstimated: false, reasonUnavailable: 'verified fullness source unavailable', qualityFlags: ['no_data'] };
+}
+
+/** Prefer the canonical snapshot, but let an explicitly available live source replace its N/A record. */
+export function preferredFullnessRecord(primary: Record<string, unknown> | null | undefined, fallback: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
+  if (primary?.status === 'unavailable' && fallback) return fallback;
+  return primary ?? fallback ?? null;
 }
 
 export function fullnessSourceLabel(result: FullnessResult): string {
