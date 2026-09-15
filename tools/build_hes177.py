@@ -26,6 +26,7 @@ WORKBOOK = ROOT / "docs" / "HES_177_Zenginlestirilmis_Envanter_v3.xlsx"
 TATUS = ROOT / "public" / "data" / "static" / "tatus"
 OUT = ROOT / "public" / "data" / "hes177"
 RIVER_REACH_MAPPING = ROOT / "public" / "data" / "static" / "mappings" / "river_reach_map.json"
+HYDRO_RIVERS_CACHE = ROOT / "public" / "data" / "static" / "mappings" / "hydrorivers_hes177.geojson"
 MIN_INSTALLED_POWER_MW = 20.0
 CANONICAL_DATA_VERSION = "hes177-v6"
 NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
@@ -310,7 +311,7 @@ def disconnected_components(parts: list[list[Any]], threshold_km: float = 8) -> 
 
 def canonical_source_river_name(value: Any) -> str:
     normalized = normalize(value)
-    aliases = {"FERAT": "FIRAT", "BUYUKMENDERES": "BUYUK MENDERES"}
+    aliases = {"FERAT": "FIRAT", "BUYUKMENDERES": "BUYUK MENDERES", "MELET": "MELET IRMAGI", "GOKSU": "GOKSU N"}
     return aliases.get(normalized, normalized)
 
 
@@ -542,6 +543,16 @@ KNOWN_RIVER_HES = {
     "Manahoz": {"YUKARI MANAHOZ"},
 }
 
+# Facility-level evidence for rows where the workbook has no usable river
+# field or coordinate. These are controlled source matches, not basin-wide
+# guesses; the source is retained in the canonical feature properties.
+KNOWN_HES_RIVER_OVERRIDES = {
+    "hes177-042": ("Göksu", "Burç Bendi Dam / Göksu River"),
+    "hes177-055": ("Melet", "TATUS HES station SuAdi + Melet corridor"),
+    "hes177-065": ("Harşit Çayı", "TATUS HES station SuAdi + Harşit corridor"),
+    "hes177-152": ("Fırat", "DSİ Şanlıurfa HES / Fırat River inventory"),
+}
+
 RIVER_BASINS = {
     "FIRAT": {"21"}, "DICLE": {"21"}, "KIZILIRMAK": {"15"}, "SAKARYA": {"12"},
     "YESILIRMAK": {"14"}, "CORUH": {"23"}, "SEYHAN": {"18"}, "CEYHAN": {"20"},
@@ -626,6 +637,17 @@ def main() -> None:
     rivers_overview_source = read_json(TATUS / "rivers_overview.geojson")
     reach_mapping = read_json(RIVER_REACH_MAPPING).get("mappings", []) if RIVER_REACH_MAPPING.exists() else []
     reach_mapping_by_code = {str(item.get("riverCode")): item for item in reach_mapping if item.get("riverCode")}
+    hydrorivers_cache = read_json(HYDRO_RIVERS_CACHE) if HYDRO_RIVERS_CACHE.exists() else {}
+    hydro_parts_by_system: dict[str, list[list[Any]]] = defaultdict(list)
+    hydro_ids_by_system: dict[str, set[str]] = defaultdict(set)
+    for feature in hydrorivers_cache.get("features", []):
+        properties = feature.get("properties") or {}
+        river_system_keys = properties.get("riverSystemKeys") or []
+        for system_key in river_system_keys:
+            normalized_system_key = canonical_source_river_name(system_key)
+            hydro_parts_by_system[normalized_system_key].extend(geometry_line_parts(feature.get("geometry")))
+            if properties.get("hydroRiversId"):
+                hydro_ids_by_system[normalized_system_key].add(str(properties["hydroRiversId"]))
     overview_lines = feature_lines(rivers_overview_source)
     basin_by_id = {basin_id(feature): feature for feature in basins_source.get("features", [])}
 
@@ -746,6 +768,14 @@ def main() -> None:
         if not point_of(hes) and hes_id in transformer_points:
             hes["geometry"] = {"type": "Point", "coordinates": list(transformer_points[hes_id])}
 
+    # HydroRIVERS anchors are build-time topology evidence. A transformer
+    # coordinate is never used as an anchor by the cache generator, so these
+    # fields remain absent for unresolved/low-confidence positions.
+    for hes in hes_features:
+        info = hydrorivers_cache.get("anchorInfo", {}).get(hes["properties"]["id"])
+        if info:
+            hes["properties"].update(info)
+
     # Validate the official workbook basin against TATUS polygons. A
     # transformer-only point is retained as a low-confidence candidate and
     # never overrides the official basin identity.
@@ -828,15 +858,18 @@ def main() -> None:
     for row, hes in zip(rows, hes_features):
         url = str(row.get("Akarsu Polyline GeoJSON URL") or "")
         props = hes["properties"]
+        river_override = KNOWN_HES_RIVER_OVERRIDES.get(props["id"])
         workbook_river = valid_river_name(props.get("riverNameWorkbook"), props.get("basinId"))
         basin_main_river = BASIN_MAIN_RIVER.get(str(props.get("basinId")))
-        explicit_river = workbook_river or known_river(props.get("name"), props.get("damName"))
+        explicit_river = river_override[0] if river_override else workbook_river or known_river(props.get("name"), props.get("damName"))
         station_river = station_river_by_hes.get(props["id"])
         known = explicit_river or station_river or basin_main_river
         if known and not props.get("riverName"):
             props["riverName"] = known
-            props["riverMatchMethod"] = "workbook-pre-mapping" if workbook_river else "controlled-facility-map" if explicit_river else "tatus-station-suadi" if station_river else "basin-main-river"
+            props["riverMatchMethod"] = "controlled-facility-source" if river_override else "workbook-pre-mapping" if workbook_river else "controlled-facility-map" if explicit_river else "tatus-station-suadi" if station_river else "basin-main-river"
             props["riverConfidence"] = "high" if explicit_river else "medium"
+            if river_override:
+                props["riverEvidenceSource"] = river_override[1]
         payload = fetched_rivers.get(url)
         lines = feature_lines(payload)
         if not lines:
@@ -861,7 +894,8 @@ def main() -> None:
                 # than leaking one technical pseudo-river per HES into the UI.
                 continue
             key = f"{props['basinId']}:{code}:{json.dumps(line.get('geometry'), sort_keys=True)}"
-            record = river_segments.setdefault(key, {"geometry": line.get("geometry"), "name": line_name, "riverName": line_name, "riverCode": code, "basinId": props["basinId"], "hesIds": [], "source": "TATUS Layer 8", "matchMethod": "workbook-pre-mapping" if workbook_river else "controlled-facility-map" if explicit_river else "basin-main-river" if basin_main_river and line_name == basin_main_river else "tatus-spatial", "confidence": "high" if explicit_river else "medium", "lengthKm": number(line_props.get("lengthKm")) or (number(line_props.get("uzunluk")) or 0) / 1000})
+            line_match_method = "controlled-facility-source" if river_override else "workbook-pre-mapping" if workbook_river else "controlled-facility-map" if explicit_river else "basin-main-river" if basin_main_river and line_name == basin_main_river else "tatus-spatial"
+            record = river_segments.setdefault(key, {"geometry": line.get("geometry"), "name": line_name, "riverName": line_name, "riverCode": code, "basinId": props["basinId"], "hesIds": [], "source": "TATUS Layer 8", "matchMethod": line_match_method, "confidence": "high" if explicit_river else "medium", "lengthKm": number(line_props.get("lengthKm")) or (number(line_props.get("uzunluk")) or 0) / 1000})
             if props["id"] not in record["hesIds"]: record["hesIds"].append(props["id"])
             if code and code not in (props.get("riverCode") or ""): props["riverCode"] = code
             props["riverName"], props["riverMatchMethod"], props["riverConfidence"] = line_name, record["matchMethod"], record["confidence"]
@@ -899,7 +933,7 @@ def main() -> None:
         river_name = record.get("riverName")
         if not river_name:
             continue
-        normalized_name = normalize(river_name)
+        normalized_name = canonical_source_river_name(river_name)
         major_system = normalized_name in MAJOR_RIVER_NAMES
         system_key = f"major:{normalized_name}" if major_system else f"{record['basinId']}:{normalized_name}"
         system = river_systems.setdefault(system_key, {"name": river_name, "basinId": record["basinId"], "basinIds": [], "hesIds": [], "codes": [], "geometries": [], "lengthKm": 0.0, "matchMethods": set(), "confidences": set()})
@@ -923,7 +957,7 @@ def main() -> None:
         river_name = properties.get("riverName")
         if not river_name:
             continue
-        normalized_name = normalize(river_name)
+        normalized_name = canonical_source_river_name(river_name)
         major_system = normalized_name in MAJOR_RIVER_NAMES
         system_key = f"major:{normalized_name}" if major_system else f"{properties['basinId']}:{normalized_name}"
         system = river_systems.setdefault(system_key, {"name": river_name, "basinId": properties["basinId"], "basinIds": [], "hesIds": [], "codes": [], "geometries": [], "lengthKm": 0.0, "matchMethods": set(), "confidences": set()})
@@ -933,6 +967,10 @@ def main() -> None:
             system["hesIds"].append(properties["id"])
         system["matchMethods"].add(properties.get("riverMatchMethod") or "controlled-name")
         system["confidences"].add(properties.get("riverConfidence") or "medium")
+
+    for system in river_systems.values():
+        system["hydroMainRiverIds"] = sorted({str(hes_by_id[hes_id]["properties"].get("hydroMainRiverId")) for hes_id in system["hesIds"] if hes_by_id[hes_id]["properties"].get("hydroMainRiverId")})
+        system["hydroRiversIds"] = sorted(hydro_ids_by_system.get(canonical_source_river_name(system["name"]), set()))
 
     # The comprehensive TATUS network is build-time-only evidence. Extract
     # just the named, HES-basin corridors needed by the focused browser
@@ -960,6 +998,7 @@ def main() -> None:
         focused_parts = system["geometries"]
         source_parts = [part for basin in system["basinIds"] for part in source_parts_by_name_and_basin.get((canonical_source_river_name(system["name"]), str(basin)), [])]
         anchors = [(point, float(hes_by_id[hes_id]["properties"].get("installedPowerMw") or 0)) for hes_id in system["hesIds"] if (point := point_of(hes_by_id[hes_id]))]
+        hydro_parts = list(hydro_parts_by_system.get(canonical_source_river_name(system["name"]), []))
         overview_parts = [part for feature in overview_lines if basin_id(feature) in system["basinIds"] and any(line_distance_km(point, feature.get("geometry")) <= 35 for point, _ in anchors) for part in geometry_line_parts(feature.get("geometry"))]
         source_corridor, source_components, source_represented_components, source_omitted = nearest_hes_corridors(source_parts, anchors)
         focused_corridor, focused_components, focused_represented_components, focused_omitted = hes_supported_corridors(focused_parts, anchors)
@@ -967,14 +1006,15 @@ def main() -> None:
         source_geometry = {"type": "MultiLineString", "coordinates": source_corridor}
         source_hes_count = sum(line_distance_km(point, source_geometry) <= 25 for point, _ in anchors)
         full_named_network = source_parts if canonical_source_river_name(system["name"]) in MAJOR_RIVER_NAMES else []
-        candidate_network = unique_line_parts(full_named_network, source_corridor, focused_corridor, overview_corridor)
-        routed_parts, routed_anchor_count = network_route_parts(candidate_network, anchors)
+        candidate_network = unique_line_parts(hydro_parts, full_named_network, source_corridor, focused_corridor, overview_corridor)
+        routed_parts, routed_anchor_count = network_route_parts(candidate_network, anchors, snap_km=0.5)
         # The named TATUS network provides the main stem where it reaches the
         # facilities; Layer 8 keeps direct HES reaches visible as well.  These
         # are merged rather than ranked so no valid corridor disappears merely
         # because another disconnected component scored higher.
-        source_collections = [routed_parts, focused_corridor]
-        source_labels = ["topology-routed corridor"] if routed_parts else []
+        source_collections = [hydro_parts, routed_parts, focused_corridor]
+        source_labels = ["HydroRIVERS v10 main-stem"] if hydro_parts else []
+        source_labels.extend(["topology-routed corridor"] if routed_parts else [])
         source_labels.extend(["Layer 8 HES corridors"] if focused_corridor else [])
         if source_corridor and source_hes_count > 0:
             source_collections.insert(0, source_corridor)
@@ -984,7 +1024,7 @@ def main() -> None:
             source_labels.append("overview corridors")
         parts = unique_line_parts(*source_collections)
         geometry_source = "TATUS " + " + ".join(source_labels) if source_labels else "unavailable"
-        candidate_segment_count = len(source_parts) + len(focused_parts) + len(overview_parts)
+        candidate_segment_count = len(hydro_parts) + len(source_parts) + len(focused_parts) + len(overview_parts)
         omitted_segment_count = source_omitted + focused_omitted + overview_omitted
         if not parts:
             continue
@@ -1009,6 +1049,11 @@ def main() -> None:
         visible_length_km = sum(line_length_km(part) for part in parts)
         corridor_hes_count = sum(line_distance_km(point, geometry) <= 25 for point, _ in anchors)
         properties = {"id": river_id, "entityId": river_id, "entityType": "hesRiverSystem", "name": system["name"], "riverName": system["name"], "canonicalRiverName": canonical_source_river_name(system["name"]), "displayRiverName": system["name"], "sourceRiverName": system["name"], "riverSystemId": river_id, "riverCode": system["codes"][0] if system["codes"] else None, "riverCodes": system["codes"], "hesIds": system["hesIds"], "hesCount": len(system["hesIds"]), "installedPowerMw": sum(hes_by_id[hid]["properties"].get("installedPowerMw") or 0 for hid in system["hesIds"]), "basinId": system["basinId"], "basinIds": system["basinIds"], "geometrySource": geometry_source, "matchMethod": "+".join(sorted(system["matchMethods"])), "confidence": confidence, "lengthKm": visible_length_km, "totalLengthKm": visible_length_km, "representedLengthKm": visible_length_km, "segmentCount": len(parts), "candidateSegmentCount": candidate_segment_count, "candidateComponentCount": source_components + focused_components + overview_components, "representedComponentCount": components, "connectedComponentCount": components, "sourceRepresentedComponentCount": source_represented_components, "focusedRepresentedComponentCount": focused_represented_components, "overviewRepresentedComponentCount": overview_represented_components, "routedAnchorCount": routed_anchor_count, "omittedDisconnectedSegmentCount": omitted_segment_count, "disconnectedComponents": components, "corridorHesCount": corridor_hes_count, "corridorCoveragePercent": round(corridor_hes_count / len(system["hesIds"]) * 100, 1) if system["hesIds"] else 0, "geoglowsLocalRiverIds": [str(item.get("localRiverId")) for item in mapped_reaches if item.get("localRiverId")], "geoglowsRiverIds": [item.get("geoglowsRiverId") for item in mapped_reaches if item.get("geoglowsRiverId") is not None], "geoglowsMatchMethod": "river-code" if direct_reaches else "same-basin-nearest-corridor" if mapped_reaches else "unmatched", "geoglowsMatchDistanceKm": round(geoglows_distance, 2) if geoglows_distance is not None else None, "geoglowsConfidence": geoglows_confidence, "representativeLocalRiverId": str(representative_reach.get("localRiverId")) if representative_reach and representative_reach.get("localRiverId") else None, "representativeGeoglowsRiverId": representative_reach.get("geoglowsRiverId") if representative_reach else None, "hes177": True}
+        properties["hydroMainRiverIds"] = system.get("hydroMainRiverIds", [])
+        properties["hydroRiversIds"] = system.get("hydroRiversIds", [])
+        properties["hydroRiversFeatureCount"] = len(hydro_parts)
+        properties["hydroRiversConnectedComponents"] = disconnected_components(hydro_parts) if hydro_parts else 0
+        properties["candidateComponentCount"] += properties["hydroRiversConnectedComponents"]
         river_features.append({"type": "Feature", "id": river_id, "geometry": geometry, "properties": properties})
         for hes_id in system["hesIds"]: river_system_ids_by_hes[hes_id].append(river_id)
 
@@ -1111,6 +1156,9 @@ def main() -> None:
         for feature in hes_features
     )
     manifest = {"version": 6, "dataVersion": CANONICAL_DATA_VERSION, "generatedAt": generated_at, "sourceCommit": build_source_commit, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "minimumInstalledPowerMw": MIN_INSTALLED_POWER_MW, "hesCount": len(hes_features), "producerCount": producer_count, "riverMatchedCount": river_matched_count, "riverUnresolvedCount": len(river_unresolved), "riverUnmatchedCount": len(river_unmatched_hes), "riverUnmatchedHesIds": river_unmatched_hes, "riverUnmatchedHesNames": river_unmatched_names, "displayBasinCount": display_basin_count, "officialBasinCount": official_basin_count, "spatialVerifiedBasinCount": spatial_verified_basin_count, "damFallbackBasinCount": dam_fallback_basin_count, "workbookBasinCount": workbook_basin_count, "transformerCandidateCount": transformer_candidate_count, "basinSelectionMismatchCount": basin_selection_mismatch_count, "riverCrossMismatchCount": river_cross_mismatch_count, "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "disconnectedRiverComponents": disconnected_river_components, "damCount": len(dam_features), "reservoirPolygonCount": 0, "hesStationCount": 0, "lakeStationCount": 0, "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "volumeCalculatedFullnessCount": volume_fullness_count, "epiasFullnessCount": 0, "fallbackMockFullnessCount": len(hes_features) - volume_fullness_count, "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
+    manifest["hydroRiversCacheFeatureCount"] = len(hydrorivers_cache.get("features", []))
+    manifest["hydroRiversMatchedHesCount"] = len(hydrorivers_cache.get("anchorInfo", {}))
+    manifest["hydroRiversSource"] = hydrorivers_cache.get("source") if hydrorivers_cache else None
     write("hes_177_manifest.json", manifest)
     print(json.dumps({"minimumInstalledPowerMw": MIN_INSTALLED_POWER_MW, "hes": len(hes_features), "producers": producer_count, "riverMatched": river_matched_count, "riverUnmatched": len(river_unmatched_hes), "displayBasins": display_basin_count, "officialBasins": official_basin_count, "spatialVerifiedBasins": spatial_verified_basin_count, "damFallbackBasins": dam_fallback_basin_count, "workbookBasins": workbook_basin_count, "transformerCandidates": transformer_candidate_count, "basinSelectionMismatches": basin_selection_mismatch_count, "riverCrossMismatches": river_cross_mismatch_count, "coordinates": coordinate_count, "verified": verified, "transformer": transformer, "unresolved": len(hes_features) - coordinate_count, "basins": len(relevant_basins), "rivers": len(river_features), "dams": len(dam_features), "stationSupport": len(station_features), "cascadeEdges": len(cascade_edges), "catchments": manifest["catchmentCount"]}, ensure_ascii=False))
 
