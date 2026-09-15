@@ -238,7 +238,7 @@ function numericValue(value: unknown): number | null {
   return Number.isFinite(result) ? result : null;
 }
 
-const FULLNESS_PERCENT_KEYS = ['occupancy', 'fullness', 'activeFullness', 'doluluk', 'fullnessPercent', 'activeFullnessAmount'];
+const FULLNESS_PERCENT_KEYS = ['occupancy', 'fullness', 'activeFullness', 'doluluk', 'fullnessPercent'];
 const ACTIVE_VOLUME_KEYS = ['activeVolumeHm3', 'activeVolume', 'active_volume', 'aktifHacim', 'aktif_hacim'];
 const CURRENT_VOLUME_KEYS = ['currentVolumeHm3', 'currentVolume', 'current_volume', 'dailyVolume', 'daily_volume', 'operatingVolume', 'operating_volume', 'hacim', 'volume', 'suHacmi'];
 const MIN_VOLUME_KEYS = ['minVolumeHm3', 'minimumVolumeHm3', 'minVolume', 'minimumVolume', 'min_volume', 'minimum_volume', 'minimumHacim', 'minHacim'];

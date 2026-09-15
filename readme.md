@@ -1,8 +1,8 @@
 # Türkiye Su Kaynakları Haritası
 
 React + Vite + TailwindCSS v4 + Zustand + Vanilla MapLibre GL JS ile hazırlanmış
-hidroloji/GIS paneli. Harita çizimleri native GeoJSON source/layer olarak
-MapLibre’ye eklenir; basemap erişilemese bile yerel katmanlar yeniden denenir.
+hidroloji/GIS panelidir. Harita çizimleri native GeoJSON source/layer olarak
+MapLibre'ye eklenir; basemap erişilemese bile yerel katmanlar yeniden denenir.
 
 ## Çalıştırma
 
@@ -17,24 +17,46 @@ Gerçek statik veri üretmek için Python 3.12 ve `requests` gerekir:
 
 ```bash
 pip install -r tools/hydro/requirements.txt
-python tools/hydro/fetch_tatus.py
-python tools/hydro/build_river_reach_map.py
-python tools/hydro/fetch_geoglows.py
-python tools/hydro/fetch_epias.py
+python tools/hydro/build_all.py
 ```
 
-Frontend veri akışı `src/services/hydroData.ts` → Zustand store → MapLibre
-overlay şeklindedir. TATUS çıktıları `public/data/static/tatus` altında,
-canlı adapter sonuçları `public/data/live` altında ve kaynak metadata’sı
-`public/data/manifest` altında tutulur. Eksik harici servis erişimi boş/sentetik
-olmayan bir veri durumu olarak gösterilir.
+`HYDRO_FETCH=1` yalnız TATUS fetch adımlarını da çalıştırır. Harici servis
+başarısız olduğunda mevcut cache korunur; eksik veri N/A/partial olarak raporlanır.
+
+## Veri kalitesi ve kaynaklar
+
+Kanonik HES paketi `docs/HES_177_Zenginlestirilmis_Envanter_v3.xlsx` ve build-time
+TATUS katmanlarından üretilir. `riverNamedCount` ile
+`riverSpatialVerifiedCount` ayrı tutulur; trafo koordinatları yalnızca yaklaşık
+elektriksel bağlantı noktasıdır ve gerçek HES koordinatı olarak raporlanmaz.
+
+Akarsu geometrileri HydroRIVERS ve TATUS segmentlerinden mantıksal sistemlere
+indirgenir. `public/data/hes177/river_topology_audit.json` segment, bağlı bileşen
+ve kopuk parça metriklerini içerir. `hes_177_relations.json` runtime ilişkilerinin
+tek canonical kaynağıdır.
+
+Rezervuar poligonları yalnızca build-time GDW Turkey envelope sorgusundan isim +
+koordinat kontrolü geçen kayıtlarla `hes_reservoirs.geojson` dosyasına alınır.
+GDW künye bilgisi harita attribution kontrolünde gösterilir. Kaynaklar:
+[GDW Reservoir layer](https://services8.arcgis.com/oTalEaSXAuyNT7xf/ArcGIS/rest/services/GDW_v1_epsilon_gdb/FeatureServer/1)
+ve [OpenStreetMap attribution](https://www.openstreetmap.org/copyright).
+
+Doluluk resolver'ı önce doğrulanmış EPİAŞ kaydını, sonra uydu/alternatif
+kaynakları, sonra semantiği doğrulanmış hacim hesabını kullanır. Aktif hacim
+hesabı `aktif hacim / (maksimum hacim - minimum hacim)` olarak işaretlenir;
+verisi olmayan tesis `N/A` kalır. Run-of-river tesislerde doluluk
+`not_applicable`'dır. MOCK değerleri yalnızca
+`VITE_ENABLE_MOCK_HYDROLOGY=true` ile geliştirme ortamında açılır.
+
+Kaynak denetimi `public/data/hes177/fullness_source_audit.json` ve `reports/`
+altındaki CSV/Markdown raporlarını üretir. DAHITI ve Hydroweb.next gibi
+alternatiflerin istasyon/ürün eşleşmesi kanıtlanmadan kapsam metriğine eklenmez:
+[DAHITI API docs](https://dahiti.dgfi.tum.de/en/api/doc/v2/) ve
+[Hydroweb.next help](https://hydroweb.next.theia-land.fr/help).
 
 ## Harita davranışı
 
-Sidebar’daki gerçek TATUS kayıtlarına tıklamak `flyTo` veya `fitBounds` ile
-seçilen nokta/çizgi/poligona gider. Stil değişimlerinde kaynak ve çizim katmanları
-`ensureHydrologyOverlay` ile yeniden kurulur. MapLibre worker Vite asset URL’sine
-bağlandığı için GeoJSON çizimleri altlık yükünden bağımsızdır.
-
-Veri pipeline ayrıntıları ve dış servis erişim kararları için
-[`HIDROLOJI_YOL_HARITASI.md`](HIDROLOJI_YOL_HARITASI.md) dosyasına bakın.
+Sidebar'daki canonical HES kayıtlarına tıklamak `flyTo` veya `fitBounds` ile
+seçilen nokta/çizgi/poligona gider. Stil değişimlerinde kaynak ve çizim
+katmanları `ensureHydrologyOverlay` ile yeniden kurulur. MapLibre worker Vite
+asset URL'sine bağlı olduğu için GeoJSON çizimleri altlık yükünden bağımsızdır.

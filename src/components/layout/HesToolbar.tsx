@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, Map as MapIcon, Menu, RefreshCw, X } from 'lucide-react';
-import { formatDataDate, getHesFullnessMeta } from '../../data/hydrology';
+import { formatDataDate } from '../../data/hydrology';
+import { ENABLE_MOCK, fullnessRecordsByHes, resolveHesFullness } from '../../data/fullnessSources';
 import { useAppStore } from '../../store/useAppStore';
 
 const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr', satellite: 'Uydu', streets: 'Sokak' };
@@ -16,6 +17,7 @@ export const HesToolbar: React.FC = () => {
   const relations = useAppStore((state) => state.hes177Relations);
   const manifest = useAppStore((state) => state.hes177Manifest);
   const epias = useAppStore((state) => state.epias);
+  const fullnessPayload = useAppStore((state) => state.fullness);
   const dataMode = useAppStore((state) => state.dataMode);
   const setDataMode = useAppStore((state) => state.setDataMode);
   const dataStatus = useAppStore((state) => state.hydroDataStatus);
@@ -25,12 +27,14 @@ export const HesToolbar: React.FC = () => {
 
   const kpis = useMemo(() => {
     const totalPower = hes177.features.reduce((sum, feature) => sum + (Number(feature.properties?.installedPowerMw) || 0), 0);
+    const fullnessByHes = fullnessRecordsByHes(fullnessPayload);
     const sources = hes177.features.map((feature) => {
       const properties = feature.properties ?? {};
       const id = String(properties.id ?? feature.id ?? '');
       const names = [properties.damName, properties.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR'));
       const record = dataMode === 'epias' ? (epias?.records ?? []).find((candidate) => [candidate.hesId, candidate.hesID, candidate.entityId].filter(Boolean).map(String).includes(id) || [candidate.damName, candidate.dam_name, candidate.name].filter(Boolean).map((value) => String(value).toLocaleLowerCase('tr-TR')).some((name) => names.includes(name))) : undefined;
-      return getHesFullnessMeta(id, dataMode, record, properties).source;
+      const result = resolveHesFullness(id, properties, fullnessByHes.get(id) ?? record, dataMode);
+      return result.sourceClass === 'mock' ? 'M' : result.source === 'epias' ? 'E' : result.fullnessPercent === null ? '—' : 'H';
     });
     return {
       hes: hes177.features.length,
@@ -42,8 +46,9 @@ export const HesToolbar: React.FC = () => {
       calculated: sources.filter((source) => source === 'H').length,
       mock: sources.filter((source) => source === 'M').length,
       epias: sources.filter((source) => source === 'E').length,
+      unavailable: sources.filter((source) => source === '—').length,
     };
-  }, [basins.features.length, dataMode, epias?.records, hes177.features, manifest, relations?.cascadeEdges?.length, rivers.features.length]);
+  }, [basins.features.length, dataMode, epias?.records, fullnessPayload, hes177.features, manifest, relations?.cascadeEdges?.length, rivers.features.length]);
 
   const statusLabel = dataStatus === 'ready' ? 'Veri hazır' : dataStatus === 'loading' ? 'Yükleniyor' : dataStatus === 'partial' ? 'Kısmi veri' : 'Veri bekleniyor';
 
@@ -65,12 +70,12 @@ export const HesToolbar: React.FC = () => {
         <Kpi label="Akarsu" value={kpis.rivers.toLocaleString('tr-TR')} />
         <Kpi label="Kaskat" value={kpis.cascades.toLocaleString('tr-TR')} className="hidden md:flex" />
         <Kpi label="Konumlu" value={kpis.located.toLocaleString('tr-TR')} className="hidden lg:flex" />
-        <Kpi label="Doluluk" value={`H ${kpis.calculated} · M ${kpis.mock} · E ${kpis.epias}`} className="hidden xl:flex" />
+        <Kpi label="Doluluk" value={`H ${kpis.calculated} · M ${kpis.mock} · E ${kpis.epias} · N/A ${kpis.unavailable}`} className="hidden xl:flex" />
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-1.5">
         <div className="flex rounded-lg border border-[var(--line)] p-0.5 font-mono text-[9px]" aria-label="Doluluk kaynağı">
-          <button type="button" onClick={() => setDataMode('mock')} className={`rounded-md px-1.5 py-1 ${dataMode === 'mock' ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)]'}`}>MOCK</button>
+          <button type="button" onClick={() => setDataMode('mock')} disabled={!ENABLE_MOCK} title={ENABLE_MOCK ? 'Geliştirme mock verisi' : 'Üretimde devre dışı'} className={`rounded-md px-1.5 py-1 disabled:cursor-not-allowed disabled:opacity-40 ${dataMode === 'mock' ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)]'}`}>MOCK</button>
           <button type="button" onClick={() => setDataMode('epias')} className={`rounded-md px-1.5 py-1 ${dataMode === 'epias' ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)]'}`}>EPİAŞ</button>
         </div>
         <button type="button" onClick={() => void refreshHydroData()} disabled={dataStatus === 'loading'} className="hidden items-center gap-1.5 rounded-lg border border-cyan-500/35 px-2 py-1.5 text-[10px] font-medium text-[var(--primary)] transition hover:bg-cyan-500/8 disabled:opacity-50 sm:flex"><RefreshCw className={`h-3.5 w-3.5 ${dataStatus === 'loading' ? 'animate-spin' : ''}`} />Yenile</button>

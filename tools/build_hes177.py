@@ -14,7 +14,7 @@ import subprocess
 import urllib.request
 import unicodedata
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -28,7 +28,7 @@ OUT = ROOT / "public" / "data" / "hes177"
 RIVER_REACH_MAPPING = ROOT / "public" / "data" / "static" / "mappings" / "river_reach_map.json"
 HYDRO_RIVERS_CACHE = ROOT / "public" / "data" / "static" / "mappings" / "hydrorivers_hes177.geojson"
 MIN_INSTALLED_POWER_MW = 20.0
-CANONICAL_DATA_VERSION = "hes177-v6"
+CANONICAL_DATA_VERSION = "hes177-v7"
 NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 
@@ -63,6 +63,18 @@ def fullness_from_active_volume(properties: dict[str, Any]) -> float | None:
     # storage range directly. Current-volume feeds use a different formula at
     # runtime (current - min) / (max - min).
     return max(0, min(100, (active / (maximum - minimum)) * 100))
+
+
+def storage_type(properties: dict[str, Any]) -> str:
+    text = " ".join(str(properties.get(key) or "") for key in ("notes", "damName", "coordinateType")).lower()
+    if any(token in text for token in ("run-of-river", "run of river", "nehir tipi", "nehir tipi santral")):
+        return "run_of_river"
+    minimum = number(properties.get("minVolumeHm3"))
+    maximum = number(properties.get("maxVolumeHm3"))
+    active = number(properties.get("activeVolumeHm3"))
+    if minimum is not None and maximum is not None and maximum > minimum:
+        return "reservoir" if active is not None else "pondage"
+    return "unknown"
 
 
 def normalize(value: Any) -> str:
@@ -634,6 +646,7 @@ def main() -> None:
     dams_source = read_json(TATUS / "dam_stations.geojson")
     basins_source = read_json(TATUS / "basins.geojson")
     stations_source = read_json(TATUS / "hes_stations.geojson")
+    lake_stations_source = read_json(TATUS / "lake_stations.geojson") if (TATUS / "lake_stations.geojson").exists() else {"features": []}
     rivers_overview_source = read_json(TATUS / "rivers_overview.geojson")
     reach_mapping = read_json(RIVER_REACH_MAPPING).get("mappings", []) if RIVER_REACH_MAPPING.exists() else []
     reach_mapping_by_code = {str(item.get("riverCode")): item for item in reach_mapping if item.get("riverCode")}
@@ -688,9 +701,23 @@ def main() -> None:
             "riverNameSource": row.get("Akarsu Eşleme Durumu"), "riverCode": None, "riverQueryUrl": row.get("Akarsu Polyline GeoJSON URL"), "catchmentUrl": row.get("Su Toplama Alanı Polygon GeoJSON URL"), "waterBodyName": row.get("Baraj / Rezervuar Eşleşmesi"),
             "catchmentLabel": row.get("Su Toplama Alanı Popup"), "gisConfidence": row.get("GIS Güven"), "gisNote": row.get("GIS Notu"), "hasDamMatch": False,
         }
+        properties.update({
+            "coordinateSourceUrl": row.get("Konum KaynaÄŸÄ±") or row.get("HES Point GeoJSON"),
+            "coordinateMethod": "direct_hes_point" if coordinate_kind == "verified" else "transformer_fallback" if coordinate_kind == "transformer" else "unresolved",
+            "coordinateConfidence": "high" if coordinate_kind == "verified" else "low" if coordinate_kind == "transformer" else "unknown",
+            "coordinateVerified": coordinate_kind == "verified",
+            "coordinateDistanceToRiverKm": None,
+            "coordinateDistanceToReservoirKm": None,
+        })
         properties["fullnessPercent"] = fullness_from_active_volume(properties)
         properties["fullnessSource"] = "H" if properties["fullnessPercent"] is not None else "—"
         properties["fullnessBasis"] = "active-volume/(max-volume-min-volume)" if properties["fullnessPercent"] is not None else None
+        properties["hydroPlantStorageType"] = storage_type(properties)
+        properties["fullnessStatus"] = "available" if properties["fullnessPercent"] is not None else "not_applicable" if properties["hydroPlantStorageType"] == "run_of_river" else "unavailable"
+        properties["fullnessSourceClass"] = "calculated_storage"
+        properties["fullnessSourceKey"] = "canonical"
+        properties["fullnessMethod"] = "active-volume/(max-volume-min-volume)" if properties["fullnessPercent"] is not None else "no-verified-fullness-source"
+        properties["fullnessIsEstimated"] = properties["fullnessPercent"] is not None
         workbook_river_name = row.get("Akarsu / Nehir (Ön Eşleme)")
         if is_waterbody_name(workbook_river_name):
             properties["waterBodyName"] = workbook_river_name
@@ -760,6 +787,11 @@ def main() -> None:
         props["hasDamMatch"] = True
         props["damMatchMethod"] = "name+basin+near-coordinate"
 
+    for hes in hes_features:
+        props = hes["properties"]
+        if props.get("coordinateKind") == "dam":
+            props.update({"coordinateMethod": "tatus_dam_point", "coordinateConfidence": "medium", "coordinateVerified": False})
+
     # Transformer coordinates remain only a last-resort map reference when no
     # HES or TATUS dam point was available.
     for hes in hes_features:
@@ -767,6 +799,7 @@ def main() -> None:
         hes_id = props["id"]
         if not point_of(hes) and hes_id in transformer_points:
             hes["geometry"] = {"type": "Point", "coordinates": list(transformer_points[hes_id])}
+            props.update({"coordinateMethod": "transformer_fallback", "coordinateConfidence": "low", "coordinateVerified": False})
 
     # HydroRIVERS anchors are build-time topology evidence. A transformer
     # coordinate is never used as an anchor by the cache generator, so these
@@ -993,6 +1026,7 @@ def main() -> None:
     river_features: list[dict[str, Any]] = []
     disconnected_river_components = 0
     river_system_ids_by_hes: dict[str, list[str]] = defaultdict(list)
+    river_topology_audit: list[dict[str, Any]] = []
     for index, system in enumerate(sorted(river_systems.values(), key=lambda item: (item["basinId"], item["name"])), start=1):
         river_id = f"river-system-{index:03d}"
         focused_parts = system["geometries"]
@@ -1031,6 +1065,8 @@ def main() -> None:
         geometry = {"type": "LineString", "coordinates": parts[0]} if len(parts) == 1 else {"type": "MultiLineString", "coordinates": parts}
         components = disconnected_components(parts)
         disconnected_river_components += max(0, components - 1)
+        component_groups = sorted(connected_line_components(parts), key=lambda group: sum(line_length_km(part) for part in group), reverse=True)
+        main_component_segment_count = len(component_groups[0]) if component_groups else 0
         confidence = "high" if "high" in system["confidences"] else "medium"
         direct_reaches = [reach_mapping_by_code[code] for code in system["codes"] if code in reach_mapping_by_code and reach_mapping_by_code[code].get("representativePoint") and line_distance_km(tuple(reach_mapping_by_code[code]["representativePoint"]), system_geometry) <= 25]
         # The static GEOGLOWS cache was built from overview reaches, while the
@@ -1048,6 +1084,12 @@ def main() -> None:
         geoglows_confidence = "high" if geoglows_distance is not None and geoglows_distance <= 3 else "medium" if geoglows_distance is not None and geoglows_distance <= 10 else "review" if geoglows_distance is not None and geoglows_distance <= 25 else None
         visible_length_km = sum(line_length_km(part) for part in parts)
         corridor_hes_count = sum(line_distance_km(point, geometry) <= 25 for point, _ in anchors)
+        anchor_distances = [line_distance_km(point, geometry) for point, _ in anchors]
+        max_join_gap_km = max(anchor_distances) if anchor_distances else None
+        for hes_id in system["hesIds"]:
+            hes_props = hes_by_id[hes_id]["properties"]
+            if point_of(hes_by_id[hes_id]):
+                hes_props["coordinateDistanceToRiverKm"] = round(line_distance_km(point_of(hes_by_id[hes_id]), geometry), 2)
         properties = {"id": river_id, "entityId": river_id, "entityType": "hesRiverSystem", "name": system["name"], "riverName": system["name"], "canonicalRiverName": canonical_source_river_name(system["name"]), "displayRiverName": system["name"], "sourceRiverName": system["name"], "riverSystemId": river_id, "riverCode": system["codes"][0] if system["codes"] else None, "riverCodes": system["codes"], "hesIds": system["hesIds"], "hesCount": len(system["hesIds"]), "installedPowerMw": sum(hes_by_id[hid]["properties"].get("installedPowerMw") or 0 for hid in system["hesIds"]), "basinId": system["basinId"], "basinIds": system["basinIds"], "geometrySource": geometry_source, "matchMethod": "+".join(sorted(system["matchMethods"])), "confidence": confidence, "lengthKm": visible_length_km, "totalLengthKm": visible_length_km, "representedLengthKm": visible_length_km, "segmentCount": len(parts), "candidateSegmentCount": candidate_segment_count, "candidateComponentCount": source_components + focused_components + overview_components, "representedComponentCount": components, "connectedComponentCount": components, "sourceRepresentedComponentCount": source_represented_components, "focusedRepresentedComponentCount": focused_represented_components, "overviewRepresentedComponentCount": overview_represented_components, "routedAnchorCount": routed_anchor_count, "omittedDisconnectedSegmentCount": omitted_segment_count, "disconnectedComponents": components, "corridorHesCount": corridor_hes_count, "corridorCoveragePercent": round(corridor_hes_count / len(system["hesIds"]) * 100, 1) if system["hesIds"] else 0, "geoglowsLocalRiverIds": [str(item.get("localRiverId")) for item in mapped_reaches if item.get("localRiverId")], "geoglowsRiverIds": [item.get("geoglowsRiverId") for item in mapped_reaches if item.get("geoglowsRiverId") is not None], "geoglowsMatchMethod": "river-code" if direct_reaches else "same-basin-nearest-corridor" if mapped_reaches else "unmatched", "geoglowsMatchDistanceKm": round(geoglows_distance, 2) if geoglows_distance is not None else None, "geoglowsConfidence": geoglows_confidence, "representativeLocalRiverId": str(representative_reach.get("localRiverId")) if representative_reach and representative_reach.get("localRiverId") else None, "representativeGeoglowsRiverId": representative_reach.get("geoglowsRiverId") if representative_reach else None, "hes177": True}
         properties["hydroMainRiverIds"] = system.get("hydroMainRiverIds", [])
         properties["hydroRiversIds"] = system.get("hydroRiversIds", [])
@@ -1055,6 +1097,7 @@ def main() -> None:
         properties["hydroRiversConnectedComponents"] = disconnected_components(hydro_parts) if hydro_parts else 0
         properties["candidateComponentCount"] += properties["hydroRiversConnectedComponents"]
         river_features.append({"type": "Feature", "id": river_id, "geometry": geometry, "properties": properties})
+        river_topology_audit.append({"riverSystemId": river_id, "riverName": system["name"], "segmentCount": len(parts), "connectedComponentCount": components, "mainComponentSegmentCount": main_component_segment_count, "orphanSegmentCount": max(0, len(parts) - main_component_segment_count), "hesCount": len(system["hesIds"]), "spatiallyVerifiedHesCount": sum(hes_by_id[hid]["properties"].get("coordinateKind") in {"verified", "dam"} and ((hes_by_id[hid]["properties"].get("coordinateDistanceToRiverKm") is not None and hes_by_id[hid]["properties"].get("coordinateDistanceToRiverKm") <= 25)) for hid in system["hesIds"]), "maxJoinGapKm": round(max_join_gap_km, 2) if max_join_gap_km is not None and math.isfinite(max_join_gap_km) else None, "geometryConfidence": "high" if components == 1 and corridor_hes_count == len(system["hesIds"]) else "medium" if corridor_hes_count else "low"})
         for hes_id in system["hesIds"]: river_system_ids_by_hes[hes_id].append(river_id)
 
     for feature in river_features:
@@ -1108,7 +1151,7 @@ def main() -> None:
     for hes in hes_features:
         p = hes["properties"]; hid = p["id"]
         river_ids = sorted(set(river_system_ids_by_hes.get(hid, [])))
-        relation_by_hes[hid] = {"riverNameWorkbook": p.get("riverNameWorkbook"), "canonicalRiverName": p.get("canonicalRiverName"), "displayRiverName": p.get("displayRiverName"), "riverIds": river_ids, "riverSystemIds": river_ids, "riverSystemId": river_ids[0] if river_ids else None, "riverName": p.get("riverName"), "riverMatchMethod": p.get("riverMatchMethod"), "riverConfidence": p.get("riverConfidence"), "displayBasinName": p.get("displayBasinName"), "officialBasinName": p.get("officialBasinName"), "damIds": dam_by_hes.get(hid, []), "stationIds": [], "catchmentUrl": p.get("catchmentUrl"), "cascadeToId": next(iter(sorted(downstream[hid])), None), "cascadeFromIds": sorted(upstream[hid])}
+        relation_by_hes[hid] = {"riverNameWorkbook": p.get("riverNameWorkbook"), "canonicalRiverName": p.get("canonicalRiverName"), "displayRiverName": p.get("displayRiverName"), "riverIds": river_ids, "riverSystemIds": river_ids, "riverSystemId": river_ids[0] if river_ids else None, "riverName": p.get("riverName"), "riverMatchMethod": p.get("riverMatchMethod"), "riverConfidence": p.get("riverConfidence"), "displayBasinName": p.get("displayBasinName"), "officialBasinName": p.get("officialBasinName"), "damIds": dam_by_hes.get(hid, []), "stationIds": station_ids_by_hes.get(hid, []), "reservoirIds": p.get("reservoirIds", []), "catchmentUrl": p.get("catchmentUrl"), "cascadeToId": next(iter(sorted(downstream[hid])), None), "cascadeFromIds": sorted(upstream[hid])}
         p.update({"riverIds": relation_by_hes[hid]["riverIds"], "riverSystemIds": relation_by_hes[hid]["riverSystemIds"], "riverSystemId": relation_by_hes[hid]["riverSystemId"], "damIds": relation_by_hes[hid]["damIds"], "stationIds": relation_by_hes[hid]["stationIds"], "cascadeToId": relation_by_hes[hid]["cascadeToId"], "cascadeFromIds": relation_by_hes[hid]["cascadeFromIds"], "isProducer": True})
 
     cascade_features = []
@@ -1119,10 +1162,16 @@ def main() -> None:
 
     station_count_by_basin = defaultdict(int)
     for feature in station_features: station_count_by_basin[basin_id(feature)] += 1
+    lake_station_count_by_basin = defaultdict(int)
+    for feature in lake_stations_source.get("features", []):
+        lake_station_count_by_basin[basin_id(feature)] += 1
     summaries = []
     for basin in relevant_basins:
         bid = basin_id(basin); bp = basin.get("properties") or {}; h = [f for f in hes_features if f["properties"]["basinId"] == bid]; r = [f for f in river_features if bid in f["properties"].get("basinIds", [f["properties"].get("basinId")])]
-        summaries.append({"basinId": bid, "name": bp.get("name") or bp.get("HAVZA_ADI"), "areaKm2": number(bp.get("areaKm2") or bp.get("ALAN_KM2")), "hesCount": len(h), "installedPowerMw": sum(f["properties"].get("installedPowerMw") or 0 for f in h), "riverCount": len(r), "riverLengthKm": sum(f["properties"].get("lengthKm") or 0 for f in r), "totalLengthKm": sum(f["properties"].get("lengthKm") or 0 for f in r), "damCount": sum(1 for f in dam_features if f["properties"].get("basinId") == bid), "hesStationCount": 0, "lakeStationCount": 0, "knownRiverNames": sorted({f["properties"]["riverName"] for f in r if f["properties"].get("riverName")})})
+        eligible = [f for f in h if f["properties"].get("fullnessPercent") is not None and f["properties"].get("hydroPlantStorageType") != "run_of_river"]
+        usable_volume = sum((number(f["properties"].get("maxVolumeHm3")) or 0) - (number(f["properties"].get("minVolumeHm3")) or 0) for f in eligible)
+        active_volume = sum(number(f["properties"].get("activeVolumeHm3")) or 0 for f in eligible)
+        summaries.append({"basinId": bid, "name": bp.get("name") or bp.get("HAVZA_ADI"), "areaKm2": number(bp.get("areaKm2") or bp.get("ALAN_KM2")), "hesCount": len(h), "installedPowerMw": sum(f["properties"].get("installedPowerMw") or 0 for f in h), "riverCount": len(r), "riverLengthKm": sum(f["properties"].get("lengthKm") or 0 for f in r), "totalLengthKm": sum(f["properties"].get("lengthKm") or 0 for f in r), "damCount": sum(1 for f in dam_features if f["properties"].get("basinId") == bid), "hesStationCount": station_count_by_basin[bid], "lakeStationCount": lake_station_count_by_basin[bid], "knownRiverNames": sorted({f["properties"]["riverName"] for f in r if f["properties"].get("riverName")}), "fullnessPercent": round(max(0, min(100, active_volume / usable_volume * 100)), 1) if usable_volume > 0 else None, "fullnessAvailableCount": len(eligible), "fullnessMethod": "active-volume/(max-volume-min-volume)" if usable_volume > 0 else "unavailable"})
 
     def write(name: str, data: Any) -> None:
         (OUT / name).write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -1133,6 +1182,7 @@ def main() -> None:
     write("hes_dam_points.geojson", {"type": "FeatureCollection", "features": dam_features})
     write("hes_cascades.geojson", {"type": "FeatureCollection", "features": cascade_features})
     write("hes_177_relations.json", {"dataVersion": CANONICAL_DATA_VERSION, "generatedAt": generated_at, "sourceCommit": build_source_commit, "byHesId": relation_by_hes, "cascadeEdges": cascade_edges, "unresolvedCascades": unresolved_cascades, "basinSummaries": summaries, "riverGroups": {name: sorted({rid for feature in river_features if feature["properties"].get("riverName") == name for rid in feature["properties"].get("hesIds", [])}) for name in sorted({feature["properties"].get("riverName") for feature in river_features if feature["properties"].get("riverName")})}})
+    write("river_topology_audit.json", {"generatedAt": generated_at, "sourceCommit": build_source_commit, "logicalRiverCount": len(river_topology_audit), "rivers": river_topology_audit})
     coordinate_count = sum(bool(feature.get("geometry")) for feature in hes_features)
     verified = sum(feature["properties"].get("coordinateKind") == "verified" for feature in hes_features)
     dam_fallback = sum(feature["properties"].get("coordinateSource") == "tatus-dam-point" for feature in hes_features)
@@ -1155,7 +1205,11 @@ def main() -> None:
         or normalize(feature["properties"].get("riverName")) == "DICLE" and normalize(feature["properties"].get("name")) in KNOWN_RIVER_HES["Fırat"]
         for feature in hes_features
     )
-    manifest = {"version": 6, "dataVersion": CANONICAL_DATA_VERSION, "generatedAt": generated_at, "sourceCommit": build_source_commit, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "minimumInstalledPowerMw": MIN_INSTALLED_POWER_MW, "hesCount": len(hes_features), "producerCount": producer_count, "riverMatchedCount": river_matched_count, "riverUnresolvedCount": len(river_unresolved), "riverUnmatchedCount": len(river_unmatched_hes), "riverUnmatchedHesIds": river_unmatched_hes, "riverUnmatchedHesNames": river_unmatched_names, "displayBasinCount": display_basin_count, "officialBasinCount": official_basin_count, "spatialVerifiedBasinCount": spatial_verified_basin_count, "damFallbackBasinCount": dam_fallback_basin_count, "workbookBasinCount": workbook_basin_count, "transformerCandidateCount": transformer_candidate_count, "basinSelectionMismatchCount": basin_selection_mismatch_count, "riverCrossMismatchCount": river_cross_mismatch_count, "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "disconnectedRiverComponents": disconnected_river_components, "damCount": len(dam_features), "reservoirPolygonCount": 0, "hesStationCount": 0, "lakeStationCount": 0, "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "volumeCalculatedFullnessCount": volume_fullness_count, "epiasFullnessCount": 0, "fallbackMockFullnessCount": len(hes_features) - volume_fullness_count, "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
+    river_spatial_verified_count = sum(feature["properties"].get("hydroMatchConfidence") in {"high", "medium"} and feature["properties"].get("coordinateKind") in {"verified", "dam"} for feature in hes_features)
+    river_corridor_count = sum(feature["properties"].get("coordinateDistanceToRiverKm") is not None and feature["properties"].get("coordinateDistanceToRiverKm") <= 25 for feature in hes_features)
+    connected_river_system_count = sum(item["connectedComponentCount"] == 1 for item in river_topology_audit)
+    disconnected_component_count = sum(max(0, item["connectedComponentCount"] - 1) for item in river_topology_audit)
+    manifest = {"version": 7, "dataVersion": CANONICAL_DATA_VERSION, "generatedAt": generated_at, "sourceCommit": build_source_commit, "buildBaseCommit": build_source_commit, "source": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "sourceDatasets": {"workbook": str(WORKBOOK.relative_to(ROOT)).replace("\\", "/"), "tatusBasins": "public/data/static/tatus/basins.geojson", "tatusRivers": "public/data/static/tatus/rivers.geojson", "hydroRivers": hydrorivers_cache.get("source") if hydrorivers_cache else None, "reservoirs": "GDW Turkey envelope"}, "minimumInstalledPowerMw": MIN_INSTALLED_POWER_MW, "hesCount": len(hes_features), "producerCount": producer_count, "riverMatchedCount": river_matched_count, "riverNamedCount": river_matched_count, "riverSpatialVerifiedCount": river_spatial_verified_count, "riverCorridorCoverage": round(river_corridor_count / len(hes_features) * 100, 1) if hes_features else 0, "riverLowConfidenceCount": sum(feature["properties"].get("riverConfidence") == "low" for feature in hes_features), "riverUnresolvedCount": len(river_unresolved), "riverUnmatchedCount": len(river_unmatched_hes), "riverUnmatchedHesIds": river_unmatched_hes, "riverUnmatchedHesNames": river_unmatched_names, "displayBasinCount": display_basin_count, "officialBasinCount": official_basin_count, "spatialVerifiedBasinCount": spatial_verified_basin_count, "damFallbackBasinCount": dam_fallback_basin_count, "workbookBasinCount": workbook_basin_count, "transformerCandidateCount": transformer_candidate_count, "basinSelectionMismatchCount": basin_selection_mismatch_count, "riverCrossMismatchCount": river_cross_mismatch_count, "coordinateCount": coordinate_count, "verifiedCoordinateCount": verified, "verifiedHesCoordinateCount": verified, "damFallbackCoordinateCount": dam_fallback, "transformerCoordinateCount": transformer, "unresolvedCoordinateCount": len(hes_features) - coordinate_count, "basinCount": len(relevant_basins), "logicalRiverCount": len(river_features), "riverFeatureCount": len(river_features), "riverGeometryFeatureCount": len(river_segments), "riverSegmentCount": len(river_segments), "connectedRiverSystemCount": connected_river_system_count, "disconnectedRiverComponents": disconnected_river_components, "disconnectedComponentCount": disconnected_component_count, "damCount": len(dam_features), "reservoirPolygonCount": 0, "reservoirPolygonCoverage": 0, "hesStationCount": len(station_features), "lakeStationCount": sum(lake_station_count_by_basin.values()), "cascadeEdgeCount": len(cascade_edges), "unresolvedCascadeCount": len(unresolved_cascades), "fullnessAvailableCount": volume_fullness_count, "fullnessRealOrDerivedCount": volume_fullness_count, "fullnessOfficialCount": 0, "fullnessSatelliteCount": 0, "fullnessCalculatedCount": volume_fullness_count, "fullnessStaleCount": 0, "fullnessUnavailableCount": len(hes_features) - volume_fullness_count, "fullnessMockCount": 0, "volumeCalculatedFullnessCount": volume_fullness_count, "epiasFullnessCount": 0, "fallbackMockFullnessCount": 0, "catchmentCount": sum(bool(feature["properties"].get("catchmentUrl")) for feature in hes_features), "generatedBy": "tools/build_hes177.py"}
     manifest["hydroRiversCacheFeatureCount"] = len(hydrorivers_cache.get("features", []))
     manifest["hydroRiversMatchedHesCount"] = len(hydrorivers_cache.get("anchorInfo", {}))
     manifest["hydroRiversSource"] = hydrorivers_cache.get("source") if hydrorivers_cache else None

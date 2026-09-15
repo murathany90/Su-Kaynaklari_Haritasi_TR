@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { loadHydroData as fetchHydroData } from '../services/hydroData';
-import { emptyFeatureCollection, type Hes177Relations, type HydroDataManifest, type HydrologyFeatureCollection, type HydroLoadStatus, type GeoglowsPayload, type EpiasPayload, type RiverMappingManifest } from '../types/hydrology';
+import { emptyFeatureCollection, type Hes177Relations, type HydroDataManifest, type HydrologyFeatureCollection, type HydroLoadStatus, type GeoglowsPayload, type EpiasPayload, type RiverMappingManifest, type FullnessPayload } from '../types/hydrology';
 
 export type TabType = 'hes' | 'rivers' | 'basins';
 export type ThemeType = 'dark' | 'light';
@@ -32,12 +32,14 @@ interface AppState {
   hes177: HydrologyFeatureCollection;
   cascades: HydrologyFeatureCollection;
   catchment: HydrologyFeatureCollection;
+  reservoirs: HydrologyFeatureCollection;
   hes177Relations: Hes177Relations | null;
   dataManifest: HydroDataManifest | null;
   hes177Manifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
   geoglows: GeoglowsPayload | null;
   epias: EpiasPayload | null;
+  fullness: FullnessPayload | null;
   dataMode: 'mock' | 'epias';
   activeCatchmentHesId: string | null;
 
@@ -85,13 +87,15 @@ export const useAppStore = create<AppState>((set) => ({
   hes177: emptyFeatureCollection(),
   cascades: emptyFeatureCollection(),
   catchment: emptyFeatureCollection(),
+  reservoirs: emptyFeatureCollection(),
   hes177Relations: null,
   dataManifest: null,
   hes177Manifest: null,
   mappingManifest: null,
   geoglows: null,
   epias: null,
-  dataMode: 'mock',
+  fullness: null,
+  dataMode: 'epias',
   activeCatchmentHesId: null,
 
   setTab: (tab) => set({ currentTab: tab }),
@@ -127,12 +131,14 @@ export const useAppStore = create<AppState>((set) => ({
         hes177: data.hes177,
         cascades: data.cascades,
         catchment: data.catchment,
+        reservoirs: data.reservoirs,
         hes177Relations: data.hes177Relations,
         dataManifest: data.manifest,
         hes177Manifest: data.hes177Manifest,
         mappingManifest: data.mappingManifest,
         geoglows: data.geoglows,
         epias: data.epias,
+        fullness: data.fullness,
       });
     } catch (error) {
       set({ hydroDataStatus: 'failed', hydroDataError: error instanceof Error ? error.message : String(error) });

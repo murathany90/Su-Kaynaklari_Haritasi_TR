@@ -5,13 +5,14 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAppStore } from '../../store/useAppStore';
 import { getForecastTimestamps } from '../../services/hydroData';
-import { damIconBucket, displayName, getBasinColor, getDamColor, getFlowScaleColor, getHesFullness, getHesFullnessMeta } from '../../data/hydrology';
+import { damIconBucket, displayName, getBasinColor, getDamColor, getFlowScaleColor } from '../../data/hydrology';
+import { fullnessRecordsByHes, resolveHesFullness } from '../../data/fullnessSources';
 import { getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
 import { HES_PIE_LAYER_ID, ensureHydrologyOverlay, type OverlayCollections, type OverlayOptions } from './mapLayers';
 import { focusSelectedEntity } from './mapCamera';
 import { emptyFeatureCollection } from '../../types/hydrology';
 
-const INTERACTIVE_LAYERS = ['rivers-core', 'dams-points', 'basins-fill', 'hes177-points', HES_PIE_LAYER_ID] as const;
+const INTERACTIVE_LAYERS = ['rivers-core', 'dams-points', 'basins-fill', 'reservoirs-outline', 'hes177-points', HES_PIE_LAYER_ID] as const;
 
 function numberFrom(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
@@ -78,13 +79,27 @@ function popupValue(value: unknown, suffix = ''): string {
   return `${escapePopup(value)}${suffix}`;
 }
 
-function hesPopupHtml(properties: Record<string, unknown>): string {
+function legacyHesPopupHtml(properties: Record<string, unknown>): string {
   const producer = properties.isProducer === true ? '<span class="hydro-popup-producer">⚡</span>' : '';
   const occupancy = properties.occupancy === null || properties.occupancy === undefined ? '—' : `%${Math.round(Number(properties.occupancy))}`;
   const displayBasin = properties.displayBasinName ?? properties.basinName ?? properties.basinId;
   const officialBasin = properties.officialBasinName ?? properties.basinName ?? properties.basinId;
   return `<div class="hydro-click-popup"><div class="hydro-popup-head"><strong>${producer}${escapePopup(properties.name)}</strong><button type="button" data-popup-close aria-label="Kapat">×</button></div><div class="hydro-popup-sub">${popupValue(displayBasin)} · ${popupValue(properties.province)}</div><div class="hydro-popup-grid"><span>Resmî havza</span><b>${popupValue(officialBasin)}</b><span>Akarsu</span><b>${popupValue(properties.riverName)}</b><span>Kurulu güç</span><b>${popupValue(properties.installedPowerMw, ' MW')}</b><span>Doluluk</span><b>${occupancy} ${popupValue(properties.fullnessSource)}</b><span>Min / max seviye</span><b>${popupValue(properties.minWaterLevelM)} / ${popupValue(properties.maxWaterLevelM)} m</b><span>Min / max hacim</span><b>${popupValue(properties.minVolumeHm3)} / ${popupValue(properties.maxVolumeHm3)} hm³</b><span>Aktif hacim</span><b>${popupValue(properties.activeVolumeHm3, ' hm³')}</b><span>Kaskat</span><b>${popupValue(properties.cascadeName)}</b><span>Baraj</span><b>${popupValue(properties.damName)}</b></div><div class="hydro-popup-actions"><button type="button" data-show-river>Akarsuyu göster</button><button type="button" data-show-basin>Havzayı göster</button><button type="button" data-show-cascade>Kaskadı göster</button><button type="button" data-show-catchment>Su alanı</button></div></div>`;
 }
+
+function hesPopupHtml(properties: Record<string, unknown>): string {
+  const producer = properties.isProducer === true ? '<span class="hydro-popup-producer">⚡</span>' : '';
+  const fullness = properties.occupancy === null || properties.occupancy === undefined ? 'N/A' : `%${Math.round(Number(properties.occupancy))}`;
+  const fullnessSource = properties.fullnessSourceKey ?? properties.fullnessSource ?? 'N/A';
+  const observed = properties.fullnessObservedAt ?? 'N/A';
+  const age = properties.fullnessFreshnessDays === null || properties.fullnessFreshnessDays === undefined ? '' : ` · ${properties.fullnessFreshnessDays} gün`;
+  const displayBasin = properties.displayBasinName ?? properties.basinName ?? properties.basinId;
+  const officialBasin = properties.officialBasinName ?? properties.basinName ?? properties.basinId;
+  const quality = properties.coordinateKind === 'transformer' ? 'Yaklaşık trafo bağlantı noktası' : properties.coordinateKind === 'dam' ? 'TATUS baraj noktası' : properties.coordinateKind === 'verified' ? 'Doğrulanmış HES noktası' : 'Koordinat yok';
+  return `<div class="hydro-click-popup"><div class="hydro-popup-head"><strong>${producer}${escapePopup(properties.name)}</strong><button type="button" data-popup-close aria-label="Kapat">×</button></div><div class="hydro-popup-sub">${popupValue(displayBasin)} · ${popupValue(properties.province)}</div><div class="hydro-popup-grid"><span>Resmi havza</span><b>${popupValue(displayBasin)}</b><span>Resmi TATUS havzasi</span><b>${popupValue(officialBasin)}</b><span>Akarsu</span><b>${popupValue(properties.riverName)}</b><span>Kurulu güç</span><b>${popupValue(properties.installedPowerMw, ' MW')}</b><span>Doluluk</span><b>${fullness} · ${popupValue(fullnessSource)}</b><span>Yöntem / tarih</span><b>${popupValue(properties.fullnessMethod)}${popupValue(observed)}${age}</b><span>Güven / tahmin</span><b>${popupValue(properties.fullnessConfidence)} · ${properties.fullnessEstimated === true ? 'tahmini' : 'ölçüm'}</b><span>Depolama</span><b>${popupValue(properties.hydroPlantStorageType)}</b><span>Min / max seviye</span><b>${popupValue(properties.minWaterLevelM)} / ${popupValue(properties.maxWaterLevelM)} m</b><span>Min / max hacim</span><b>${popupValue(properties.minVolumeHm3)} / ${popupValue(properties.maxVolumeHm3)} hm³</b><span>Aktif hacim</span><b>${popupValue(properties.activeVolumeHm3, ' hm³')}</b><span>Debi</span><b>${popupValue(properties.unitFlowM3s, ' m³/sn')}</b><span>Kaskat</span><b>${popupValue(properties.cascadeName)}</b><span>Baraj</span><b>${popupValue(properties.damName)}</b><span>Konum kalitesi</span><b>${quality}</b></div><div class="hydro-popup-actions"><button type="button" data-show-river>Akarsuyu göster</button><button type="button" data-show-basin>Havzayı göster</button><button type="button" data-show-cascade>Kaskadı göster</button><button type="button" data-show-catchment>Su alanı</button></div></div>`;
+}
+
+void legacyHesPopupHtml;
 
 export function BaseMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -104,11 +119,13 @@ export function BaseMap() {
   const rivers = useAppStore((state) => state.rivers);
   const basins = useAppStore((state) => state.basins);
   const damStations = useAppStore((state) => state.damStations);
+  const reservoirs = useAppStore((state) => state.reservoirs);
   const hes177 = useAppStore((state) => state.hes177);
   const cascades = useAppStore((state) => state.cascades);
   const hes177Relations = useAppStore((state) => state.hes177Relations);
   const geoglows = useAppStore((state) => state.geoglows);
   const epias = useAppStore((state) => state.epias);
+  const fullness = useAppStore((state) => state.fullness);
   const layers = useAppStore((state) => state.layers);
   const basemap = useAppStore((state) => state.basemap);
   const theme = useAppStore((state) => state.theme);
@@ -124,6 +141,7 @@ export function BaseMap() {
     const timestamps = getForecastTimestamps(geoglows);
     const activeTimestamp = timestamps[timelineIndex];
     const epiasRecords = dataMode === 'epias' && epias?.status === 'ok' ? epias.records ?? [] : [];
+    const fullnessByHes = fullnessRecordsByHes(fullness);
     const activeForecastFlows = geoglowsRecords.flatMap((record) => {
       const rows = Array.isArray(record.data) ? record.data : [];
       const row = activeTimestamp ? rows.find((candidate) => candidate && typeof candidate === 'object' && (candidate as Record<string, unknown>).datetime === activeTimestamp) : rows[0];
@@ -171,7 +189,7 @@ export function BaseMap() {
       const selectedHesRelation = selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id] : undefined;
       const relatedToSelectedHes = Boolean(selectedHesRelation?.damIds?.map(String).includes(id));
       const fullnessSeedId = hesIds[0] ?? id;
-      const seededOccupancy = getHesFullness(fullnessSeedId, dataMode, live ?? null, linkedHesProperties);
+      const seededOccupancy = resolveHesFullness(fullnessSeedId, linkedHesProperties, fullnessByHes.get(fullnessSeedId) ?? live ?? null, dataMode).fullnessPercent;
       const basinRelevant = selectedEntity?.type === 'basin' && String(properties.basinId ?? '') === selectedEntity.id;
       const damRelevant = selectedRiverDamIds.has(id) || hesIds.some((hesId) => selectedRiverHesIds.has(hesId) || selectedBasinHesIds.has(hesId)) || relatedToSelectedHes || basinRelevant || selectedEntity?.type === 'dam' && selectedEntity.id === id;
       return { ...feature, properties: { ...properties, name, basinName: properties.basinName ?? properties.HavzaAdi, occupancy: seededOccupancy, damIcon: damIconBucket(seededOccupancy), isProducer: hesIds.length > 0, hesMatchIds: hesIds, selected: selectedEntity?.type === 'dam' && selectedEntity.id === id, relatedToSelected: damRelevant, dimmed: Boolean(selectedEntity && !damRelevant), color: seededOccupancy === null ? '#94a3b8' : getDamColor(seededOccupancy), radius: seededOccupancy === null ? 8 : Math.min(13, Math.max(6, seededOccupancy / 8)) } };
@@ -183,23 +201,33 @@ export function BaseMap() {
       const localRiverIds = Array.isArray(matchingRiver?.properties?.geoglowsLocalRiverIds) ? matchingRiver.properties.geoglowsLocalRiverIds.map(String) : [];
       const live = geoglowsRecords.find((record) => localRiverIds.includes(String(record.localRiverId ?? '')));
       const flow = liveNumber(live?.data, ['flow', 'discharge', 'streamflow', 'flow_median', 'value']);
-      const fullness = getHesFullnessMeta(id, dataMode, findHesEpiasRecord(epiasRecords, id, feature.properties ?? {}), feature.properties ?? {});
+      const fullnessResult = resolveHesFullness(id, feature.properties ?? {}, fullnessByHes.get(id) ?? findHesEpiasRecord(epiasRecords, id, feature.properties ?? {}), dataMode);
       const selectedRiverName = selectedRiver?.properties?.riverName ?? selectedRiver?.properties?.name;
       const riverSelected = selectedEntity?.type === 'river' && Boolean((relation?.riverIds ?? []).map(String).includes(selectedEntity.id) || (selectedRiverName && relation?.riverName === selectedRiverName));
       const hesSelected = selectedEntity?.type === 'hes' && selectedEntity.id === id;
       const basinSelected = selectedEntity?.type === 'basin' && String(feature.properties?.basinId ?? '') === selectedEntity.id;
       const selectedHesRelation = selectedEntity?.type === 'hes' ? hes177Relations?.byHesId?.[selectedEntity.id] : undefined;
       const hesRelated = riverSelected || Boolean(selectedHesRelation?.cascadeFromIds?.map(String).includes(id) || String(selectedHesRelation?.cascadeToId ?? '') === id);
-      return { ...feature, properties: { ...feature.properties, color: '#38bdf8', flow, occupancy: fullness.value, fullnessSource: fullness.source, damIcon: damIconBucket(fullness.value), visualRadius: visualPowerRadius(feature.properties?.installedPowerMw), markerDiameterPx: visualPowerRadius(feature.properties?.installedPowerMw) * 2, damLinked: Boolean(relation?.damIds?.length), isProducer: true, relatedToSelected: riverSelected || basinSelected || hesRelated, selected: hesSelected, dimmed: Boolean(selectedEntity && !hesSelected && !hesRelated && !riverSelected && !basinSelected), cascadeDepth: relation?.cascadeOrder ?? null } };
+      const fullnessSourceKey = fullnessResult.fullnessPercent === null ? 'N/A' : fullnessResult.source === 'canonical' ? 'Hacim' : fullnessResult.source === 'epias' ? 'EPİAŞ' : fullnessResult.source === 'mock' ? 'MOCK' : 'N/A';
+      return { ...feature, properties: { ...feature.properties, color: '#38bdf8', flow, occupancy: fullnessResult.fullnessPercent, fullnessSource: fullnessResult.source === 'canonical' ? 'H' : fullnessResult.source === 'epias' ? 'E' : fullnessResult.source === 'mock' ? 'M' : '—', fullnessStatus: fullnessResult.status, fullnessSourceClass: fullnessResult.sourceClass, fullnessSourceKey, fullnessMethod: fullnessResult.method, fullnessObservedAt: fullnessResult.observedAt, fullnessFreshnessDays: fullnessResult.freshnessDays, fullnessConfidence: fullnessResult.confidence, fullnessEstimated: fullnessResult.isEstimated, damIcon: damIconBucket(fullnessResult.fullnessPercent), visualRadius: visualPowerRadius(feature.properties?.installedPowerMw), markerDiameterPx: visualPowerRadius(feature.properties?.installedPowerMw) * 2, damLinked: Boolean(relation?.damIds?.length), isProducer: true, relatedToSelected: riverSelected || basinSelected || hesRelated, selected: hesSelected, dimmed: Boolean(selectedEntity && !hesSelected && !hesRelated && !riverSelected && !basinSelected), cascadeDepth: relation?.cascadeOrder ?? null } };
     }) };
-    return { rivers: { ...rivers, features: riverFeatures }, basins: { ...basins, features: basinFeatures }, dams: { ...damStations, features: damFeatures }, hes177: enrichedHes177, cascades, catchment };
-  }, [basins, cascades, catchment, damStations, dataMode, epias, geoglows, hes177, hes177Relations, rivers, selectedEntity, theme, timelineIndex]);
+    const reservoirFeatures = reservoirs.features.map((feature) => {
+      const properties = feature.properties ?? {};
+      const hesIds = Array.isArray(properties.hesIds) ? properties.hesIds.map(String) : [];
+      const selectedHes = selectedEntity?.type === 'hes' && hesIds.includes(selectedEntity.id);
+      const selectedRiverHes = selectedEntity?.type === 'river' && hesIds.some((id) => selectedRiverHesIds.has(id));
+      const selectedBasin = selectedEntity?.type === 'basin' && String(properties.basinId ?? '') === selectedEntity.id;
+      return { ...feature, properties: { ...properties, selected: selectedHes, dimmed: Boolean(selectedEntity && !selectedHes && !selectedRiverHes && !selectedBasin) } };
+    });
+    return { rivers: { ...rivers, features: riverFeatures }, basins: { ...basins, features: basinFeatures }, dams: { ...damStations, features: damFeatures }, hes177: enrichedHes177, cascades, catchment, reservoirs: { ...reservoirs, features: reservoirFeatures } };
+  }, [basins, cascades, catchment, damStations, dataMode, epias, fullness, geoglows, hes177, hes177Relations, reservoirs, rivers, selectedEntity, theme, timelineIndex]);
 
   const overlayOptions = useMemo<OverlayOptions>(() => ({
     rivers: layers.rivers,
     dams: layers.dams,
     basins: layers.basins,
     hes177: true,
+    reservoirs: true,
     outlineColor: theme === 'light' ? '#475569' : '#07111f',
     selectionColor: theme === 'light' ? '#0f766e' : '#f8fafc',
     basinOutlineColor: theme === 'light' ? '#475569' : '#93c5fd',
@@ -250,6 +278,7 @@ export function BaseMap() {
     map.on('styledata', onStyleData);
     map.on('error', onMapError);
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right');
+    map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: 'GDW rezervuar poligonları · OpenFreeMap / OSM' }), 'bottom-right');
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       map.off('load', onStyleReady); map.off('style.load', onStyleReady); map.off('styledata', onStyleData); map.off('error', onMapError);
@@ -367,6 +396,11 @@ export function BaseMap() {
         const basinId = feature.properties?.basinId ?? feature.properties?.HAVZA_ID ?? feature.properties?.ID;
         if (basinId !== undefined && basinId !== null) setSelectedEntity({ type: 'basin', id: String(basinId) });
       }
+      if (feature.layer.id === 'reservoirs-outline') {
+        const hesId = Array.isArray(feature.properties?.hesIds) ? String(feature.properties.hesIds[0] ?? '') : '';
+        if (hesId) setSelectedEntity({ type: 'hes', id: hesId });
+        return;
+      }
       if (feature.layer.id === 'hes177-points' || feature.layer.id === HES_PIE_LAYER_ID) {
         const hesId = String(id);
         setSelectedEntity({ type: 'hes', id: hesId });
@@ -395,7 +429,7 @@ export function BaseMap() {
       if (!feature) return;
       const props = (feature.properties ?? {}) as Record<string, unknown>;
       const layerId = feature.layer.id;
-      const kind = layerId === 'basins-fill' ? 'basin' : layerId === 'rivers-core' ? 'river' : layerId === 'hes177-points' || layerId === HES_PIE_LAYER_ID ? 'hes' : 'dam';
+      const kind = layerId === 'basins-fill' ? 'basin' : layerId === 'rivers-core' ? 'river' : layerId === 'reservoirs-outline' ? 'lake' : layerId === 'hes177-points' || layerId === HES_PIE_LAYER_ID ? 'hes' : 'dam';
       const name = displayName(props, kind, String(props.id ?? feature.id ?? ''));
       const detail = kind === 'hes' ? `${props.installedPowerMw ?? '—'} MW · ${String(props.riverName ?? 'Akarsu doğrulanamadı')}\nDoluluk: ${props.occupancy === null || props.occupancy === undefined ? '—' : `%${Math.round(Number(props.occupancy))} ${String(props.fullnessSource ?? '—')}`}` : kind === 'river' ? `${props.hasForecast ? 'GEOGLOWS tahmini mevcut' : 'GEOGLOWS tahmini yok'}\nHavza: ${String(props.basinName ?? props.HavzaAdi ?? props.basinId ?? '—')}` : kind === 'dam' ? `${props.occupancy !== null && props.occupancy !== undefined ? `Doluluk: %${Math.round(Number(props.occupancy))}` : 'Doluluk verisi yok'}${props.isProducer === true ? '\n⚡ Bağlı HES tesisi' : ''}` : `Alan: ${props.areaKm2 ? `${Number(props.areaKm2).toLocaleString('tr-TR')} km²` : 'özet veri yok'}`;
       popupRef.current?.remove();

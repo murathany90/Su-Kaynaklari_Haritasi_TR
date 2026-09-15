@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowUpDown, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
-import { getHesFullnessMeta } from '../../data/hydrology';
+import { fullnessRecordsByHes, resolveHesFullness } from '../../data/fullnessSources';
 import { useAppStore, type TabType } from '../../store/useAppStore';
 
 type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness' | 'source' | 'count' | 'forecast' | 'cascade';
-type FullnessSource = 'E' | 'H' | 'M' | '—';
+type FullnessSource = string;
 type Row = {
   id: string;
   type: 'hes' | 'river' | 'basin';
@@ -24,6 +24,7 @@ type Row = {
 type Column = { key: SortKey; label: string; className?: string; value: (row: Row) => React.ReactNode };
 
 function numberOf(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -34,19 +35,20 @@ function formatMw(value: number): string {
 
 function volumeFullness(rows: Array<{ details?: Record<string, unknown> }>): number | null {
   const eligible = rows.map((row) => ({
+    details: row.details,
     active: numberOf(row.details?.activeVolumeHm3),
     minimum: numberOf(row.details?.minVolumeHm3),
     maximum: numberOf(row.details?.maxVolumeHm3),
-  })).filter((row) => row.active !== null && row.minimum !== null && row.maximum !== null && row.maximum > row.minimum);
+  })).filter((row) => row.details?.hydroPlantStorageType !== 'run_of_river' && row.active !== null && row.minimum !== null && row.maximum !== null && row.maximum > row.minimum);
   const usableVolume = eligible.reduce((sum, row) => sum + (row.maximum ?? 0) - (row.minimum ?? 0), 0);
   const activeVolume = eligible.reduce((sum, row) => sum + (row.active ?? 0), 0);
   return usableVolume > 0 ? Math.min(100, Math.max(0, (activeVolume / usableVolume) * 100)) : null;
 }
 
 function fullnessCell(row: Row): React.ReactNode {
-  if (row.fullness === null) return '—';
-  const sourceLabel = row.source === 'E' ? 'EPİAŞ doğrulanmış değer' : row.source === 'H' ? 'Aktif hacimden hesaplanan değer' : 'Kontrollü MOCK senaryosu';
-  return <span title={sourceLabel}>{`%${Math.round(row.fullness)} ${row.source}`}</span>;
+  const sourceLabel = row.source === 'E' ? 'EPİAŞ doğrulanmış değer' : row.source === 'H' ? 'Aktif hacimden hesaplanan değer' : row.source === 'M' ? 'Geliştirme mock senaryosu' : 'Doğrulanmış doluluk verisi yok';
+  if (row.fullness === null) return <span title={sourceLabel}>{row.source}</span>;
+  return <span title={sourceLabel}>{`%${Math.round(row.fullness)} · ${row.source}`}</span>;
 }
 
 function isValidRiver(value: unknown): value is string {
@@ -70,11 +72,13 @@ export const Sidebar: React.FC = () => {
   const basins = useAppStore((s) => s.basins);
   const geoglows = useAppStore((s) => s.geoglows);
   const epias = useAppStore((s) => s.epias);
+  const fullnessPayload = useAppStore((s) => s.fullness);
   const dataMode = useAppStore((s) => s.dataMode);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
   const isLight = theme === 'light';
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const fullnessByHes = useMemo(() => fullnessRecordsByHes(fullnessPayload), [fullnessPayload]);
 
   const epiasByHes = useMemo(() => new Map(hes.features.flatMap((feature) => {
     const properties = feature.properties ?? {};
@@ -91,12 +95,12 @@ export const Sidebar: React.FC = () => {
   const hesRows = useMemo<Row[]>(() => hes.features.map((feature) => {
     const properties = feature.properties ?? {};
     const id = String(properties.id ?? feature.id ?? '');
-    const fullness = getHesFullnessMeta(id, dataMode, epiasByHes.get(id), properties);
+    const fullnessResult = resolveHesFullness(id, properties, fullnessByHes.get(id) ?? epiasByHes.get(id), dataMode);
     return {
       id, type: 'hes' as const, name: String(properties.name ?? 'HES'), basin: String(properties.displayBasinName ?? properties.basinName ?? '—'), river: isValidRiver(properties.riverName) ? String(properties.riverName) : '—', power: numberOf(properties.installedPowerMw) ?? 0,
-      fullness: fullness.value, source: fullness.source, count: 1, forecast: false, cascadeCount: Number(Boolean(properties.cascadeToId)) + (Array.isArray(properties.cascadeFromIds) ? properties.cascadeFromIds.length : 0), riverNames: '', details: properties,
+      fullness: fullnessResult.fullnessPercent, source: fullnessResult.fullnessPercent === null ? (fullnessResult.status === 'not_applicable' ? 'N/A' : '—') : fullnessResult.source === 'epias' ? 'E' : fullnessResult.source === 'mock' ? 'M' : 'H', count: 1, forecast: false, cascadeCount: Number(Boolean(properties.cascadeToId)) + (Array.isArray(properties.cascadeFromIds) ? properties.cascadeFromIds.length : 0), riverNames: '', details: { ...properties, fullnessResult },
     };
-  }), [dataMode, epiasByHes, hes.features]);
+  }), [dataMode, epiasByHes, fullnessByHes, hes.features]);
 
   const hesById = useMemo(() => new Map(hesRows.map((row) => [row.id, row])), [hesRows]);
   const basinLabels = useMemo(() => new Map(basins.features.map((feature) => [String(feature.properties?.basinId ?? feature.properties?.ID ?? feature.id ?? ''), String(feature.properties?.name ?? feature.properties?.HAVZA_ADI ?? 'Havza')])), [basins.features]);

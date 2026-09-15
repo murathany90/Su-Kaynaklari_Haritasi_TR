@@ -6,63 +6,60 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: hydro-pages
+  cancel-in-progress: true
+
 jobs:
-  tatus:
+  build-and-publish:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install -r tools/hydro/requirements.txt
-      - run: python tools/hydro/fetch_tatus.py
-      - run: python tools/hydro/build_river_reach_map.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tatus-hydrology-data
-          path: |
-            public/data/static/tatus
-            public/data/static/mappings
-            public/data/manifest
-
-  geoglows:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *' }}
-    needs: tatus
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: tatus-hydrology-data
-          path: .
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install -r tools/hydro/requirements.txt
-      - run: python tools/hydro/fetch_geoglows.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: geoglows-live-data
-          path: public/data/live/geoglows_latest.json
-
-  epias:
-    needs: tatus
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install -r tools/hydro/requirements.txt
-      - run: python tools/hydro/fetch_epias.py
+      - name: Fetch TATUS layers
+        continue-on-error: true
+        run: python tools/hydro/fetch_tatus.py
+      - name: Build river reach mapping
+        continue-on-error: true
+        run: python tools/hydro/build_river_reach_map.py
+      - name: Fetch GEOGLOWS
+        continue-on-error: true
+        run: python tools/hydro/fetch_geoglows.py
+      - name: Fetch EPİAŞ
+        continue-on-error: true
+        run: python tools/hydro/fetch_epias.py
         env:
           EPIAS_USERNAME: ${{ secrets.EPIAS_USERNAME }}
           EPIAS_PASSWORD: ${{ secrets.EPIAS_PASSWORD }}
           EPIAS_TGT_URL: ${{ secrets.EPIAS_TGT_URL }}
           EPIAS_DAM_ENDPOINT: ${{ secrets.EPIAS_DAM_ENDPOINT }}
-      - uses: actions/upload-artifact@v4
+      - name: Build, audit and validate canonical package
+        run: |
+          python tools/build_hes177.py
+          python tools/hydro/build_reservoirs.py
+          python tools/hydro/audit_fullness_sources.py
+          python tools/validate_hes177.py
+      - uses: actions/setup-node@v4
         with:
-          name: epias-live-data
-          path: |
-            public/data/live/epias_dams_latest.json
-            public/data/live/epias_dams_history.json
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

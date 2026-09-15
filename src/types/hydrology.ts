@@ -15,9 +15,45 @@ export interface HydroDataManifest {
   generatedAt?: string;
   dataVersion?: string;
   sourceCommit?: string | null;
+  buildBaseCommit?: string | null;
   status?: string;
   source?: string;
   layers?: Array<{ key: string; featureCount?: number; status?: string; source?: string }>;
+  [key: string]: unknown;
+}
+
+export type FullnessStatus = 'available' | 'stale' | 'not_applicable' | 'unavailable';
+export type FullnessSourceClass = 'official' | 'satellite_altimetry' | 'satellite_area' | 'calculated_storage' | 'historical' | 'mock';
+export type FullnessSource = 'epias' | 'dsi' | 'dahiti' | 'hydroweb' | 'copernicus' | 'swot' | 'g_realm' | 'sentinel' | 'canonical' | 'mock';
+export type FullnessConfidence = 'high' | 'medium' | 'low';
+
+export interface FullnessResult {
+  hesId: string;
+  fullnessPercent: number | null;
+  status: FullnessStatus;
+  sourceClass: FullnessSourceClass;
+  source: FullnessSource;
+  method: string;
+  observedAt: string | null;
+  fetchedAt: string | null;
+  freshnessDays: number | null;
+  confidence: FullnessConfidence;
+  isEstimated: boolean;
+  rawValue?: number | null;
+  rawUnit?: string | null;
+  sourceUrl?: string | null;
+  sourceStationId?: string | null;
+  uncertainty?: number | null;
+  qualityFlags?: string[];
+  reasonUnavailable?: string;
+  [key: string]: unknown;
+}
+
+export interface FullnessPayload {
+  generatedAt?: string;
+  status?: string;
+  coverage?: Record<string, unknown>;
+  records?: FullnessResult[];
   [key: string]: unknown;
 }
 
@@ -60,12 +96,14 @@ export interface HydroDataBundle {
   hes177: HydrologyFeatureCollection;
   cascades: HydrologyFeatureCollection;
   catchment: HydrologyFeatureCollection;
+  reservoirs: HydrologyFeatureCollection;
   hes177Relations: Hes177Relations | null;
   manifest: HydroDataManifest | null;
   hes177Manifest: HydroDataManifest | null;
   mappingManifest: RiverMappingManifest | null;
   geoglows: GeoglowsPayload | null;
   epias: EpiasPayload | null;
+  fullness: FullnessPayload | null;
   errors: string[];
 }
 

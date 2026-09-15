@@ -1,6 +1,7 @@
 import {
   emptyFeatureCollection,
   type EpiasPayload,
+  type FullnessPayload,
   type GeoglowsPayload,
   type HydroDataBundle,
   type HydroDataManifest,
@@ -16,6 +17,7 @@ const STATIC_FILES = {
   hes177: '/data/hes177/hes_177.geojson',
   cascades: '/data/hes177/hes_cascades.geojson',
   catchment: '',
+  reservoirs: '/data/hes177/hes_reservoirs.geojson',
 } as const;
 
 async function readJson<T>(path: string): Promise<T> {
@@ -67,8 +69,8 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
     Object.entries(STATIC_FILES).map(async ([key, path]) => [key, path ? asFeatureCollection(await readJson(versionedPath(path, assetVersion)), path) : emptyFeatureCollection()] as const),
   );
   const bundle: HydroDataBundle = {
-    basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), damStations: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), hes177Relations: null,
-    manifest: null, hes177Manifest: canonicalManifest, mappingManifest: null, geoglows: null, epias: null, errors: [],
+    basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), damStations: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), reservoirs: emptyFeatureCollection(), hes177Relations: null,
+    manifest: null, hes177Manifest: canonicalManifest, mappingManifest: null, geoglows: null, epias: null, fullness: null, errors: [],
   };
   if (canonicalManifestResult[0].status === 'rejected') bundle.errors.push(`177 HES manifest: ${reasonOf(canonicalManifestResult[0])}`);
   entries.forEach((entry, index) => {
@@ -82,6 +84,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
     readJson<RiverMappingManifest>('/data/manifest/river_reach_map_manifest.json'),
     readJson<GeoglowsPayload>('/data/live/geoglows_latest.json'),
     readJson<EpiasPayload>('/data/live/epias_dams_latest.json'),
+    readJson<FullnessPayload>('/data/live/hes_fullness_latest.json'),
     readJson<Hes177Relations>(versionedPath('/data/hes177/hes_177_relations.json', assetVersion)),
   ]);
   if (optional[0].status === 'fulfilled') bundle.manifest = optional[0].value;
@@ -92,8 +95,10 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
   else bundle.errors.push(`GEOGLOWS: ${reasonOf(optional[2])}`);
   if (optional[3].status === 'fulfilled') bundle.epias = asOptionalPayload<EpiasPayload>(optional[3].value);
   else bundle.errors.push(`EPIAS: ${reasonOf(optional[3])}`);
-  if (optional[4].status === 'fulfilled') bundle.hes177Relations = optional[4].value;
-  else bundle.errors.push(`177 HES relations: ${reasonOf(optional[4])}`);
+  if (optional[4].status === 'fulfilled') bundle.fullness = asOptionalPayload<FullnessPayload>(optional[4].value);
+  else bundle.errors.push(`fullness: ${reasonOf(optional[4])}`);
+  if (optional[5].status === 'fulfilled') bundle.hes177Relations = optional[5].value;
+  else bundle.errors.push(`177 HES relations: ${reasonOf(optional[5])}`);
   validateCanonicalCounts(bundle, canonicalManifest);
   return bundle;
 }

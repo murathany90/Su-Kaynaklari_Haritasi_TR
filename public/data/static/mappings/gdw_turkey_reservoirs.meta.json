@@ -1,0 +1,7 @@
+{
+  "source": "https://services8.arcgis.com/oTalEaSXAuyNT7xf/ArcGIS/rest/services/GDW_v1_epsilon_gdb/FeatureServer/1",
+  "sourceUrl": "https://services8.arcgis.com/oTalEaSXAuyNT7xf/ArcGIS/rest/services/GDW_v1_epsilon_gdb/FeatureServer/1/query?where=COUNTRY+%3D+%27Turkey%27&geometry=25%2C35%2C45%2C43&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=%2A&returnGeometry=true&outSR=4326&f=geojson&resultRecordCount=2000",
+  "fetchedAt": "2026-09-15T22:23:47.150189+00:00",
+  "sha256": "ed3e711977ed671932a15077257928bd8c72a6465dcf1652bbc62b521c838941",
+  "featureCount": 612
+}
