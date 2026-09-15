@@ -11,7 +11,10 @@ export interface HydroSourceMeta {
 }
 
 export interface HydroDataManifest {
+  version?: string | number;
   generatedAt?: string;
+  dataVersion?: string;
+  sourceCommit?: string | null;
   status?: string;
   source?: string;
   layers?: Array<{ key: string; featureCount?: number; status?: string; source?: string }>;

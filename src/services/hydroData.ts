@@ -24,9 +24,13 @@ async function readJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function versionedPath(path: string, version: string | number | null | undefined): string {
+  return version === null || version === undefined ? path : `${path}?v=${encodeURIComponent(String(version))}`;
+}
+
 function asFeatureCollection(value: unknown, path: string): HydrologyFeatureCollection {
   if (!value || typeof value !== 'object' || (value as { type?: string }).type !== 'FeatureCollection' || !Array.isArray((value as { features?: unknown[] }).features)) {
-    throw new Error(`${path}: geçersiz GeoJSON FeatureCollection`);
+    throw new Error(`${path}: invalid GeoJSON FeatureCollection`);
   }
   return value as HydrologyFeatureCollection;
 }
@@ -36,18 +40,37 @@ function asOptionalPayload<T extends object>(value: unknown): T {
 }
 
 function reasonOf(result: PromiseSettledResult<unknown>): string {
-  return result.status === 'rejected' ? result.reason instanceof Error ? result.reason.message : String(result.reason) : 'bilinmeyen hata';
+  return result.status === 'rejected' ? result.reason instanceof Error ? result.reason.message : String(result.reason) : 'unknown error';
+}
+
+function validateCanonicalCounts(bundle: HydroDataBundle, manifest: HydroDataManifest | null): void {
+  if (!manifest) return;
+  const checks: Array<[string, number | undefined, number]> = [
+    ['HES', typeof manifest.hesCount === 'number' ? manifest.hesCount : undefined, bundle.hes177.features.length],
+    ['basin', typeof manifest.basinCount === 'number' ? manifest.basinCount : undefined, bundle.basins.features.length],
+    ['logical river', typeof manifest.logicalRiverCount === 'number' ? manifest.logicalRiverCount : undefined, bundle.rivers.features.length],
+    ['dam', typeof manifest.damCount === 'number' ? manifest.damCount : undefined, bundle.damStations.features.length],
+  ];
+  checks.forEach(([label, expected, actual]) => {
+    if (expected !== undefined && expected !== actual) bundle.errors.push(`canonical ${label} count: manifest ${expected}, runtime ${actual}`);
+  });
 }
 
 /** Loads real static TATUS data and the latest generated live payloads. */
 export async function loadHydroData(): Promise<HydroDataBundle> {
+  const canonicalManifestResult = await Promise.allSettled([
+    readJson<HydroDataManifest>('/data/hes177/hes_177_manifest.json'),
+  ]);
+  const canonicalManifest = canonicalManifestResult[0].status === 'fulfilled' ? canonicalManifestResult[0].value : null;
+  const assetVersion = canonicalManifest?.dataVersion ?? canonicalManifest?.version;
   const entries = await Promise.allSettled(
-    Object.entries(STATIC_FILES).map(async ([key, path]) => [key, path ? asFeatureCollection(await readJson(path), path) : emptyFeatureCollection()] as const),
+    Object.entries(STATIC_FILES).map(async ([key, path]) => [key, path ? asFeatureCollection(await readJson(versionedPath(path, assetVersion)), path) : emptyFeatureCollection()] as const),
   );
   const bundle: HydroDataBundle = {
     basins: emptyFeatureCollection(), rivers: emptyFeatureCollection(), damStations: emptyFeatureCollection(), hes177: emptyFeatureCollection(), cascades: emptyFeatureCollection(), catchment: emptyFeatureCollection(), hes177Relations: null,
-    manifest: null, hes177Manifest: null, mappingManifest: null, geoglows: null, epias: null, errors: [],
+    manifest: null, hes177Manifest: canonicalManifest, mappingManifest: null, geoglows: null, epias: null, errors: [],
   };
+  if (canonicalManifestResult[0].status === 'rejected') bundle.errors.push(`177 HES manifest: ${reasonOf(canonicalManifestResult[0])}`);
   entries.forEach((entry, index) => {
     const key = Object.keys(STATIC_FILES)[index] as keyof typeof STATIC_FILES;
     if (entry.status === 'fulfilled') bundle[key] = entry.value[1];
@@ -56,24 +79,22 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
 
   const optional = await Promise.allSettled([
     readJson<HydroDataManifest>('/data/manifest/tatus_manifest.json'),
-    readJson<HydroDataManifest>('/data/hes177/hes_177_manifest.json'),
     readJson<RiverMappingManifest>('/data/manifest/river_reach_map_manifest.json'),
     readJson<GeoglowsPayload>('/data/live/geoglows_latest.json'),
     readJson<EpiasPayload>('/data/live/epias_dams_latest.json'),
-    readJson<Hes177Relations>('/data/hes177/hes_177_relations.json'),
+    readJson<Hes177Relations>(versionedPath('/data/hes177/hes_177_relations.json', assetVersion)),
   ]);
   if (optional[0].status === 'fulfilled') bundle.manifest = optional[0].value;
   else bundle.errors.push(`manifest: ${reasonOf(optional[0])}`);
-  if (optional[1].status === 'fulfilled') bundle.hes177Manifest = optional[1].value;
-  else bundle.errors.push(`177 HES manifest: ${reasonOf(optional[1])}`);
-  if (optional[2].status === 'fulfilled') bundle.mappingManifest = optional[2].value;
-  else bundle.errors.push(`river mapping: ${reasonOf(optional[2])}`);
-  if (optional[3].status === 'fulfilled') bundle.geoglows = asOptionalPayload<GeoglowsPayload>(optional[3].value);
-  else bundle.errors.push(`GEOGLOWS: ${reasonOf(optional[3])}`);
-  if (optional[4].status === 'fulfilled') bundle.epias = asOptionalPayload<EpiasPayload>(optional[4].value);
-  else bundle.errors.push(`EPİAŞ: ${reasonOf(optional[4])}`);
-  if (optional[5].status === 'fulfilled') bundle.hes177Relations = optional[5].value;
-  else bundle.errors.push(`177 HES ilişkileri: ${reasonOf(optional[5])}`);
+  if (optional[1].status === 'fulfilled') bundle.mappingManifest = optional[1].value;
+  else bundle.errors.push(`river mapping: ${reasonOf(optional[1])}`);
+  if (optional[2].status === 'fulfilled') bundle.geoglows = asOptionalPayload<GeoglowsPayload>(optional[2].value);
+  else bundle.errors.push(`GEOGLOWS: ${reasonOf(optional[2])}`);
+  if (optional[3].status === 'fulfilled') bundle.epias = asOptionalPayload<EpiasPayload>(optional[3].value);
+  else bundle.errors.push(`EPIAS: ${reasonOf(optional[3])}`);
+  if (optional[4].status === 'fulfilled') bundle.hes177Relations = optional[4].value;
+  else bundle.errors.push(`177 HES relations: ${reasonOf(optional[4])}`);
+  validateCanonicalCounts(bundle, canonicalManifest);
   return bundle;
 }
 
