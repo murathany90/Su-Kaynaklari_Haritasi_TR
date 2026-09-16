@@ -319,7 +319,16 @@ export function BaseMap() {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
     maplibregl.setWorkerUrl(maplibreWorkerUrl);
-    const map = new maplibregl.Map({ container: mapContainerRef.current, style: getBasemapStyle(initialBasemapRef.current), center: [35.3, 39], zoom: 5.5, attributionControl: false, renderWorldCopies: false });
+    // Start with the raster-safe style for the default thematic basemaps. The
+    // OpenFreeMap vector source can report a loaded style while returning no
+    // visible tiles in a static-host production browser; that state used to
+    // leave the canvas blank before the fallback timer could react. Hydrology
+    // overlays are still inserted on top immediately, and users can switch to
+    // the optional vector styles from the basemap menu when available.
+    const initialStyle = initialBasemapRef.current === 'satellite'
+      ? getBasemapStyle(initialBasemapRef.current)
+      : getBasemapFallbackStyle(themeRef.current);
+    const map = new maplibregl.Map({ container: mapContainerRef.current, style: initialStyle, center: [35.3, 39], zoom: 5.5, attributionControl: false, renderWorldCopies: false });
     mapRef.current = map;
     const onStyleReady = () => scheduleOverlaySync(true);
     const onStyleData = () => scheduleOverlaySync();
@@ -421,6 +430,8 @@ export function BaseMap() {
     if (!map) return;
     if (!map.getLayer('basemap-background')) { scheduleOverlaySync(); return; }
     if (theme === 'dark' || theme === 'light') applyVectorBasemapPalette(map, theme);
+    if (map.getLayer('basemap-background')) map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[theme]);
+    if (map.getLayer('basemap-raster')) map.setPaintProperty('basemap-raster', 'raster-opacity', theme === 'light' ? 0.72 : 0.48);
     map.triggerRepaint();
   }, [theme, scheduleOverlaySync]);
 
