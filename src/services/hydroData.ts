@@ -11,7 +11,14 @@ import {
   type RiverMappingManifest,
 } from '../types/hydrology';
 
-const DATA_BASE_URL = String(import.meta.env.VITE_HYDROLOGY_DATA_BASE_URL ?? '').replace(/\/$/, '');
+const DATA_BASE_URL = String(import.meta.env.VITE_HYDROLOGY_DATA_BASE_URL || import.meta.env.BASE_URL || '/');
+const CANONICAL_MANIFEST_PATH = '/data/hes177/hes_177_manifest.json';
+
+function dataUrl(path: string): string {
+  if (/^https?:\/\//.test(path)) return path;
+  const base = DATA_BASE_URL.endsWith('/') ? DATA_BASE_URL : `${DATA_BASE_URL}/`;
+  return `${base}${path.replace(/^\/+/, '')}`;
+}
 
 const STATIC_FILES = {
   basins: '/data/hes177/hes_basins.geojson',
@@ -24,7 +31,7 @@ const STATIC_FILES = {
 } as const;
 
 async function readJson<T>(path: string): Promise<T> {
-  const requestPath = /^https?:\/\//.test(path) ? path : `${DATA_BASE_URL}${path}`;
+  const requestPath = dataUrl(path);
   const response = await fetch(requestPath, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`${requestPath}: HTTP ${response.status}`);
   return response.json() as Promise<T>;
@@ -39,6 +46,13 @@ function asFeatureCollection(value: unknown, path: string): HydrologyFeatureColl
     throw new Error(`${path}: invalid GeoJSON FeatureCollection`);
   }
   return value as HydrologyFeatureCollection;
+}
+
+function asCanonicalManifest(value: unknown): HydroDataManifest {
+  if (!value || typeof value !== 'object' || typeof (value as { hesCount?: unknown }).hesCount !== 'number') {
+    throw new Error(`${dataUrl(CANONICAL_MANIFEST_PATH)}: invalid canonical manifest`);
+  }
+  return value as HydroDataManifest;
 }
 
 function asOptionalPayload<T extends object>(value: unknown): T {
@@ -65,7 +79,7 @@ function validateCanonicalCounts(bundle: HydroDataBundle, manifest: HydroDataMan
 /** Loads real static TATUS data and the latest generated live payloads. */
 export async function loadHydroData(): Promise<HydroDataBundle> {
   const canonicalManifestResult = await Promise.allSettled([
-    readJson<HydroDataManifest>('/data/hes177/hes_177_manifest.json'),
+    readJson<HydroDataManifest>(CANONICAL_MANIFEST_PATH).then(asCanonicalManifest),
   ]);
   const canonicalManifest = canonicalManifestResult[0].status === 'fulfilled' ? canonicalManifestResult[0].value : null;
   const assetVersion = canonicalManifest?.dataVersion ?? canonicalManifest?.version;

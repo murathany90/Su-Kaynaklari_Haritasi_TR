@@ -20,6 +20,7 @@ export const HesToolbar: React.FC = () => {
   const fullnessPayload = useAppStore((state) => state.fullness);
   const dataMode = useAppStore((state) => state.dataMode);
   const dataStatus = useAppStore((state) => state.hydroDataStatus);
+  const hydroDataError = useAppStore((state) => state.hydroDataError);
   const lastRefreshAt = useAppStore((state) => state.lastRefreshAt);
   const refreshHydroData = useAppStore((state) => state.refreshHydroData);
   const [basemapMenuOpen, setBasemapMenuOpen] = useState(false);
@@ -55,7 +56,7 @@ export const HesToolbar: React.FC = () => {
     };
   }, [basins.features.length, dataMode, epias?.records, fullnessPayload, hes177.features, manifest, relations?.cascadeEdges?.length, rivers.features.length]);
 
-  const statusLabel = dataStatus === 'ready' ? 'Veri hazır' : dataStatus === 'loading' ? 'Yükleniyor' : dataStatus === 'partial' ? 'Kısmi veri' : 'Veri bekleniyor';
+  const statusLabel = dataStatus === 'ready' ? 'Veri hazır' : dataStatus === 'loading' ? 'Yükleniyor' : dataStatus === 'partial' ? 'Kısmi veri' : dataStatus === 'failed' ? 'Veri paketi yüklenemedi' : 'Veri bekleniyor';
   const pipelineRunAt = fullnessPayload?.pipelineRunAt ?? lastRefreshAt;
 
   return (
@@ -66,7 +67,7 @@ export const HesToolbar: React.FC = () => {
       <div className="flex min-w-0 items-center gap-2 border-r border-[var(--line)] pr-2 sm:pr-3">
         <span className="text-xs font-semibold">HESLER</span>
         <span className="rounded-md bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-[var(--primary)]">20 MW+</span>
-        <span className="hidden font-mono text-[9px] text-[var(--muted)] sm:inline" title={pipelineRunAt ? `Pipeline çalışması: ${formatDataDate(pipelineRunAt)}` : undefined}>{statusLabel}{kpis.latestObservationAt ? ` · Son gözlem ${formatDataDate(kpis.latestObservationAt)}` : ' · Gözlem yok'}</span>
+        <span className="hidden font-mono text-[9px] text-[var(--muted)] sm:inline" title={hydroDataError ?? (pipelineRunAt ? `Pipeline çalışması: ${formatDataDate(pipelineRunAt)}` : undefined)}>{statusLabel}{kpis.latestObservationAt ? ` · Son gözlem ${formatDataDate(kpis.latestObservationAt)}` : ' · Gözlem yok'}</span>
       </div>
 
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto whitespace-nowrap">

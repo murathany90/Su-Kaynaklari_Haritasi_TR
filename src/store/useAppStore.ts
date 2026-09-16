@@ -134,10 +134,11 @@ export const useAppStore = create<AppState>((set) => ({
     try {
       const data = await fetchHydroData();
       const staticLoaded = [data.basins, data.rivers, data.hes177].every((collection) => collection.features.length > 0);
+      const canonicalPackageLoaded = Boolean(data.hes177Manifest) && data.hes177.features.length > 0;
       const livePartial = Boolean(data.geoglows && !['ok', 'no_reviewed_mappings'].includes(data.geoglows.status ?? ''))
         || Boolean(data.epias && data.epias.status !== 'ok');
       set({
-        hydroDataStatus: data.errors.length || livePartial ? (staticLoaded ? 'partial' : 'failed') : 'ready',
+        hydroDataStatus: !canonicalPackageLoaded ? 'failed' : data.errors.length || livePartial ? (staticLoaded ? 'partial' : 'failed') : 'ready',
         hydroDataError: data.errors.length ? data.errors.join(' | ') : null,
         lastRefreshAt: new Date().toISOString(),
         basins: data.basins,
