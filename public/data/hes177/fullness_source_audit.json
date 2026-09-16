@@ -1,6 +1,6 @@
 {
   "dataVersion": "hes177-v8",
-  "pipelineRunAt": "2026-09-16T21:24:28Z",
+  "pipelineRunAt": "2026-09-16T22:00:53Z",
   "latestObservationAt": "2026-09-13T00:00:00Z",
   "status": "partial",
   "sourceRegistry": {
@@ -84,7 +84,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -132,12 +132,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -169,7 +169,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-004",
@@ -181,7 +182,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -229,12 +230,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Rezervuar eşleşmesi bulunamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -266,7 +267,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "reservoir_not_mapped"
     },
     {
       "hesId": "hes177-006",
@@ -278,12 +280,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -315,7 +317,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-007",
@@ -327,12 +330,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -364,7 +367,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-008",
@@ -376,7 +380,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -424,12 +428,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -461,7 +465,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-010",
@@ -473,7 +478,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -521,12 +526,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -558,7 +563,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-012",
@@ -570,12 +576,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -607,7 +613,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-014",
@@ -619,7 +626,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -667,12 +674,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -704,7 +711,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-017",
@@ -716,12 +724,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -753,7 +761,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-018",
@@ -765,12 +774,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -802,7 +811,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-019",
@@ -814,12 +824,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -851,7 +861,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-020",
@@ -863,12 +874,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -900,7 +911,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-022",
@@ -912,7 +924,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -960,12 +972,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -997,7 +1009,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-025",
@@ -1009,12 +1022,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -1046,7 +1059,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-026",
@@ -1058,12 +1072,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1095,7 +1109,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-027",
@@ -1107,12 +1122,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1144,7 +1159,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-028",
@@ -1156,12 +1172,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1193,7 +1209,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-032",
@@ -1205,12 +1222,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -1242,7 +1259,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-033",
@@ -1254,7 +1272,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1302,7 +1320,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1350,12 +1368,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1387,7 +1405,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-037",
@@ -1399,12 +1418,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1436,7 +1455,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-039",
@@ -1448,12 +1468,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -1485,7 +1505,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-042",
@@ -1497,12 +1518,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1534,7 +1555,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-043",
@@ -1546,12 +1568,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1583,7 +1605,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-045",
@@ -1595,7 +1618,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1643,7 +1666,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1691,7 +1714,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1739,7 +1762,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1787,12 +1810,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1824,7 +1847,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-054",
@@ -1836,7 +1860,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -1884,12 +1908,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1921,7 +1945,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-056",
@@ -1933,12 +1958,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -1970,7 +1995,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-057",
@@ -1982,7 +2008,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2030,7 +2056,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2078,12 +2104,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -2115,7 +2141,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-060",
@@ -2127,7 +2154,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2175,12 +2202,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -2212,7 +2239,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-062",
@@ -2224,12 +2252,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Rezervuar eşleşmesi bulunamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2261,7 +2289,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "reservoir_not_mapped"
     },
     {
       "hesId": "hes177-064",
@@ -2273,12 +2302,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2310,7 +2339,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-065",
@@ -2322,12 +2352,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2359,7 +2389,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-066",
@@ -2371,12 +2402,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2408,7 +2439,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-068",
@@ -2420,7 +2452,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2468,7 +2500,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2516,7 +2548,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2564,12 +2596,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -2601,7 +2633,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-072",
@@ -2613,7 +2646,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2661,7 +2694,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2709,12 +2742,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2746,7 +2779,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-076",
@@ -2758,7 +2792,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2806,12 +2840,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2843,7 +2877,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-079",
@@ -2855,12 +2890,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2892,7 +2927,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-080",
@@ -2904,7 +2940,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -2952,12 +2988,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -2989,7 +3025,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-083",
@@ -3001,7 +3038,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3049,7 +3086,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3097,12 +3134,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -3134,7 +3171,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-087",
@@ -3146,12 +3184,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -3183,7 +3221,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-088",
@@ -3195,12 +3234,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -3232,7 +3271,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-089",
@@ -3244,7 +3284,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3292,7 +3332,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3340,7 +3380,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3388,7 +3428,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3436,12 +3476,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -3473,7 +3513,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-094",
@@ -3485,12 +3526,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -3522,7 +3563,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-095",
@@ -3534,7 +3576,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3582,7 +3624,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3630,7 +3672,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3678,12 +3720,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -3715,7 +3757,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-100",
@@ -3727,12 +3770,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -3764,7 +3807,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-102",
@@ -3776,12 +3820,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -3813,7 +3857,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-103",
@@ -3825,7 +3870,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -3873,12 +3918,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -3910,7 +3955,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-105",
@@ -3922,12 +3968,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -3959,7 +4005,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-106",
@@ -3971,7 +4018,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4019,7 +4066,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4067,7 +4114,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4115,7 +4162,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4163,12 +4210,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -4200,7 +4247,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-111",
@@ -4212,12 +4260,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -4249,7 +4297,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-114",
@@ -4261,12 +4310,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -4298,7 +4347,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-115",
@@ -4310,12 +4360,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -4347,7 +4397,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-117",
@@ -4359,12 +4410,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -4396,7 +4447,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-119",
@@ -4408,7 +4460,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4456,7 +4508,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4504,12 +4556,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -4541,7 +4593,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-122",
@@ -4553,12 +4606,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -4590,7 +4643,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-123",
@@ -4602,7 +4656,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4650,7 +4704,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4698,7 +4752,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4746,7 +4800,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4794,12 +4848,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -4831,7 +4885,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-132",
@@ -4843,7 +4898,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4891,7 +4946,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -4939,12 +4994,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -4976,7 +5031,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-135",
@@ -4988,12 +5044,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -5025,7 +5081,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-136",
@@ -5037,12 +5094,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5074,7 +5131,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-137",
@@ -5086,7 +5144,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5134,7 +5192,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5182,7 +5240,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5230,12 +5288,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5267,7 +5325,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-142",
@@ -5279,12 +5338,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -5316,7 +5375,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-143",
@@ -5328,12 +5388,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5365,7 +5425,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-145",
@@ -5377,7 +5438,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5425,12 +5486,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Rezervuar eşleşmesi bulunamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5462,7 +5523,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "reservoir_not_mapped"
     },
     {
       "hesId": "hes177-148",
@@ -5474,7 +5536,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5522,12 +5584,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5559,7 +5621,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-152",
@@ -5571,12 +5634,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5608,7 +5671,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-154",
@@ -5620,12 +5684,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5657,7 +5721,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-155",
@@ -5669,12 +5734,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -5706,7 +5771,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-159",
@@ -5718,12 +5784,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5755,7 +5821,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-160",
@@ -5767,7 +5834,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5815,12 +5882,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5852,7 +5919,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-162",
@@ -5864,7 +5932,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -5912,12 +5980,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -5949,7 +6017,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-164",
@@ -5961,7 +6030,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -6009,12 +6078,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -6046,7 +6115,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-168",
@@ -6058,12 +6128,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -6095,7 +6165,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-171",
@@ -6107,7 +6178,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -6155,7 +6226,7 @@
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": 3,
       "freshnessLabel": "fresh",
       "confidence": "medium",
@@ -6203,12 +6274,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Doluluk hesabı için hacim verisi eksik",
       "qualityFlags": [
         "no_data"
       ],
@@ -6240,7 +6311,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-176",
@@ -6252,12 +6324,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -6289,7 +6361,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     },
     {
       "hesId": "hes177-177",
@@ -6301,12 +6374,12 @@
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T21:24:28Z",
+      "fetchedAt": "2026-09-16T22:00:53Z",
       "freshnessDays": null,
       "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "reasonUnavailable": "Tesis tipi doğrulanamadı",
       "qualityFlags": [
         "no_data"
       ],
@@ -6338,7 +6411,8 @@
       "uncertainty": null,
       "sourceUrl": null,
       "sourceStationId": null,
-      "observationTimestamp": null
+      "observationTimestamp": null,
+      "missingReason": "storage_type_unknown"
     }
   ]
 }

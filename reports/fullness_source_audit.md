@@ -1,9 +1,33 @@
 # Fullness source audit
 
-Pipeline run: `2026-09-16T21:24:28Z`
+Pipeline run: `2026-09-16T22:00:53Z`
 Latest observation: `2026-09-13T00:00:00Z`
 Status: `partial`
 New observations: `0`
+
+Total HES: `129`
+
+## Storage classification (denominator: 129 total HES)
+
+- Storage: 78/129 (60.5%)
+- Run-of-river: 0/129 (0.0%)
+- Regulator: 0/129 (0.0%)
+- Mixed: 0/129 (0.0%)
+- Unknown: 51/129 (39.5%)
+
+## Reservoir mapping
+
+- Mapped: 55/129 (42.6%) of total HES
+- Mapped: 55/78 (70.5%) of storage-classified HES
+
+## Fullness (denominator: 129 total HES; available also vs applicable)
+
+- Official: 0/129 (0.0%)
+- Satellite: 0/129 (0.0%)
+- Estimated: 55/129 (42.6%)
+- Unavailable: 74/129 (57.4%)
+- Not applicable: 0/129 (0.0%)
+- Available (of applicable 129): 55/129 (42.6%)
 
 ## Before / after (vs previous snapshot)
 
@@ -15,7 +39,7 @@ New observations: `0`
 | unavailable | 74 (ilk ölçüm) |
 | notApplicable | 0 (+0) |
 
-## Coverage
+## Full detail
 
 | Metric | Count |
 |---|---:|
@@ -43,4 +67,4 @@ New observations: `0`
 |---|---:|---:|---:|---:|
 | dsi | 0 | 0 | 0 | 0 |
 
-MOCK values are excluded from this production snapshot. Unavailable sources remain N/A. Missing HES list: `reports/fullness_missing_sources.json`.
+MOCK values are excluded from this production snapshot. Missing HES list with reasons: `reports/fullness_missing_sources.json`.

@@ -33,6 +33,7 @@ export interface FullnessResult {
   sourceClass: FullnessSourceClass;
   source: FullnessSource;
   provider?: string;
+  missingReason?: string;
   freshnessLabel?: 'fresh' | 'stale' | 'old' | 'unknown';
   storageType?: 'storage' | 'run_of_river' | 'regulator' | 'mixed' | 'unknown';
   method: string;

@@ -48,6 +48,19 @@ class CalculationTest(unittest.TestCase):
         self.assertLess(raw, 0)
         self.assertIsNotNone(warning)
 
+    def test_regulator_not_run_of_river(self):
+        # Regulator keywords must NOT classify as run_of_river.
+        self.assertEqual(classify_storage({"notes": "regülatör santrali"})["storageType"], "regulator")
+        self.assertEqual(classify_storage({"notes": "regulator"})["storageType"], "regulator")
+        self.assertEqual(classify_storage({"notes": "nehir tipi regülatör"})["storageType"], "mixed")
+        self.assertEqual(classify_storage({"notes": "nehir tipi santral"})["storageType"], "run_of_river")
+
+    def test_missing_reason_taxonomy_closed(self):
+        from audit_fullness_sources import MISSING_REASONS
+        self.assertEqual(set(MISSING_REASONS), {"not_applicable", "missing_inventory_volume", "missing_hypsometry",
+                                                "reservoir_not_mapped", "provider_not_configured",
+                                                "matched_no_measurement", "storage_type_unknown", "no_verified_source"})
+
     def test_run_of_river_not_applicable(self):
         hes = {"id": "h", "properties": {"id": "h", "hydroPlantStorageType": "run_of_river"}}
         result = make_result(hes, None, "2026-09-16T00:00:00Z", {}, None)

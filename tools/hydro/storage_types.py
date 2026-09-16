@@ -20,9 +20,12 @@ from __future__ import annotations
 import re
 from typing import Any
 
+# NOTE: "regülatör"/"regulator" are deliberately NOT run-of-river tokens.
+# A regulator-only plant classifies as `regulator`; run-of-river needs its
+# own explicit evidence. (See classify_storage: ror + regulator -> mixed.)
 RUN_OF_RIVER_TOKENS = (
     "run-of-river", "run of river", "nehir tipi", "nehir üstü", "nehir ustu",
-    "barajsız", "barajsiz", "kanal tipi", "regülatör", "regulator",
+    "barajsız", "barajsiz", "kanal tipi",
 )
 REGULATOR_TOKENS = ("regülatör", "regulator", "regülator", "regülatör santral")
 MIXED_TOKENS = ("pompaj", "pumped", "tersine", "reversible")

@@ -24,7 +24,7 @@ if str(sys_path) not in _sys.path:
     _sys.path.insert(0, str(sys_path))
 
 from matching import MAX_DISTANCE_KM, match_candidates
-from providers import OBS_DIR as PROVIDER_OBS_DIR, dedupe_key
+from providers import OBS_DIR as PROVIDER_OBS_DIR, classify_provider_health, dedupe_key, usable_observations
 from storage_types import classify_storage, is_run_of_river
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -79,9 +79,91 @@ PROVIDER_SOURCE_CLASS = {
 # EPİAŞ official_live -> DSİ official_published -> Hydroweb/Copernicus/DAHITI
 # -> SWOT/Sentinel -> calculated_storage -> unavailable.
 
-MISSING_REASONS = ("provider_not_configured", "no_catalog_match", "reservoir_not_mapped",
-                   "matched_no_measurement", "missing_hypsometry", "missing_inventory_volume",
-                   "stale_observation", "not_applicable", "no_verified_source")
+MISSING_REASONS = ("not_applicable", "missing_inventory_volume", "missing_hypsometry",
+                   "reservoir_not_mapped", "provider_not_configured", "matched_no_measurement",
+                   "storage_type_unknown", "no_verified_source")
+
+# User-facing Turkish sentences per reason code (mirrored in
+# src/data/fullnessSources.ts reasonDisplayText; never show raw codes).
+REASON_TR = {
+    "not_applicable": "Doluluk uygulanamaz",
+    "missing_inventory_volume": "Doluluk hesabı için hacim verisi eksik",
+    "missing_hypsometry": "Kot-hacim eğrisi eksik",
+    "reservoir_not_mapped": "Rezervuar eşleşmesi bulunamadı",
+    "provider_not_configured": "Canlı veri kaynağı yapılandırılmamış",
+    "matched_no_measurement": "Güncel ölçüm bulunamadı",
+    "storage_type_unknown": "Tesis tipi doğrulanamadı",
+    "no_verified_source": "Doğrulanmış veri yok",
+}
+
+
+def read_obs_file(provider_name: str) -> dict[str, Any]:
+    """Provider observation file payload ({} when the fetcher never ran)."""
+    path = PROVIDER_OBS_DIR / PROVIDER_OBS_FILES.get(provider_name, f"{provider_name}.json")
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {"status": "skipped", "errorCode": "unreadable_output", "observations": []}
+
+
+def provider_health_snapshot(provider_obs: dict[str, list[dict[str, Any]]],
+                             epias_payload: dict[str, Any]) -> dict[str, Any]:
+    """Classify every provider as healthy | healthy_empty | skipped | failed.
+
+    A provider without credentials (or a disabled/opt-in one) is *skipped*,
+    never healthy — catalogue metadata alone does not count as a call.
+    """
+    healthy: list[str] = []
+    healthy_empty: list[str] = []
+    skipped: dict[str, str] = {}
+    failed: dict[str, str] = {}
+    try:
+        catalog_registry = (json.loads(OBSERVATION_CATALOG_PATH.read_text(encoding="utf-8")).get("sourceRegistry", {}))
+    except (OSError, json.JSONDecodeError):
+        catalog_registry = {}
+    names = sorted(set(PROVIDER_OBS_FILES) | {"epias", "dsi"})
+    for name in names:
+        rows = provider_obs.get(name, [])
+        called = bool(rows) or (PROVIDER_OBS_DIR / PROVIDER_OBS_FILES.get(name, "")).exists()
+        obs = read_obs_file(name)
+        status: str | None = obs.get("status") if obs else None
+        code: str | None = obs.get("errorCode") if obs else None
+        if name == "epias" and not obs:
+            # Legacy runtime file (the resolver reads it for records).
+            legacy_status = str(epias_payload.get("status") or "")
+            called = called or bool(epias_payload)
+            mapping = {"requires_access": ("skipped", "credentials_missing"),
+                       "requires_endpoint": ("skipped", "endpoint_not_configured"),
+                       "ok": ("ok", None), "partial": ("partial", None),
+                       "empty": ("empty", None), "failed": ("failed", "endpoint_error")}
+            status, code = mapping.get(legacy_status, ("skipped", "endpoint_not_configured"))
+            legacy_rows = epias_payload.get("records", []) if isinstance(epias_payload.get("records"), list) else []
+            # Legacy runtime shape uses activeFullness; normalize for usability.
+            rows = [{"fullnessPercent": r.get("activeFullness"), "observedAt": r.get("observedAt")}
+                    if isinstance(r, dict) else {} for r in legacy_rows]
+        usable = usable_observations(rows) if isinstance(rows, list) else 0
+        category = classify_provider_health(called=called, status=status, error_code=code, usable=usable)
+        if category == "healthy":
+            healthy.append(name)
+        elif category == "healthy_empty":
+            healthy.append(name)
+            healthy_empty.append(name)
+        elif category == "skipped":
+            if code:
+                skipped[name] = code
+            elif name == "sentinel":
+                skipped[name] = "disabled_opt_in"
+            elif (catalog_registry.get(name) or {}).get("credentialsConfigured") is False:
+                skipped[name] = "credentials_missing"
+            else:
+                skipped[name] = "endpoint_not_configured"
+        else:
+            failed[name] = code or "endpoint_error"
+    return {"healthy": sorted(healthy), "healthy_empty": sorted(healthy_empty),
+            "skipped": skipped, "failed": failed}
 
 
 def provider_query_state() -> tuple[list[str], dict[str, str]]:
@@ -448,11 +530,22 @@ def provider_candidates(hes: dict[str, Any], provider: str, rows: list[dict[str,
             "canonicalHesId": hes_id, **audit_fields}
     # Catalogue-only metadata (no level/area/percent) is NOT an observation:
     # skip it here so it can never become a percentage downstream.
-    if (number(row.get("waterLevelM")) is None and number(row.get("surfaceAreaKm2")) is None
-            and valid_percent(number(row.get("fullnessPercent"))) is None):
+    raw_percent = number(row.get("fullnessPercent"))
+    has_measure = (number(row.get("waterLevelM")) is not None or number(row.get("surfaceAreaKm2")) is not None
+                   or raw_percent is not None)
+    if not has_measure:
+        raw_reason = str((row.get("raw") or {}).get("reason") or "")
+        reason = "measurement_not_parsed" if "NetCDF" in raw_reason or "not parsed" in raw_reason else "matched_no_measurement"
         stats["rejected"] += 1
         return [], [{"hesId": hes_id, "source": provider, "field": "providerTargetId",
-                     "value": best.get("providerTargetId"), "reason": "matched_no_measurement",
+                     "value": best.get("providerTargetId"), "reason": reason,
+                     "rejectedAt": fetched_at}]
+    if raw_percent is not None and not 0 <= raw_percent <= 100:
+        # Out-of-range provider value: preserved in the rejection, never fed
+        # to the resolver (the resolver decides via record_is_usable).
+        stats["rejected"] += 1
+        return [], [{"hesId": hes_id, "source": provider, "field": "fullnessPercent",
+                     "value": raw_percent, "reason": "volume_out_of_range",
                      "rejectedAt": fetched_at}]
     direct = valid_percent(number(row.get("fullnessPercent")))
     candidates: list[dict[str, Any]] = []
@@ -846,36 +939,52 @@ def main() -> None:
               "confidenceHigh": sum(result.get("confidence") == "high" and result.get("fullnessPercent") is not None for result in records), "confidenceMedium": sum(result.get("confidence") == "medium" and result.get("fullnessPercent") is not None for result in records), "confidenceLow": sum(result.get("confidence") == "low" and result.get("fullnessPercent") is not None for result in records)}
     checked_providers, skipped_providers = provider_query_state()
     missing_sources = []
+    not_applicable_list = []
     for result in records:
-        if result["status"] != "unavailable":
-            continue
         feature = by_id.get(result["hesId"], {})
         props = feature.get("properties", {}) if isinstance(feature, dict) else {}
+        if result["status"] == "not_applicable":
+            result["missingReason"] = "not_applicable"
+            result["reasonUnavailable"] = REASON_TR["not_applicable"]
+            not_applicable_list.append({"hesId": result["hesId"], "name": props.get("name"),
+                                        "storageType": result.get("storageType", "unknown"),
+                                        "reason": "not_applicable"})
+            continue
+        if result["status"] != "unavailable":
+            continue
         has_volumes = bool(result.get("volumeAvailable"))
         has_reservoir = bool(result.get("gdwMatch"))
         has_catalog = bool(result.get("bestCatalogSource"))
+        storage = result.get("storageType", "unknown")
         if result.get("waterLevelAvailable") or result.get("surfaceAreaAvailable"):
             reason = "missing_hypsometry"
+        elif storage == "storage" and has_reservoir and not has_volumes:
+            reason = "missing_inventory_volume"
+        elif storage == "storage" and not has_reservoir:
+            reason = "reservoir_not_mapped"
+        elif storage in ("regulator", "mixed") and not has_volumes:
+            reason = "missing_inventory_volume"
+        elif storage in ("regulator", "mixed") and not has_reservoir:
+            reason = "reservoir_not_mapped"
+        elif not checked_providers:
+            reason = "provider_not_configured"
         elif has_catalog:
             reason = "matched_no_measurement"
-        elif result.get("storageType") == "storage" and not has_reservoir:
-            reason = "reservoir_not_mapped"
-        elif not has_volumes:
-            reason = "missing_inventory_volume"
-        elif not has_catalog and not checked_providers:
-            reason = "provider_not_configured"
-        elif not has_catalog:
-            reason = "no_catalog_match"
+        elif storage == "unknown":
+            reason = "storage_type_unknown"
         else:
             reason = "no_verified_source"
         assert reason in MISSING_REASONS, reason
-        missing_sources.append({"hesId": result["hesId"], "name": props.get("name"), "storageType": result.get("storageType", "unknown"),
+        result["missingReason"] = reason
+        result["reasonUnavailable"] = REASON_TR[reason]
+        missing_sources.append({"hesId": result["hesId"], "name": props.get("name"), "storageType": storage,
                                 "providersChecked": checked_providers, "providersSkipped": skipped_providers,
                                 "candidateSources": [result.get("bestCatalogSource")] if has_catalog else [],
                                 "reason": reason})
     MISSING_PATH.parent.mkdir(parents=True, exist_ok=True)
     MISSING_PATH.write_text(json.dumps({"pipelineRunAt": fetched_at, "missingCount": len(missing_sources),
                                         "providersChecked": checked_providers, "providersSkipped": skipped_providers,
+                                        "notApplicable": not_applicable_list,
                                         "records": missing_sources}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     # Canonical HES -> dam/reservoir mapping (all 129 HES, every run).
     dam_map = []
@@ -952,9 +1061,51 @@ def main() -> None:
             return f"{current} (ilk ölçüm)"
         delta = current - int(old)
         return f"{current} ({'+' if delta >= 0 else ''}{delta})"
+    total = len(records)
+    storage_counts = {k: sum(1 for r in records if r.get("storageType") == k) for k in ("storage", "run_of_river", "regulator", "mixed", "unknown")}
+    storage_total = storage_counts["storage"]
+    mapped_total = sum(1 for r in records if r.get("gdwMatch"))
+    mapped_storage = sum(1 for r in records if r.get("gdwMatch") and r.get("storageType") == "storage")
+    applicable = sum(1 for r in records if r["status"] != "not_applicable")
+
+    def pct(part: int, whole: int) -> str:
+        return f"{part}/{whole} ({(100.0 * part / whole):.1f}%)" if whole else f"{part}/{whole} (—)"
+
+    coverage_lines = [
+        "## Storage classification (denominator: 129 total HES)",
+        "",
+        f"- Storage: {pct(storage_counts['storage'], total)}",
+        f"- Run-of-river: {pct(storage_counts['run_of_river'], total)}",
+        f"- Regulator: {pct(storage_counts['regulator'], total)}",
+        f"- Mixed: {pct(storage_counts['mixed'], total)}",
+        f"- Unknown: {pct(storage_counts['unknown'], total)}",
+        "",
+        "## Reservoir mapping",
+        "",
+        f"- Mapped: {pct(mapped_total, total)} of total HES",
+        f"- Mapped: {pct(mapped_storage, storage_total)} of storage-classified HES",
+        "",
+        "## Fullness (denominator: 129 total HES; available also vs applicable)",
+        "",
+        f"- Official: {pct(counts['officialLive'] + counts['officialPublished'], total)}",
+        f"- Satellite: {pct(counts['satellite'], total)}",
+        f"- Estimated: {pct(counts['estimated'], total)}",
+        f"- Unavailable: {pct(counts['unavailable'], total)}",
+        f"- Not applicable: {pct(counts['notApplicable'], total)}",
+        f"- Available (of applicable {applicable}): {pct(counts['available'] + counts['stale'], applicable)}",
+        "",
+        "## Before / after (vs previous snapshot)",
+        "",
+        "| Metric | Now (Δ) |",
+        "|---|---|",
+    ]
     coverage_now = {"official": counts["officialLive"] + counts["officialPublished"], "satellite": counts["satellite"],
                     "estimated": counts["estimated"], "unavailable": counts["unavailable"], "notApplicable": counts["notApplicable"]}
-    MD_PATH.write_text("# Fullness source audit\n\n" + f"Pipeline run: `{fetched_at}`\nLatest observation: `{latest_observation_at or '—'}`\nStatus: `{status}`\nNew observations: `{new_observations}`\n\n" + "## Before / after (vs previous snapshot)\n\n| Metric | Now (Δ) |\n|---|---|\n" + "\n".join(f"| {key} | {before_after(key, value)} |" for key, value in coverage_now.items()) + "\n\n## Coverage\n\n| Metric | Count |\n|---|---:|\n" + "\n".join(f"| {key} | {value} |" for key, value in counts.items()) + "\n\n## Providers\n\n| Provider | Fetched | Matched | Usable | Rejected |\n|---|---:|---:|---:|---:|\n" + "\n".join(f"| {name} | {stats.get('fetched', 0)} | {stats.get('matched', 0)} | {stats.get('usable', 0)} | {stats.get('rejected', 0)} |" for name, stats in sorted(provider_stats.items())) + "\n\nMOCK values are excluded from this production snapshot. Unavailable sources remain N/A. Missing HES list: `reports/fullness_missing_sources.json`.\n", encoding="utf-8")
+    coverage_lines += [f"| {key} | {before_after(key, value)} |" for key, value in coverage_now.items()]
+    coverage_lines += ["", "## Full detail", "", "| Metric | Count |", "|---|---:|"] + [f"| {key} | {value} |" for key, value in counts.items()]
+    coverage_lines += ["", "## Providers", "", "| Provider | Fetched | Matched | Usable | Rejected |", "|---|---:|---:|---:|---:|"] + [f"| {name} | {stats.get('fetched', 0)} | {stats.get('matched', 0)} | {stats.get('usable', 0)} | {stats.get('rejected', 0)} |" for name, stats in sorted(provider_stats.items())]
+    coverage_lines += ["", "MOCK values are excluded from this production snapshot. Missing HES list with reasons: `reports/fullness_missing_sources.json`."]
+    MD_PATH.write_text("# Fullness source audit\n\n" + f"Pipeline run: `{fetched_at}`\nLatest observation: `{latest_observation_at or '—'}`\nStatus: `{status}`\nNew observations: `{new_observations}`\n\nTotal HES: `{total}`\n\n" + "\n".join(coverage_lines) + "\n", encoding="utf-8")
     today = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
     history_root = Path(os.getenv("HYDRO_HISTORY_ROOT", str(HISTORY_ROOT)))
     history_path = history_root / f"{today:%Y}" / f"{today:%m}" / f"{today:%Y-%m-%d}.json"
@@ -963,7 +1114,8 @@ def main() -> None:
     write_payload(history_path, daily_payload)
     series_summary = write_rolling_timeseries(history_root, fetched_at)
     HEALTH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_payload(HEALTH_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "workflowStatus": os.getenv("HYDRO_WORKFLOW_STATUS", "local"), "lastSuccessfulPipelineRunAt": fetched_at, "lastFailedPipelineRunAt": previous_health.get("lastFailedPipelineRunAt"), "historyPersisted": environment_boolean("HYDRO_HISTORY_PERSISTED") is True, "deploySucceeded": environment_boolean("HYDRO_DEPLOY_SUCCEEDED"), "sourcesHealthy": [name for name in source_registry if name not in failed_sources], "sourcesFailed": failed_sources, "newObservations": new_observations, "staleRecords": counts["stale"], "qualityRejectedCount": len(quality_rejections), "coverage": coverage, "history": series_summary, "providerStats": provider_stats, "storageTypes": {k: sum(1 for r in records if r.get("storageType") == k) for k in ("storage", "run_of_river", "regulator", "mixed", "unknown")}})
+    health = provider_health_snapshot(provider_obs, epias_payload)
+    write_payload(HEALTH_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "workflowStatus": os.getenv("HYDRO_WORKFLOW_STATUS", "local"), "lastSuccessfulPipelineRunAt": fetched_at, "lastFailedPipelineRunAt": previous_health.get("lastFailedPipelineRunAt"), "historyPersisted": environment_boolean("HYDRO_HISTORY_PERSISTED") is True, "deploySucceeded": environment_boolean("HYDRO_DEPLOY_SUCCEEDED"), "sourcesHealthy": health["healthy"], "sourcesHealthyEmpty": health["healthy_empty"], "sourcesSkipped": health["skipped"], "sourcesFailed": health["failed"], "newObservations": new_observations, "staleRecords": counts["stale"], "qualityRejectedCount": len(quality_rejections), "coverage": coverage, "history": series_summary, "providerStats": provider_stats, "storageTypes": {k: sum(1 for r in records if r.get("storageType") == k) for k in ("storage", "run_of_river", "regulator", "mixed", "unknown")}})
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8")) if MANIFEST_PATH.exists() else {}
     manifest.update({"fullnessAvailableCount": counts["available"] + counts["stale"], "fullnessRealOrDerivedCount": counts["available"] + counts["stale"], "fullnessOfficialCount": counts["officialLive"] + counts["officialPublished"], "fullnessOfficialLiveCount": counts["officialLive"], "fullnessOfficialPublishedCount": counts["officialPublished"], "fullnessSatelliteCount": counts["satellite"], "fullnessCalculatedCount": counts["calculated"], "fullnessStaleCount": counts["stale"], "fullnessUnavailableCount": counts["unavailable"], "fullnessNotApplicableCount": counts["notApplicable"], "fullnessMockCount": 0, "volumeCalculatedFullnessCount": counts["calculated"], "epiasFullnessCount": counts["officialLive"], "fallbackMockFullnessCount": 0, "fullnessEstimatedCount": counts["estimated"], "fullnessMeasuredCount": counts["measured"], "fullnessFreshCount": counts["fresh"], "fullnessOldCount": counts["old"], "fullnessMissingSources": str(MISSING_PATH.relative_to(ROOT)).replace("\\", "/"), "fullnessCatalogMatchHesCount": sum(result.get("candidateSourceCount", 0) > 0 for result in records), "fullnessAuditRecordCount": len(records), "fullnessSourceAudit": str(AUDIT_PATH.relative_to(ROOT)).replace("\\", "/"), "observationCatalogGeneratedAt": catalog_payload.get("generatedAt"), "observationCatalogRecordCount": len(catalog_records), "fullnessSourceRegistry": source_registry, "fullnessProviderStats": provider_stats, "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "fullnessStatus": status, "historyObservationCount": series_summary["observationCount"], "historyOldestObservationAt": series_summary["oldestObservationAt"], "historyNewestObservationAt": series_summary["newestObservationAt"]})
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")

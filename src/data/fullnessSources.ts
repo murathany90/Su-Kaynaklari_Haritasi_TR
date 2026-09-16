@@ -129,6 +129,7 @@ function resultFromRecord(record: Record<string, unknown>, hesId: string): Fulln
     sourceClass: (record.sourceClass ?? 'official') as FullnessResult['sourceClass'],
     source: (record.source ?? 'epias') as FullnessResult['source'],
     provider: stringOf(record.provider),
+    missingReason: stringOf(record.missingReason),
     freshnessLabel: (['fresh', 'stale', 'old', 'unknown'] as const).find((label) => label === record.freshnessLabel),
     storageType: (['storage', 'run_of_river', 'regulator', 'mixed', 'unknown'] as const).find((kind) => kind === storage),
     method: String(record.method ?? 'source-normalized'),
@@ -208,6 +209,24 @@ function providerName(result: FullnessResult): string {
   return provider ?? fullnessSourceLabel(result);
 }
 
+/** Machine reason code -> user-facing Turkish sentence (mirrors REASON_TR in audit_fullness_sources.py). */
+export function reasonDisplayText(result: FullnessResult): string | null {
+  const code = typeof result.missingReason === 'string' ? result.missingReason : null;
+  const map: Record<string, string> = {
+    not_applicable: 'Doluluk uygulanamaz',
+    storage_type_unknown: 'Tesis tipi doğrulanamadı',
+    missing_inventory_volume: 'Doluluk hesabı için hacim verisi eksik',
+    matched_no_measurement: 'Güncel ölçüm bulunamadı',
+    provider_not_configured: 'Canlı veri kaynağı yapılandırılmamış',
+    missing_hypsometry: 'Kot-hacim eğrisi eksik',
+    reservoir_not_mapped: 'Rezervuar eşleşmesi bulunamadı',
+    no_verified_source: 'Doğrulanmış veri yok',
+  };
+  if (code && map[code]) return map[code];
+  const raw = typeof result.reasonUnavailable === 'string' ? result.reasonUnavailable : '';
+  return raw || null;
+}
+
 function freshnessText(result: FullnessResult): string {
   const label = typeof result.freshnessLabel === 'string' ? result.freshnessLabel : null;
   if (label === 'fresh') return 'Taze';
@@ -225,8 +244,8 @@ export function describeFullness(result: FullnessResult): { cell: string; title:
     return { cell: 'Uygulanamaz', title: 'Doluluk uygulanamaz · Nehir tipi tesis' };
   }
   if (result.status === 'unavailable' || result.fullnessPercent === null) {
-    const reason = typeof result.reasonUnavailable === 'string' && result.reasonUnavailable ? ` · ${result.reasonUnavailable}` : '';
-    return { cell: 'Veri yok', title: `Doluluk verisi bulunamadı${reason}` };
+    const reason = reasonDisplayText(result);
+    return { cell: 'Veri yok', title: reason ?? 'Doluluk verisi bulunamadı' };
   }
   const percent = `%${Math.round(result.fullnessPercent)}`;
   const freshness = freshnessText(result);

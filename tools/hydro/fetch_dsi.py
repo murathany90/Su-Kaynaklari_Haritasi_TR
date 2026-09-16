@@ -162,6 +162,20 @@ def main() -> int:
         except (PermissionError, TimeoutError, ConnectionError) as exc:
             errors.append(f"per-dam endpoint: {exc}")
     observations = per_dam_rows
+    # Without a per-dam endpoint this file is metadata/health only: the
+    # aggregates above must never be distributed as HES fullness.
+    if not per_dam_available:
+        write_provider_file("dsi_levels", {"generatedAt": fetched_at, "status": "skipped",
+                                           "errorCode": "public_per_dam_endpoint_unavailable",
+                                           "publishedDataDate": published_date,
+                                           "note": "aggregates in dsi_dams_latest.json are metadata only",
+                                           "observations": [], "errors": errors})
+    else:
+        write_provider_file("dsi_levels", {"generatedAt": fetched_at,
+                                           "status": "ok" if observations else "empty",
+                                           "errorCode": None if observations else "empty_result",
+                                           "publishedDataDate": published_date,
+                                           "observations": observations, "errors": errors})
     latest = max((str(o.get("observedAt") or "") for o in observations), default=None) or None
     if not isinstance(purpose_daily, list):
         purpose_daily = []

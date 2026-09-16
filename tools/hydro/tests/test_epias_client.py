@@ -122,6 +122,19 @@ class EpiasClientTest(unittest.TestCase):
         self.assertAlmostEqual(obs["fullnessPercent"], 64.5)
         self.assertEqual(obs["damName"], "Y")
 
+    def test_derived_out_of_range_not_clamped(self):
+        # The source client preserves the raw value + flag; the resolver decides.
+        row = {"damName": "Y", "activeVolume": 500, "minVolumeHm3": 10, "maxVolumeHm3": 110,
+               "observationDate": "2026-09-16"}
+        obs = normalize_row(row, "2026-09-16T00:00:00Z")
+        self.assertGreater(obs["fullnessPercent"], 100)
+        self.assertIsNotNone((obs.get("raw") or {}).get("volumeOutOfRange"))
+        row = {"damName": "Y", "activeVolume": 50, "minVolumeHm3": 10, "maxVolumeHm3": 110,
+               "observationDate": "2026-09-16"}
+        obs = normalize_row(row, "2026-09-16T00:00:00Z")
+        self.assertAlmostEqual(obs["fullnessPercent"], 40.0)
+        self.assertIsNone((obs.get("raw") or {}).get("volumeOutOfRange"))
+
     def test_duplicate_observations_share_dedupe_key(self):
         from providers import dedupe_key
         rows = [{"damName": "Y", "activeFullness": 64.5, "observationDate": "2026-09-14"},

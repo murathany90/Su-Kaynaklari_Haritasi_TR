@@ -140,3 +140,62 @@ def classify_http_error(status: int | None) -> str:
     if status is not None and 500 <= status <= 599:
         return "endpoint_error"
     return "endpoint_error"
+
+
+#: Provider fetch did not run / cannot run.
+SKIP_CODES = frozenset({
+    "credentials_missing", "disabled_opt_in", "endpoint_not_configured",
+    "public_per_dam_endpoint_unavailable", "fetcher_never_ran",
+    "fetcher_output_missing", "unreadable_output", "requires_access",
+    "requires_endpoint",
+})
+
+#: Provider fetch ran but errored.
+FAIL_CODES = frozenset({
+    "auth_failed", "access_denied", "endpoint_error", "rate_limited",
+    "timeout", "schema_error", "parse_error", "failed",
+})
+
+
+def classify_provider_health(*, called: bool, status: str | None,
+                             error_code: str | None, usable: int) -> str:
+    """One of healthy | healthy_empty | skipped | failed.
+
+    healthy: called, valid response, no error (usable count decides the
+      healthy vs healthy_empty split, both are listed as healthy).
+    healthy_empty: called, valid response, zero usable records.
+    skipped: never called (credentials/disabled/endpoint missing).
+    failed: called and errored.
+    """
+    code = str(error_code or "")
+    state = str(status or "")
+    if not called or state == "skipped" or code in SKIP_CODES:
+        return "skipped"
+    if code in FAIL_CODES or state in ("error", "failed"):
+        return "failed"
+    if state in ("ok", "partial", "empty"):
+        return "healthy" if usable > 0 else "healthy_empty"
+    return "failed" if code else "skipped"
+
+
+def usable_observations(rows: list[dict[str, Any]]) -> int:
+    """Rows carrying a real measurement (percent in range, or level/area)."""
+    usable = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        try:
+            percent = float(row.get("fullnessPercent")) if row.get("fullnessPercent") is not None else None
+        except (TypeError, ValueError):
+            percent = None
+        try:
+            level = float(row.get("waterLevelM")) if row.get("waterLevelM") is not None else None
+        except (TypeError, ValueError):
+            level = None
+        try:
+            area = float(row.get("surfaceAreaKm2")) if row.get("surfaceAreaKm2") is not None else None
+        except (TypeError, ValueError):
+            area = None
+        if (percent is not None and 0 <= percent <= 100) or level is not None or area is not None:
+            usable += 1
+    return usable

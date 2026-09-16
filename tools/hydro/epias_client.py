@@ -129,11 +129,19 @@ def normalize_row(row: dict[str, Any], fetched_at: str) -> dict[str, Any]:
     min_vol = to_number(first_present(row, MIN_VOLUME_KEYS))
     max_vol = to_number(first_present(row, MAX_VOLUME_KEYS))
     derived = None
+    derived_flag: str | None = None
     if percent is None and active_vol is not None and min_vol is not None and max_vol is not None and max_vol > min_vol:
         # Field semantics: activeVolume is the CURRENT absolute reservoir
         # volume -> (current - min) / (max - min). Workbook "Aktif Hacim" is a
         # different field (active-storage amount) handled in build_hes177.py.
-        derived = max(0.0, min(100.0, (active_vol - min_vol) / (max_vol - min_vol) * 100))
+        # The source client MUST NOT clamp: the raw value is preserved with a
+        # flag and the resolver decides (record_is_usable + audit warning).
+        raw_percent = (active_vol - min_vol) / (max_vol - min_vol) * 100
+        if raw_percent < 0 or raw_percent > 100:
+            derived = raw_percent
+            derived_flag = f"volume_out_of_range:{raw_percent:.1f}"
+        else:
+            derived = raw_percent
     return canonical_observation(
         provider="epias",
         provider_target_id=str(first_present(row, ("damId", "id"))) if first_present(row, ("damId", "id")) is not None else None,
@@ -146,7 +154,8 @@ def normalize_row(row: dict[str, Any], fetched_at: str) -> dict[str, Any]:
         source_url="https://seffaflik.epias.com.tr/",
         product="dams-active-fullness",
         raw={"activeVolumeHm3": active_vol, "minVolumeHm3": min_vol, "maxVolumeHm3": max_vol,
-             "derivedFromCurrentVolume": derived is not None and percent is None, "fetchedAt": fetched_at},
+             "derivedFromCurrentVolume": derived is not None and percent is None,
+             "volumeOutOfRange": derived_flag, "fetchedAt": fetched_at},
     )
 
 
