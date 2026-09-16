@@ -157,15 +157,6 @@ export function BaseMap() {
   const overlayRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overlayBootstrapRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [catchment, setCatchment] = useState(emptyFeatureCollection());
-  const [diagLog, setDiagLog] = useState<string[]>([]);
-  const diagLogRef = useRef<string[]>([]);
-  const addDiag = useCallback((msg: string) => {
-    const entry = `${new Date().toISOString().slice(11,19)} ${msg}`;
-    diagLogRef.current = [...diagLogRef.current.slice(-19), entry];
-    setDiagLog([...diagLogRef.current]);
-    // Also log to console for any dev tools inspection
-    console.log('[MapDiag]', msg);
-  }, []);
 
   const rivers = useAppStore((state) => state.rivers);
   const basins = useAppStore((state) => state.basins);
@@ -189,7 +180,6 @@ export function BaseMap() {
   const activeCatchmentHesId = useAppStore((state) => state.activeCatchmentHesId);
   const setSelectedEntity = useAppStore((state) => state.setSelectedEntity);
   const toggleCatchment = useAppStore((state) => state.toggleCatchment);
-  const hasCanonicalMapData = hes177.features.length > 0 && rivers.features.length > 0 && basins.features.length > 0;
 
   const collections = useMemo<OverlayCollections>(() => {
     const geoglowsRecords = geoglows?.records ?? [];
@@ -348,14 +338,14 @@ export function BaseMap() {
   useEffect(() => { dataRef.current = collections; optionsRef.current = overlayOptions; scheduleOverlaySync(); }, [collections, overlayOptions, scheduleOverlaySync]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current || !hasCanonicalMapData) return;
-    addDiag(`init: container=${mapContainerRef.current.offsetWidth}x${mapContainerRef.current.offsetHeight} data=hes:${dataRef.current?.hes177?.features?.length ?? 0},rivers:${dataRef.current?.rivers?.features?.length ?? 0},basins:${dataRef.current?.basins?.features?.length ?? 0}`);
+    // P0: map initialization must NOT wait for canonical data. The bootstrap
+    // style is fully local (background + empty GeoJSON sources), so the base
+    // map renders instantly; overlays sync in when data arrives via dataRef.
+    if (!mapContainerRef.current || mapRef.current) return;
     maplibregl.setWorkerUrl(maplibreWorkerUrl);
     const initialStyle = getBasemapBootstrapStyle(themeRef.current);
-    addDiag(`style: sources=${Object.keys(initialStyle.sources ?? {}).join(',')} layers=${(initialStyle.layers ?? []).map(l => l.id).join(',')}`);
     const map = new maplibregl.Map({ container: mapContainerRef.current, style: initialStyle, center: [35.3, 39], zoom: 5.5, attributionControl: false, renderWorldCopies: false });
     mapRef.current = map;
-    addDiag('map created');
     let rasterBasemapReady = false;
     const addRasterBasemap = () => {
       if (rasterBasemapReady) return;
@@ -376,22 +366,15 @@ export function BaseMap() {
       }
     };
     const addRasterAfterOverlayBootstrap = () => {
-      addDiag('addRasterAfterOverlayBootstrap called');
       syncOverlay(true);
-      const sourcesBefore = ['basins','rivers','dams','hes177','cascades','catchment','reservoirs'].map(id => `${id}:${map.getSource(id) ? 'Y' : 'N'}`).join(',');
-      addDiag(`after syncOverlay: sources=[${sourcesBefore}]`);
-      const layersBefore = ['basins-fill','rivers-core','hes177-points',HES_PIE_LAYER_ID,'basemap-raster'].map(id => `${id}:${map.getLayer(id) ? 'Y' : 'N'}`).join(',');
-      addDiag(`layers=[${layersBefore}]`);
       requestAnimationFrame(() => {
         addRasterBasemap();
-        addDiag(`raster added: ${map.getLayer('basemap-raster') ? 'Y' : 'N'}`);
         scheduleOverlaySync(true);
       });
     };
-    const onStyleData = () => { addDiag('event: styledata'); scheduleOverlaySync(); };
-    const onLoad = () => { addDiag('event: load'); addRasterAfterOverlayBootstrap(); };
+    const onStyleData = () => { scheduleOverlaySync(); };
+    const onLoad = () => { addRasterAfterOverlayBootstrap(); };
     const onStyleLoad = () => {
-      addDiag('event: style.load');
       rasterBasemapReady = false;
       addRasterAfterOverlayBootstrap();
     };
@@ -406,47 +389,45 @@ export function BaseMap() {
       const details = event as unknown as { sourceId?: unknown; error?: unknown };
       const sourceId = String(details.sourceId ?? '').toLocaleLowerCase('en-US');
       const message = String(details.error instanceof Error ? details.error.message : details.error ?? '').toLocaleLowerCase('en-US');
-      addDiag(`map error: src=${sourceId} msg=${message.slice(0, 80)}`);
-      if (sourceId === 'openmaptiles' || message.includes('openfreemap') || message.includes('openmaptiles')) fallbackToRaster();
+      // eslint-disable-next-line no-console
+      console.warn('[BaseMap] map error:', sourceId || '(no source)', message.slice(0, 120));
+      if (sourceId === 'basemap-raster' || sourceId === 'openmaptiles' || message.includes('openfreemap') || message.includes('openmaptiles')) fallbackToRaster();
       (event as unknown as { preventDefault?: () => void }).preventDefault?.();
     };
     map.on('load', onLoad);
     map.on('style.load', onStyleLoad);
     map.on('styledata', onStyleData);
     map.on('error', onMapError);
+    // Bounded first-paint bootstrap: retry overlay sync a few times until the
+    // key layers exist. No render-loop listener — a render->sync->repaint
+    // cycle would pin the main thread on slower production timing.
     let bootstrapAttempts = 0;
     const stopOverlayBootstrap = () => {
       if (overlayBootstrapRef.current !== null) {
-        clearInterval(overlayBootstrapRef.current);
+        clearTimeout(overlayBootstrapRef.current);
         overlayBootstrapRef.current = null;
       }
     };
     const bootstrapOverlays = () => {
+      overlayBootstrapRef.current = null;
       bootstrapAttempts += 1;
-      if (bootstrapAttempts <= 3 || bootstrapAttempts % 10 === 0) {
-        const canvas = map.getCanvas();
-        const gl = canvas?.getContext('webgl2') ?? canvas?.getContext('webgl');
-        addDiag(`bootstrap #${bootstrapAttempts}: canvas=${canvas?.width}x${canvas?.height} gl=${gl ? 'ok' : 'FAIL'} hes177src=${map.getSource('hes177') ? 'Y' : 'N'} riversLayer=${map.getLayer('rivers-core') ? 'Y' : 'N'} hesLayer=${map.getLayer('hes177-points') ? 'Y' : 'N'}`);
-      }
       scheduleOverlaySync(true);
-      if ((map.getLayer('hes177-points') && map.getLayer('rivers-core')) || bootstrapAttempts >= 30) {
-        addDiag(`bootstrap done at #${bootstrapAttempts}: hes=${map.getLayer('hes177-points') ? 'Y' : 'N'} rivers=${map.getLayer('rivers-core') ? 'Y' : 'N'}`);
-        stopOverlayBootstrap();
+      const ready = Boolean(map.getLayer('hes177-points') && map.getLayer('rivers-core'));
+      if (!ready && bootstrapAttempts < 12) {
+        overlayBootstrapRef.current = setTimeout(bootstrapOverlays, 500);
       }
     };
-    const onFirstRender = () => bootstrapOverlays();
-    map.on('render', onFirstRender);
-    overlayBootstrapRef.current = setInterval(bootstrapOverlays, 500);
+    overlayBootstrapRef.current = setTimeout(bootstrapOverlays, 500);
+    // Raster health check: the bootstrap style is local, so the style itself
+    // always loads. If the Esri raster layer is missing a few seconds after
+    // load (blocked tiles), re-add it; overlays stay visible regardless.
     const fallbackTimer = initialBasemapRef.current === 'satellite' ? null : setTimeout(() => {
-      if (!map.getSource('openmaptiles')) return;
-      let hasVisibleBasemap = false;
       try {
-        hasVisibleBasemap = map.queryRenderedFeatures({ layers: ['basemap-landcover', 'basemap-water', 'basemap-roads', 'basemap-boundaries'] }).length > 0;
+        if (!map.getLayer('basemap-raster')) addRasterBasemap();
       } catch {
-        hasVisibleBasemap = false;
+        // Next style event will retry.
       }
-      if (!map.isSourceLoaded('openmaptiles') || !hasVisibleBasemap) fallbackToRaster();
-    }, 4500);
+    }, 6000);
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right');
     map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: 'GDW rezervuar poligonları · OpenFreeMap / OSM' }), 'bottom-right');
     return () => {
@@ -454,12 +435,12 @@ export function BaseMap() {
       if (overlayRetryRef.current !== null) clearTimeout(overlayRetryRef.current);
       stopOverlayBootstrap();
       if (fallbackTimer !== null) clearTimeout(fallbackTimer);
-      map.off('load', onLoad); map.off('style.load', onStyleLoad); map.off('styledata', onStyleData); map.off('error', onMapError); map.off('render', onFirstRender);
+      map.off('load', onLoad); map.off('style.load', onStyleLoad); map.off('styledata', onStyleData); map.off('error', onMapError);
       popupRef.current?.remove();
       map.remove(); mapRef.current = null;
       clickPopupRef.current?.remove();
     };
-  }, [addDiag, hasCanonicalMapData, scheduleOverlaySync, syncOverlay]);
+  }, [scheduleOverlaySync, syncOverlay]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -633,13 +614,6 @@ export function BaseMap() {
   }, [collections, fullnessHistory, hes177Relations, selectedEntity]);
 
   return (
-    <>
-      <div ref={mapContainerRef} className="absolute inset-0" aria-label="Türkiye hidroloji haritası" />
-      {diagLog.length > 0 && (
-        <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 9999, background: 'rgba(0,0,0,0.85)', color: '#0f0', fontSize: 10, fontFamily: 'monospace', padding: 6, borderRadius: 4, maxWidth: 420, maxHeight: 300, overflow: 'auto', pointerEvents: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-          {diagLog.map((line, i) => <div key={i}>{line}</div>)}
-        </div>
-      )}
-    </>
+    <div ref={mapContainerRef} className="absolute inset-0" style={{ minHeight: 320 }} aria-label="Türkiye hidroloji haritası" />
   );
 }

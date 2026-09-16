@@ -1,6 +1,8 @@
 name: Hydrology data pipeline
 
 on:
+  push:
+    branches: [main]
   schedule:
     # Official/forecast sources: approximately every six hours.
     - cron: '0 */6 * * *'
