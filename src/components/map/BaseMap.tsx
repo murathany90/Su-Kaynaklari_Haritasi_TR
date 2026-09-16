@@ -180,6 +180,7 @@ export function BaseMap() {
   const activeCatchmentHesId = useAppStore((state) => state.activeCatchmentHesId);
   const setSelectedEntity = useAppStore((state) => state.setSelectedEntity);
   const toggleCatchment = useAppStore((state) => state.toggleCatchment);
+  const hasCanonicalMapData = hes177.features.length > 0 && rivers.features.length > 0 && basins.features.length > 0;
 
   const collections = useMemo<OverlayCollections>(() => {
     const geoglowsRecords = geoglows?.records ?? [];
@@ -338,7 +339,7 @@ export function BaseMap() {
   useEffect(() => { dataRef.current = collections; optionsRef.current = overlayOptions; scheduleOverlaySync(); }, [collections, overlayOptions, scheduleOverlaySync]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current || mapRef.current || !hasCanonicalMapData) return;
     maplibregl.setWorkerUrl(maplibreWorkerUrl);
     // Start with the raster-safe style for the default thematic basemaps. The
     // OpenFreeMap vector source can report a loaded style while returning no
@@ -438,7 +439,7 @@ export function BaseMap() {
       map.remove(); mapRef.current = null;
       clickPopupRef.current?.remove();
     };
-  }, [scheduleOverlaySync, syncOverlay]);
+  }, [hasCanonicalMapData, scheduleOverlaySync, syncOverlay]);
 
   useEffect(() => {
     const map = mapRef.current;
