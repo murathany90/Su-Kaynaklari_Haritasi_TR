@@ -157,6 +157,15 @@ export function BaseMap() {
   const overlayRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overlayBootstrapRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [catchment, setCatchment] = useState(emptyFeatureCollection());
+  const [diagLog, setDiagLog] = useState<string[]>([]);
+  const diagLogRef = useRef<string[]>([]);
+  const addDiag = useCallback((msg: string) => {
+    const entry = `${new Date().toISOString().slice(11,19)} ${msg}`;
+    diagLogRef.current = [...diagLogRef.current.slice(-19), entry];
+    setDiagLog([...diagLogRef.current]);
+    // Also log to console for any dev tools inspection
+    console.log('[MapDiag]', msg);
+  }, []);
 
   const rivers = useAppStore((state) => state.rivers);
   const basins = useAppStore((state) => state.basins);
@@ -340,16 +349,13 @@ export function BaseMap() {
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !hasCanonicalMapData) return;
+    addDiag(`init: container=${mapContainerRef.current.offsetWidth}x${mapContainerRef.current.offsetHeight} data=hes:${dataRef.current?.hes177?.features?.length ?? 0},rivers:${dataRef.current?.rivers?.features?.length ?? 0},basins:${dataRef.current?.basins?.features?.length ?? 0}`);
     maplibregl.setWorkerUrl(maplibreWorkerUrl);
-    // Start with the raster-safe style for the default thematic basemaps. The
-    // OpenFreeMap vector source can report a loaded style while returning no
-    // visible tiles in a static-host production browser; that state used to
-    // leave the canvas blank before the fallback timer could react. Hydrology
-    // overlays are still inserted on top immediately, and users can switch to
-    // the optional vector styles from the basemap menu when available.
     const initialStyle = getBasemapBootstrapStyle(themeRef.current);
+    addDiag(`style: sources=${Object.keys(initialStyle.sources ?? {}).join(',')} layers=${(initialStyle.layers ?? []).map(l => l.id).join(',')}`);
     const map = new maplibregl.Map({ container: mapContainerRef.current, style: initialStyle, center: [35.3, 39], zoom: 5.5, attributionControl: false, renderWorldCopies: false });
     mapRef.current = map;
+    addDiag('map created');
     let rasterBasemapReady = false;
     const addRasterBasemap = () => {
       if (rasterBasemapReady) return;
@@ -370,15 +376,22 @@ export function BaseMap() {
       }
     };
     const addRasterAfterOverlayBootstrap = () => {
+      addDiag('addRasterAfterOverlayBootstrap called');
       syncOverlay(true);
+      const sourcesBefore = ['basins','rivers','dams','hes177','cascades','catchment','reservoirs'].map(id => `${id}:${map.getSource(id) ? 'Y' : 'N'}`).join(',');
+      addDiag(`after syncOverlay: sources=[${sourcesBefore}]`);
+      const layersBefore = ['basins-fill','rivers-core','hes177-points',HES_PIE_LAYER_ID,'basemap-raster'].map(id => `${id}:${map.getLayer(id) ? 'Y' : 'N'}`).join(',');
+      addDiag(`layers=[${layersBefore}]`);
       requestAnimationFrame(() => {
         addRasterBasemap();
+        addDiag(`raster added: ${map.getLayer('basemap-raster') ? 'Y' : 'N'}`);
         scheduleOverlaySync(true);
       });
     };
-    const onStyleData = () => { scheduleOverlaySync(); };
-    const onLoad = () => addRasterAfterOverlayBootstrap();
+    const onStyleData = () => { addDiag('event: styledata'); scheduleOverlaySync(); };
+    const onLoad = () => { addDiag('event: load'); addRasterAfterOverlayBootstrap(); };
     const onStyleLoad = () => {
+      addDiag('event: style.load');
       rasterBasemapReady = false;
       addRasterAfterOverlayBootstrap();
     };
@@ -393,9 +406,8 @@ export function BaseMap() {
       const details = event as unknown as { sourceId?: unknown; error?: unknown };
       const sourceId = String(details.sourceId ?? '').toLocaleLowerCase('en-US');
       const message = String(details.error instanceof Error ? details.error.message : details.error ?? '').toLocaleLowerCase('en-US');
+      addDiag(`map error: src=${sourceId} msg=${message.slice(0, 80)}`);
       if (sourceId === 'openmaptiles' || message.includes('openfreemap') || message.includes('openmaptiles')) fallbackToRaster();
-      // Handle optional remote tile errors at the map boundary. The local
-      // hydrology layers remain available even when the basemap is not.
       (event as unknown as { preventDefault?: () => void }).preventDefault?.();
     };
     map.on('load', onLoad);
@@ -411,8 +423,16 @@ export function BaseMap() {
     };
     const bootstrapOverlays = () => {
       bootstrapAttempts += 1;
+      if (bootstrapAttempts <= 3 || bootstrapAttempts % 10 === 0) {
+        const canvas = map.getCanvas();
+        const gl = canvas?.getContext('webgl2') ?? canvas?.getContext('webgl');
+        addDiag(`bootstrap #${bootstrapAttempts}: canvas=${canvas?.width}x${canvas?.height} gl=${gl ? 'ok' : 'FAIL'} hes177src=${map.getSource('hes177') ? 'Y' : 'N'} riversLayer=${map.getLayer('rivers-core') ? 'Y' : 'N'} hesLayer=${map.getLayer('hes177-points') ? 'Y' : 'N'}`);
+      }
       scheduleOverlaySync(true);
-      if ((map.getLayer('hes177-points') && map.getLayer('rivers-core')) || bootstrapAttempts >= 30) stopOverlayBootstrap();
+      if ((map.getLayer('hes177-points') && map.getLayer('rivers-core')) || bootstrapAttempts >= 30) {
+        addDiag(`bootstrap done at #${bootstrapAttempts}: hes=${map.getLayer('hes177-points') ? 'Y' : 'N'} rivers=${map.getLayer('rivers-core') ? 'Y' : 'N'}`);
+        stopOverlayBootstrap();
+      }
     };
     const onFirstRender = () => bootstrapOverlays();
     map.on('render', onFirstRender);
@@ -439,7 +459,7 @@ export function BaseMap() {
       map.remove(); mapRef.current = null;
       clickPopupRef.current?.remove();
     };
-  }, [hasCanonicalMapData, scheduleOverlaySync, syncOverlay]);
+  }, [addDiag, hasCanonicalMapData, scheduleOverlaySync, syncOverlay]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -612,5 +632,14 @@ export function BaseMap() {
     bindHesPopupActions(popup, selectedEntity.id, riverId ? String(riverId) : null, basinId, cascadeId);
   }, [collections, fullnessHistory, hes177Relations, selectedEntity]);
 
-  return <div ref={mapContainerRef} className="absolute inset-0" aria-label="Türkiye hidroloji haritası" />;
+  return (
+    <>
+      <div ref={mapContainerRef} className="absolute inset-0" aria-label="Türkiye hidroloji haritası" />
+      {diagLog.length > 0 && (
+        <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 9999, background: 'rgba(0,0,0,0.85)', color: '#0f0', fontSize: 10, fontFamily: 'monospace', padding: 6, borderRadius: 4, maxWidth: 420, maxHeight: 300, overflow: 'auto', pointerEvents: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+          {diagLog.map((line, i) => <div key={i}>{line}</div>)}
+        </div>
+      )}
+    </>
+  );
 }
