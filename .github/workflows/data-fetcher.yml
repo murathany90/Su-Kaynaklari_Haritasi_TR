@@ -26,7 +26,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     env:
-      HISTORY_WORKTREE: ${{ runner.temp }}/hydrology-history
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +40,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          HISTORY_WORKTREE="$RUNNER_TEMP/hydrology-history"
+          echo "HISTORY_WORKTREE=$HISTORY_WORKTREE" >> "$GITHUB_ENV"
+          echo "HYDRO_HISTORY_ROOT=$HISTORY_WORKTREE/data/history/fullness" >> "$GITHUB_ENV"
           if git ls-remote --exit-code --heads origin data-history >/dev/null 2>&1; then
             git clone --depth=1 --branch data-history "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$HISTORY_WORKTREE"
           else
@@ -93,10 +95,8 @@ jobs:
           fi
 
       - name: Build, resolve, archive and validate canonical package
-        env:
-          HYDRO_HISTORY_ROOT: ${{ runner.temp }}/hydrology-history/data/history/fullness
         run: |
-          python tools/build_all.py
+          python tools/hydro/build_all.py
           python tools/hydro/test_fullness_quality.py
 
       - name: Persist history branch
