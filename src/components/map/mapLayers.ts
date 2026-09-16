@@ -68,7 +68,12 @@ function ensurePieImages(map: MapLibreMap, onReady: () => void): boolean {
     const image = new Image();
     image.onload = () => {
       pending.delete(id);
-      if (!map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+      try {
+        if (!map.hasImage(id)) map.addImage(id, image, { pixelRatio: 2 });
+      } catch {
+        // A style swap may still be in progress. The next style event invokes
+        // ensurePieImages again and retries the image registration.
+      }
       if (!pending.size) onReady();
     };
     image.onerror = () => { pending.delete(id); if (!pending.size) onReady(); };
@@ -92,7 +97,12 @@ function visible(map: MapLibreMap, id: string, value: boolean): void {
 
 /** Reconciles the focused HES overlays after every MapLibre style update. */
 export function ensureHydrologyOverlay(map: MapLibreMap, collections: OverlayCollections, options: OverlayOptions, onImagesReady?: () => void): boolean {
-  if (!map.isStyleLoaded()) return false;
+  // `isStyleLoaded()` also waits for every remote basemap source. A rejected
+  // or slow tile provider must not prevent local GeoJSON overlays from being
+  // pushed into the map style. MapLibre exposes the parsed style as soon as
+  // it is available; style events retry if an add operation is still too
+  // early during a style swap.
+  if (!map.getStyle()) return false;
   const imagesReady = ensurePieImages(map, onImagesReady ?? (() => undefined));
   SOURCE_IDS.forEach((id) => {
     if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: collections[id] });

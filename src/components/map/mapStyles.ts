@@ -123,6 +123,26 @@ const satelliteStyle: StyleSpecification = {
 };
 
 /**
+ * A raster fallback keeps the map usable when the vector basemap or its tile
+ * source is unavailable. The hydrology overlay is added on top of this style
+ * and therefore does not depend on OpenFreeMap completing its requests.
+ */
+export const getBasemapFallbackStyle = (theme: 'dark' | 'light' = 'dark'): StyleSpecification => ({
+  ...satelliteStyle,
+  name: 'HydroScope raster fallback basemap',
+  layers: [{
+    id: 'basemap-background',
+    type: 'background',
+    paint: { 'background-color': THEME_BACKGROUND[theme] },
+  }, {
+    id: 'basemap-raster',
+    type: 'raster',
+    source: 'basemap-raster',
+    paint: { 'raster-opacity': theme === 'light' ? 0.72 : 0.48 },
+  }],
+});
+
+/**
  * Local styles keep the hydrology overlay available even when an optional
  * third-party tile provider is unavailable. A remote basemap can be plugged
  * into these styles later without changing the overlay lifecycle.

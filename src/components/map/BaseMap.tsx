@@ -7,7 +7,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { getForecastTimestamps } from '../../services/hydroData';
 import { damIconBucket, displayName, getBasinColor, getDamColor, getFlowScaleColor } from '../../data/hydrology';
 import { fullnessRecordsByHes, fullnessSourceLabel, preferredFullnessRecord, resolveHistoricalFullness, resolveHesFullness } from '../../data/fullnessSources';
-import { getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
+import { getBasemapFallbackStyle, getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
 import { HES_PIE_LAYER_ID, ensureHydrologyOverlay, type OverlayCollections, type OverlayOptions } from './mapLayers';
 import { focusSelectedEntity } from './mapCamera';
 import { emptyFeatureCollection, type FullnessHistoryPoint } from '../../types/hydrology';
@@ -145,6 +145,7 @@ export function BaseMap() {
   const flowAnimationRef = useRef<number | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const clickPopupRef = useRef<maplibregl.Popup | null>(null);
+  const basemapFallbackRef = useRef(false);
   const [catchment, setCatchment] = useState(emptyFeatureCollection());
 
   const rivers = useAppStore((state) => state.rivers);
@@ -277,7 +278,7 @@ export function BaseMap() {
 
   const syncOverlay = useCallback(function syncOverlay(force = false) {
     const map = mapRef.current;
-    if (!map || !dataRef.current || !optionsRef.current || !map.isStyleLoaded()) return;
+    if (!map || !dataRef.current || !optionsRef.current || !map.getStyle()) return;
     if (!force && lastSyncedDataRef.current === dataRef.current && lastSyncedOptionsRef.current === optionsRef.current) return;
     try {
       const synced = ensureHydrologyOverlay(map, dataRef.current, optionsRef.current, () => { requestAnimationFrame(() => syncOverlay(true)); });
@@ -305,20 +306,34 @@ export function BaseMap() {
     mapRef.current = map;
     const onStyleReady = () => scheduleOverlaySync(true);
     const onStyleData = () => scheduleOverlaySync();
+    const fallbackToRaster = () => {
+      if (basemapFallbackRef.current || initialBasemapRef.current === 'satellite') return;
+      basemapFallbackRef.current = true;
+      lastSyncedDataRef.current = null;
+      lastSyncedOptionsRef.current = null;
+      map.setStyle(getBasemapFallbackStyle(themeRef.current), { diff: false });
+    };
     const onMapError = (event: maplibregl.ErrorEvent) => {
-      // MapLibre logs an unhandled error event when an optional remote tile
-      // provider rejects a request. Mark it handled so a basemap outage does
-      // not become an unhandled console error for the GIS panel.
+      const details = event as unknown as { sourceId?: unknown; error?: unknown };
+      const sourceId = String(details.sourceId ?? '').toLocaleLowerCase('en-US');
+      const message = String(details.error instanceof Error ? details.error.message : details.error ?? '').toLocaleLowerCase('en-US');
+      if (sourceId === 'openmaptiles' || message.includes('openfreemap') || message.includes('openmaptiles')) fallbackToRaster();
+      // Handle optional remote tile errors at the map boundary. The local
+      // hydrology layers remain available even when the basemap is not.
       (event as unknown as { preventDefault?: () => void }).preventDefault?.();
     };
     map.on('load', onStyleReady);
     map.on('style.load', onStyleReady);
     map.on('styledata', onStyleData);
     map.on('error', onMapError);
+    const fallbackTimer = initialBasemapRef.current === 'satellite' ? null : setTimeout(() => {
+      if (!map.isStyleLoaded() && map.getLayer('basemap-water')) fallbackToRaster();
+    }, 4500);
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right');
     map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: 'GDW rezervuar poligonları · OpenFreeMap / OSM' }), 'bottom-right');
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      if (fallbackTimer !== null) clearTimeout(fallbackTimer);
       map.off('load', onStyleReady); map.off('style.load', onStyleReady); map.off('styledata', onStyleData); map.off('error', onMapError);
       popupRef.current?.remove();
       map.remove(); mapRef.current = null;
@@ -336,6 +351,7 @@ export function BaseMap() {
       return;
     }
     initialBasemapRef.current = basemap;
+    basemapFallbackRef.current = false;
     lastSyncedDataRef.current = null;
     lastSyncedOptionsRef.current = null;
     map.setStyle(getBasemapStyle(basemap), { diff: false });
