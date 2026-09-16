@@ -368,10 +368,19 @@ export function BaseMap() {
         // styledata/load will retry after the source-free bootstrap style is ready
       }
     };
-    const onStyleReady = () => scheduleOverlaySync(true);
-    const onStyleData = () => { addRasterBasemap(); scheduleOverlaySync(); };
-    const onLoad = () => { addRasterBasemap(); onStyleReady(); };
-    const onStyleLoad = () => { addRasterBasemap(); onStyleReady(); };
+    const addRasterAfterOverlayBootstrap = () => {
+      syncOverlay(true);
+      requestAnimationFrame(() => {
+        addRasterBasemap();
+        scheduleOverlaySync(true);
+      });
+    };
+    const onStyleData = () => { scheduleOverlaySync(); };
+    const onLoad = () => addRasterAfterOverlayBootstrap();
+    const onStyleLoad = () => {
+      rasterBasemapReady = false;
+      addRasterAfterOverlayBootstrap();
+    };
     const fallbackToRaster = () => {
       if (basemapFallbackRef.current || initialBasemapRef.current === 'satellite') return;
       basemapFallbackRef.current = true;
@@ -429,7 +438,7 @@ export function BaseMap() {
       map.remove(); mapRef.current = null;
       clickPopupRef.current?.remove();
     };
-  }, [scheduleOverlaySync]);
+  }, [scheduleOverlaySync, syncOverlay]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -453,7 +462,7 @@ export function BaseMap() {
     if (!map || !selectedEntity) return;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     const focus = () => {
-      if (!map.isStyleLoaded()) { retryTimer = setTimeout(focus, 250); return; }
+      if (!map.getStyle()) { retryTimer = setTimeout(focus, 250); return; }
       focusSelectedEntity(map, selectedEntity, collections);
     };
     focus();
