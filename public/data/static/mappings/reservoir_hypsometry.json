@@ -1,0 +1,4 @@
+{
+  "_doc": "Validated level-area(-volume) curves per canonical reservoir. Entries map canonicalHesId -> {levelsM:[...], areasKm2:[...], volumesHm3?:[...], source, validatedAt}. Satellite level/area observations become fullness % ONLY through these curves; without a curve only raw level/area is published.",
+  "curves": {}
+}

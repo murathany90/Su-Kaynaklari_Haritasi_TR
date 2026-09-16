@@ -1,0 +1,4 @@
+{
+  "_doc": "Sentinel-2 tile-job staging. stagedObservations rows {targetId, canonicalHesId, name, lon, lat, observedAt, surfaceAreaKm2, cloudPercent}. Area becomes % only with a reservoir_hypsometry.json curve.",
+  "stagedObservations": []
+}

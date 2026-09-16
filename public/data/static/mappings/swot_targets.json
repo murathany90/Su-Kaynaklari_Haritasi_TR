@@ -1,0 +1,4 @@
+{
+  "_doc": "SWOT reach/lake mapping. stagedObservations accepts granule-worker rows {reachId|targetId, name, lon, lat, observedAt, wseM, areaKm2, qualityFlag, storageChangeKm3}. Freshness gate drops old rows so stale data is never shown as live.",
+  "stagedObservations": []
+}

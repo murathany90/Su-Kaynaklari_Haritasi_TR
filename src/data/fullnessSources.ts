@@ -114,15 +114,23 @@ function mockValue(id: string): number {
   return 25 + (Math.abs(hash) % 66);
 }
 
+function stringOf(value: unknown): string | undefined {
+  return typeof value === 'string' && value ? value : undefined;
+}
+
 function resultFromRecord(record: Record<string, unknown>, hesId: string): FullnessResult | null {
   const value = validPercent(numberOf(record.fullnessPercent));
   const status = String(record.status ?? (value === null ? 'unavailable' : 'available')) as FullnessResult['status'];
+  const storage = stringOf(record.storageType);
   return {
     hesId,
     fullnessPercent: value,
     status,
     sourceClass: (record.sourceClass ?? 'official') as FullnessResult['sourceClass'],
     source: (record.source ?? 'epias') as FullnessResult['source'],
+    provider: stringOf(record.provider),
+    freshnessLabel: (['fresh', 'stale', 'old', 'unknown'] as const).find((label) => label === record.freshnessLabel),
+    storageType: (['storage', 'run_of_river', 'regulator', 'mixed', 'unknown'] as const).find((kind) => kind === storage),
     method: String(record.method ?? 'source-normalized'),
     observedAt: typeof record.observedAt === 'string' ? record.observedAt : null,
     sourcePublishedAt: typeof record.sourcePublishedAt === 'string' ? record.sourcePublishedAt : null,
@@ -148,7 +156,7 @@ export function resolveHesFullness(
 ): FullnessResult {
   const source = properties ?? {};
   if (isRunOfRiver(source)) {
-    return { hesId, fullnessPercent: null, status: 'not_applicable', sourceClass: 'calculated_storage', source: 'canonical', method: 'run-of-river-no-reservoir', observedAt: null, fetchedAt: null, freshnessDays: null, confidence: 'high', isEstimated: false, qualityFlags: ['storage_type_run_of_river'] };
+    return { hesId, fullnessPercent: null, status: 'not_applicable', sourceClass: 'calculated_storage', source: 'canonical', provider: 'Envanter', freshnessLabel: 'unknown', storageType: 'run_of_river', method: 'run-of-river-no-reservoir', observedAt: null, fetchedAt: null, freshnessDays: null, confidence: 'high', isEstimated: false, qualityFlags: ['storage_type_run_of_river'] };
   }
   const direct = validPercent(firstNumber(source, PERCENT_KEYS));
   const calculated = direct ?? calculatedStorage(source) ?? calculatedCurrentStorage(source);
@@ -193,6 +201,42 @@ export function fullnessSourceLabel(result: FullnessResult): string {
   if (result.status === 'unavailable') return 'N/A';
   const labels: Record<string, string> = { epias: 'EPİAŞ', dsi: 'DSİ', dahiti: 'DAHITI', hydroweb: 'Hydroweb', copernicus: 'CLMS', swot: 'SWOT', g_realm: 'G-REALM', sentinel: 'Uydu', canonical: 'Hacim', mock: 'MOCK' };
   return labels[result.source] ?? result.source;
+}
+
+function providerName(result: FullnessResult): string {
+  const provider = typeof result.provider === 'string' && result.provider ? result.provider : null;
+  return provider ?? fullnessSourceLabel(result);
+}
+
+function freshnessText(result: FullnessResult): string {
+  const label = typeof result.freshnessLabel === 'string' ? result.freshnessLabel : null;
+  if (label === 'fresh') return 'Taze';
+  if (label === 'stale') return 'Eski';
+  if (label === 'old') return 'Çok eski';
+  return 'Bilinmiyor';
+}
+
+/** Explicit human-readable fullness description (never a bare N/A). */
+export function describeFullness(result: FullnessResult): { cell: string; title: string } {
+  const provider = providerName(result);
+  const observed = typeof result.observedAt === 'string' && result.observedAt ? result.observedAt : '—';
+  const confidence = result.confidence === 'high' ? 'Yüksek' : result.confidence === 'medium' ? 'Orta' : 'Düşük';
+  if (result.status === 'not_applicable') {
+    return { cell: 'Uygulanamaz', title: 'Doluluk uygulanamaz · Nehir tipi tesis' };
+  }
+  if (result.status === 'unavailable' || result.fullnessPercent === null) {
+    const reason = typeof result.reasonUnavailable === 'string' && result.reasonUnavailable ? ` · ${result.reasonUnavailable}` : '';
+    return { cell: 'Veri yok', title: `Doluluk verisi bulunamadı${reason}` };
+  }
+  const percent = `%${Math.round(result.fullnessPercent)}`;
+  const freshness = freshnessText(result);
+  if (result.sourceClass === 'official_live' || result.sourceClass === 'official' || result.sourceClass === 'official_published') {
+    return { cell: percent, title: `Doluluk: ${percent} · Kaynak: ${provider} · Ölçüm: ${observed} · Tazelik: ${freshness}` };
+  }
+  if (result.sourceClass === 'satellite_altimetry' || result.sourceClass === 'satellite_area') {
+    return { cell: percent, title: `Uydu tahmini: ${percent} · Kaynak: ${provider} · Ölçüm: ${observed} · Güven: ${confidence} · Tazelik: ${freshness}` };
+  }
+  return { cell: percent, title: `Tahmini doluluk: ${percent} · Kaynak: ${provider} · Güven: ${confidence} · Tazelik: ${freshness}` };
 }
 
 export function fullnessRecordsByHes(payload: FullnessPayload | null): Map<string, FullnessResult> {

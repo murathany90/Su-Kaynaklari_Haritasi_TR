@@ -1,9 +1,21 @@
 # Fullness source audit
 
-Pipeline run: `2026-09-16T07:59:27Z`
+Pipeline run: `2026-09-16T19:55:18Z`
 Latest observation: `2026-09-13T00:00:00Z`
 Status: `partial`
 New observations: `0`
+
+## Before / after (vs previous snapshot)
+
+| Metric | Now (Δ) |
+|---|---|
+| official | 0 (+0) |
+| satellite | 0 (+0) |
+| estimated | 55 (ilk ölçüm) |
+| unavailable | 74 (ilk ölçüm) |
+| notApplicable | 0 (+0) |
+
+## Coverage
 
 | Metric | Count |
 |---|---:|
@@ -16,5 +28,19 @@ New observations: `0`
 | satellite | 0 |
 | calculated | 55 |
 | mock | 0 |
+| estimated | 55 |
+| measured | 0 |
+| fresh | 55 |
+| staleLabel | 0 |
+| old | 0 |
+| confidenceHigh | 0 |
+| confidenceMedium | 55 |
+| confidenceLow | 0 |
 
-MOCK values are excluded from this production snapshot. Unavailable sources remain N/A.
+## Providers
+
+| Provider | Fetched | Matched | Usable | Rejected |
+|---|---:|---:|---:|---:|
+
+
+MOCK values are excluded from this production snapshot. Unavailable sources remain N/A. Missing HES list: `reports/fullness_missing_sources.json`.

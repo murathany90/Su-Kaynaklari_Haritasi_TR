@@ -4,9 +4,14 @@ on:
   push:
     branches: [main]
   schedule:
+    # Times are UTC; Türkiye is UTC+3. The 6-hour cadence therefore runs at
+    # 03:00 / 09:00 / 15:00 / 21:00 TR. EPİAŞ publishes the daily observation
+    # in the morning TR, so the 09:00 TR run is the main fetch and the others
+    # act as retries; the hesId+provider+observationTimestamp+sourceClass
+    # dedupe key makes re-fetching idempotent (no duplicate observations).
     # Official/forecast sources: approximately every six hours.
     - cron: '0 */6 * * *'
-    # Satellite catalog/product discovery: once per day.
+    # Satellite catalog/product discovery: once per day (05:30 TR).
     - cron: '30 2 * * *'
     # TATUS, HydroRIVERS and reservoir geometry: weekly.
     - cron: '0 3 * * 0'
@@ -71,14 +76,30 @@ jobs:
         continue-on-error: true
         run: python tools/hydro/fetch_geoglows.py
       - name: Fetch EPİAŞ
+        # No continue-on-error: the script exits 0 when credentials are absent
+        # (skipped) and 2 only when credentials ARE configured but the fetch
+        # errors — a critical failure must fail visibly, never silently green.
         if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
-        continue-on-error: true
         run: python tools/hydro/fetch_epias.py
         env:
           EPIAS_USERNAME: ${{ secrets.EPIAS_USERNAME }}
           EPIAS_PASSWORD: ${{ secrets.EPIAS_PASSWORD }}
           EPIAS_TGT_URL: ${{ secrets.EPIAS_TGT_URL }}
           EPIAS_DAM_ENDPOINT: ${{ secrets.EPIAS_DAM_ENDPOINT }}
+      - name: Download provider observations
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
+        continue-on-error: true
+        run: |
+          python tools/hydro/fetch_hydroweb.py
+          python tools/hydro/fetch_copernicus.py --mode incremental
+          python tools/hydro/fetch_dahiti.py
+          python tools/hydro/fetch_swot.py
+          python tools/hydro/fetch_sentinel2.py
+        env:
+          DAHITI_API_KEY: ${{ secrets.DAHITI_API_KEY }}
+          HYDROWEB_API_KEY: ${{ secrets.HYDROWEB_API_KEY }}
+          COPERNICUS_ACCESS_TOKEN: ${{ secrets.COPERNICUS_ACCESS_TOKEN }}
+          EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
       - name: Discover fullness observation catalogs
         if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 2 * * *'
         continue-on-error: true
@@ -103,6 +124,7 @@ jobs:
           HYDRO_HISTORY_PERSISTED: 'true'
           HYDRO_DEPLOY_SUCCEEDED: 'true'
         run: |
+          python -m unittest discover -s tools/hydro/tests
           python tools/hydro/build_all.py
           python tools/hydro/test_fullness_quality.py
 

@@ -24,6 +24,14 @@ def main() -> None:
         run("tools/hydro/fetch_epias.py")
     if os.getenv("HYDRO_FETCH") == "1" or os.getenv("FULLNESS_FETCH") == "1":
         run("tools/hydro/fetch_observation_catalogs.py")
+        # Provider observation downloads. Each adapter is credential-gated
+        # (skipped without secrets) and idempotent; EPİAŞ exits nonzero only
+        # when credentials ARE configured but the fetch errors.
+        run("tools/hydro/fetch_hydroweb.py")
+        run("tools/hydro/fetch_copernicus.py")
+        run("tools/hydro/fetch_dahiti.py")
+        run("tools/hydro/fetch_swot.py")
+        run("tools/hydro/fetch_sentinel2.py")
     run("tools/build_hes177.py")
     run("tools/hydro/build_reservoirs.py")
     run("tools/hydro/audit_fullness_sources.py")

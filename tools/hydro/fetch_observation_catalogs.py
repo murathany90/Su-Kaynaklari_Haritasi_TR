@@ -151,6 +151,28 @@ def main() -> None:
             records.extend(cached)
             registry[source] = {"status": "stale_cache" if cached else "unavailable", "dataAccess": "catalog_request_failed", "error": str(error), "recordCount": len(cached), "cachedAt": previous.get("generatedAt")}
     registry["epias"] = {"status": "separate_runtime_fetch", "sourceUrl": "https://seffaflik.epias.com.tr/", "dataAccess": "credentials_or_public_export_required"}
+    # Merge real observation-file states so the registry reflects downloads,
+    # not just catalog discovery.
+    providers_dir = ROOT / "public" / "data" / "live" / "providers"
+    for provider_name, filename in (("epias", "epias_active_fullness.json"), ("hydroweb", "hydroweb_levels.json"),
+                                    ("copernicus", "copernicus_lwl.json"), ("dahiti", "dahiti_levels.json"),
+                                    ("swot", "swot_levels.json"), ("sentinel", "sentinel2_area.json")):
+        path = providers_dir / filename
+        if not path.exists():
+            continue
+        try:
+            obs = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        observations = obs.get("observations", []) if isinstance(obs, dict) else []
+        entry = dict(registry.get(provider_name, {}))
+        entry.update({"observationFile": f"public/data/live/providers/{filename}",
+                      "observationStatus": obs.get("status") if isinstance(obs, dict) else None,
+                      "observationErrorCode": obs.get("errorCode") if isinstance(obs, dict) else None,
+                      "observationCount": len(observations),
+                      "latestObservationAt": max((str(row.get("observedAt") or "") for row in observations if isinstance(row, dict)), default=None) or None,
+                      "downloadedAt": obs.get("generatedAt") if isinstance(obs, dict) else None})
+        registry[provider_name] = entry
     payload = {
         "generatedAt": fetched_at,
         "sourceRegistry": registry,

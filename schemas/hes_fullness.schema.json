@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://murathany90.github.io/Su-Kaynaklari_Haritasi_TR/schemas/hes_fullness.schema.json",
+  "title": "Canonical HES fullness snapshot",
+  "type": "object",
+  "required": ["dataVersion", "pipelineRunAt", "status", "coverage", "records"],
+  "properties": {
+    "dataVersion": { "type": "string" },
+    "pipelineRunAt": { "type": "string" },
+    "latestObservationAt": { "type": ["string", "null"] },
+    "status": { "type": "string" },
+    "coverage": { "type": "object" },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["hesId", "status", "fullnessPercent", "sourceClass", "provider", "fetchedAt", "confidence", "method"],
+        "properties": {
+          "hesId": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["available", "stale", "unavailable", "not_applicable"] },
+          "fullnessPercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "sourceClass": { "enum": ["official", "official_live", "official_published", "satellite_altimetry", "satellite_area", "calculated_storage", "historical", "mock"] },
+          "provider": { "type": "string", "minLength": 1 },
+          "source": { "type": "string" },
+          "method": { "type": "string", "minLength": 1 },
+          "observedAt": { "type": ["string", "null"] },
+          "observationTimestamp": { "type": ["string", "null"] },
+          "sourcePublishedAt": { "type": ["string", "null"] },
+          "fetchedAt": { "type": ["string", "null"] },
+          "freshnessDays": { "type": ["integer", "number", "null"] },
+          "freshnessLabel": { "enum": ["fresh", "stale", "old", "unknown"] },
+          "confidence": { "enum": ["high", "medium", "low"] },
+          "isEstimated": { "type": "boolean" },
+          "estimated": { "type": "boolean" },
+          "rawValue": { "type": ["number", "null"] },
+          "rawUnit": { "type": ["string", "null"] },
+          "sourceUrl": { "type": ["string", "null"] },
+          "sourceStationId": { "type": ["string", "null"] },
+          "uncertainty": { "type": ["number", "null"] },
+          "storageType": { "enum": ["storage", "run_of_river", "regulator", "mixed", "unknown"] },
+          "reasonUnavailable": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

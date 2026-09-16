@@ -1,0 +1,4 @@
+{
+  "_doc": "DAHITI target mapping. Add {dahitiId, canonicalHesId, name, lon, lat} rows (matched via tools/hydro/matching.py). Empty until DAHITI access is configured.",
+  "targets": []
+}

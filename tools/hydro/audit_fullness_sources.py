@@ -17,21 +17,76 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import sys as _sys
+
+sys_path = Path(__file__).resolve().parent
+if str(sys_path) not in _sys.path:
+    _sys.path.insert(0, str(sys_path))
+
+from matching import MAX_DISTANCE_KM, match_candidates
+from providers import OBS_DIR as PROVIDER_OBS_DIR, dedupe_key
+from storage_types import classify_storage, is_run_of_river
+
 ROOT = Path(__file__).resolve().parents[2]
 HES_PATH = ROOT / "public/data/hes177/hes_177.geojson"
 MANIFEST_PATH = ROOT / "public/data/hes177/hes_177_manifest.json"
 EPIAS_PATH = ROOT / "public/data/live/epias_dams_latest.json"
 EPIAS_LKG_PATH = ROOT / "public/data/live/epias_dams_last_known_good.json"
+EPIAS_OBS_PATH = PROVIDER_OBS_DIR / "epias_active_fullness.json"
 LIVE_PATH = ROOT / "public/data/live/hes_fullness_latest.json"
 AUDIT_PATH = ROOT / "public/data/hes177/fullness_source_audit.json"
 RESERVOIRS_PATH = ROOT / "public/data/hes177/hes_reservoirs.geojson"
 OBSERVATION_CATALOG_PATH = ROOT / "public/data/static/mappings/observation_catalogs.json"
+HYPSOMETRY_PATH = ROOT / "public/data/static/mappings/reservoir_hypsometry.json"
 CSV_PATH = ROOT / "reports/fullness_source_audit.csv"
 MD_PATH = ROOT / "reports/fullness_source_audit.md"
+MISSING_PATH = ROOT / "reports/fullness_missing_sources.json"
 HISTORY_ROOT = ROOT / "public/data/history/fullness"
 TIMESERIES_ROOT = ROOT / "public/data/timeseries"
 HEALTH_PATH = ROOT / "public/data/health/hydrology_status.json"
 REJECTED_PATH = ROOT / "public/data/quality/fullness_rejected.json"
+
+PROVIDER_LABELS = {
+    "epias": "EPİAŞ", "dsi": "DSİ", "dahiti": "DAHITI", "hydroweb": "Hydroweb",
+    "copernicus": "Copernicus CLMS", "swot": "NASA SWOT", "g_realm": "G-REALM",
+    "sentinel": "Sentinel-2", "canonical": "Envanter", "mock": "MOCK",
+}
+
+# Provider freshness policy: (stale_after_days, old_after_days).
+# EPİAŞ daily feed: >2d stale, >7d old. SWOT revisits are sparse: wider gates.
+PROVIDER_FRESHNESS_DAYS = {
+    "epias": (2, 7), "dsi": (7, 30), "dahiti": (14, 45), "hydroweb": (14, 45),
+    "copernicus": (14, 45), "swot": (60, 180), "sentinel": (14, 45),
+    "canonical": (10, 30), "mock": (0, 0),
+}
+
+PROVIDER_OBS_FILES = {
+    "epias": "epias_active_fullness.json", "hydroweb": "hydroweb_levels.json",
+    "copernicus": "copernicus_lwl.json", "dahiti": "dahiti_levels.json",
+    "swot": "swot_levels.json", "sentinel": "sentinel2_area.json",
+}
+
+PROVIDER_SOURCE_CLASS = {
+    "epias": "official_live", "hydroweb": "satellite_altimetry",
+    "copernicus": "satellite_altimetry", "dahiti": "satellite_altimetry",
+    "swot": "satellite_altimetry", "sentinel": "satellite_area",
+}
+
+
+def provider_of(source: Any) -> str:
+    value = str(source or "canonical")
+    return value if value in PROVIDER_LABELS else "canonical"
+
+
+def freshness_label(provider: str, age_days: int | None) -> str:
+    if age_days is None:
+        return "unknown"
+    stale_after, old_after = PROVIDER_FRESHNESS_DAYS.get(provider, (10, 30))
+    if age_days > old_after:
+        return "old"
+    if age_days > stale_after:
+        return "stale"
+    return "fresh"
 
 FRESHNESS_POLICY_DAYS = {
     "official_live": 3,
@@ -179,6 +234,7 @@ def mark_last_known_good(record: dict[str, Any], fetched_at: str) -> dict[str, A
 
 def complete_fullness_record(record: dict[str, Any]) -> dict[str, Any]:
     result = dict(record)
+    result["provider"] = result.get("provider") or PROVIDER_LABELS.get(provider_of(result.get("source")), str(result.get("source") or "Envanter"))
     result.setdefault("sourcePublishedAt", None)
     result.setdefault("rawValue", result.get("fullnessPercent"))
     result.setdefault("rawUnit", "%" if result.get("fullnessPercent") is not None else None)
@@ -186,6 +242,11 @@ def complete_fullness_record(record: dict[str, Any]) -> dict[str, Any]:
     result.setdefault("sourceUrl", None)
     result.setdefault("sourceStationId", None)
     result.setdefault("qualityFlags", [])
+    result["freshnessLabel"] = result.get("freshnessLabel") or freshness_label(provider_of(result.get("source")), result.get("freshnessDays"))
+    result["observationTimestamp"] = result.get("observationTimestamp") or result.get("observedAt")
+    # Canonical output contract: missing values are null, never 0.
+    if result.get("fullnessPercent") is None:
+        result["fullnessPercent"] = None
     return result
 
 
@@ -245,30 +306,131 @@ def distance_km(left: tuple[float, float], right: tuple[float, float]) -> float:
 
 
 def catalog_matches(hes: dict[str, Any], catalog_records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Discovery-catalog matches via the central matcher (name + coordinate,
+    30 km veto enforced). Approximate transformer/unresolved geometries are
+    excluded from spatial matching."""
     props = hes.get("properties") or {}
     if props.get("coordinateKind") in {"transformer", "unresolved"}:
         return {}
-    hes_point = point_of(hes)
-    names = [normalize(props.get(key)) for key in ("name", "damName", "waterBodyName", "reservoirName") if normalize(props.get(key))]
     matches: dict[str, dict[str, Any]] = {}
     for record in catalog_records:
-        record_name = normalize(record.get("name"))
         source = str(record.get("source") or "")
         try:
             record_point = (float(record.get("lon")), float(record.get("lat")))
         except (TypeError, ValueError):
             continue
-        distance = distance_km(hes_point, record_point) if hes_point else float("inf")
-        name_match = bool(record_name and any(record_name == name or (len(record_name) >= 5 and (record_name in name or name in record_name)) for name in names))
-        spatial_match = source in {"hydroweb", "copernicus"} and math.isfinite(distance) and distance <= 15
-        if not name_match and not spatial_match:
+        verdict, _ = match_candidates(hes, [{**record, "lon": record_point[0], "lat": record_point[1]}], provider=source)
+        if verdict is None or verdict.get("rejected"):
             continue
-        if name_match or spatial_match:
-            current = matches.get(source)
-            ranked = (0 if name_match else 1, distance)
-            if current is None or ranked < current["rank"]:
-                matches[source] = {"record": record, "distanceKm": round(distance, 2) if math.isfinite(distance) else None, "method": "name+coordinate" if name_match and math.isfinite(distance) else "name" if name_match else "coordinate", "confidence": "high" if distance <= 10 else "medium", "rank": ranked}
+        current = matches.get(source)
+        ranked = (0 if verdict["matchMethod"].startswith("name") or verdict["matchMethod"] == "reservoir-polygon" else 1,
+                  verdict.get("distanceKm") if verdict.get("distanceKm") is not None else 1e9)
+        if current is None or ranked < current["rank"]:
+            matches[source] = {"record": record, "distanceKm": verdict.get("distanceKm"),
+                               "method": verdict["matchMethod"], "confidence": verdict["matchConfidence"], "rank": ranked}
+    for match in matches.values():
+        match.pop("rank", None)
     return matches
+
+
+def load_provider_observations() -> dict[str, list[dict[str, Any]]]:
+    """Read canonical provider observation files (may be skipped/empty)."""
+    observations: dict[str, list[dict[str, Any]]] = {}
+    for provider, filename in PROVIDER_OBS_FILES.items():
+        path = PROVIDER_OBS_DIR / filename
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        rows = payload.get("observations", []) if isinstance(payload, dict) else []
+        observations[provider] = [row for row in rows if isinstance(row, dict)]
+    return observations
+
+
+def load_hypsometry() -> dict[str, dict[str, Any]]:
+    try:
+        payload = json.loads(HYPSOMETRY_PATH.read_text(encoding="utf-8"))
+        curves = payload.get("curves", {}) if isinstance(payload, dict) else {}
+        return curves if isinstance(curves, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def provider_candidates(hes: dict[str, Any], provider: str, rows: list[dict[str, Any]],
+                        curves: dict[str, dict[str, Any]], fetched_at: str,
+                        audit_fields: dict[str, Any], stats: dict[str, int]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Match provider rows to one HES and build candidate fullness records.
+
+    Returns (candidates, rejections). Raw level/area without a validated
+    hypsometry curve is published as data-availability signal only (percent
+    stays None) — never an invented percentage.
+    """
+    props = hes.get("properties") or {}
+    hes_id = str(props.get("id") or hes.get("id") or "")
+    best, rejected_rows = match_candidates(hes, rows, provider=provider)
+    rejections = [{"hesId": hes_id, "source": provider, "field": "providerTargetId",
+                   "value": item.get("providerTargetId"), "reason": item.get("rejectReason", "match_rejected"),
+                   "rejectedAt": fetched_at} for item in rejected_rows]
+    stats["rejected"] += len(rejected_rows)
+    if best is None:
+        return [], rejections
+    stats["matched"] += 1
+    row = best.get("record") or {}
+    observed = observed_date(row.get("observedAt"))
+    age = freshness_days(observed, fetched_at)
+    freshness = freshness_label(provider, age)
+    source_class = PROVIDER_SOURCE_CLASS.get(provider, "satellite_altimetry")
+    base = {"hesId": hes_id, "provider": PROVIDER_LABELS.get(provider, provider), "source": provider,
+            "observedAt": observed, "observationTimestamp": observed, "fetchedAt": fetched_at,
+            "freshnessDays": age, "freshnessLabel": freshness,
+            "sourceUrl": row.get("sourceUrl"), "sourceStationId": row.get("providerTargetId"),
+            "matchMethod": best.get("matchMethod"), "matchConfidence": best.get("matchConfidence"),
+            "distanceKm": best.get("distanceKm"), "providerTargetId": best.get("providerTargetId"),
+            "canonicalHesId": hes_id, **audit_fields}
+    direct = valid_percent(number(row.get("fullnessPercent")))
+    candidates: list[dict[str, Any]] = []
+    if direct is not None:
+        # Direct provider percentage (e.g. EPİAŞ active fullness).
+        stale_after, _ = PROVIDER_FRESHNESS_DAYS.get(provider, (10, 30))
+        candidates.append({**base, "fullnessPercent": direct,
+                           "status": "stale" if age is not None and age > stale_after else "available",
+                           "sourceClass": source_class,
+                           "method": f"{provider}-direct-percent" if provider != "epias" else "epias-normalized-percent",
+                           "confidence": "high" if best.get("matchConfidence") == "high" else "medium",
+                           "isEstimated": False, "rawValue": direct, "rawUnit": "%",
+                           "qualityFlags": [f"matched-{best.get('matchMethod')}"]})
+        stats["usable"] += 1
+        return candidates, rejections
+    curve = curves.get(hes_id)
+    minimum = first_number(props, ["minVolumeHm3", "minimumVolumeHm3", "minVolume", "minimumVolume"])
+    maximum = first_number(props, ["maxVolumeHm3", "maximumVolumeHm3", "maxVolume", "maximumVolume"])
+    percent, note = (None, "no-volume-curve")
+    if curve:
+        percent, note = hypsometry_percent(curve, number(row.get("waterLevelM")), number(row.get("surfaceAreaKm2")), minimum, maximum)
+    if percent is not None:
+        stale_after, _ = PROVIDER_FRESHNESS_DAYS.get(provider, (14, 45))
+        candidates.append({**base, "fullnessPercent": percent,
+                           "status": "stale" if age is not None and age > stale_after else "available",
+                           "sourceClass": source_class, "method": f"{provider}-{note}",
+                           "confidence": "high" if best.get("matchConfidence") == "high" else "medium",
+                           "isEstimated": True, "rawValue": row.get("waterLevelM") if row.get("waterLevelM") is not None else row.get("surfaceAreaKm2"),
+                           "rawUnit": "m" if row.get("waterLevelM") is not None else "km2",
+                           "uncertainty": number(row.get("uncertainty")),
+                           "qualityFlags": [f"matched-{best.get('matchMethod')}", "hypsometry-derived"]})
+        stats["usable"] += 1
+    else:
+        # Availability signal only: level/area exists but no validated curve.
+        candidates.append({**base, "fullnessPercent": None, "status": "unavailable",
+                           "sourceClass": source_class, "method": f"{provider}-{note}-no-percent",
+                           "confidence": "low", "isEstimated": False,
+                           "rawValue": row.get("waterLevelM") if row.get("waterLevelM") is not None else row.get("surfaceAreaKm2"),
+                           "rawUnit": "m" if row.get("waterLevelM") is not None else "km2" if row.get("surfaceAreaKm2") is not None else None,
+                           "uncertainty": number(row.get("uncertainty")),
+                           "reasonUnavailable": f"{PROVIDER_LABELS.get(provider, provider)} gözlemi var ancak doğrulanmış kot-hacim eğrisi yok",
+                           "qualityFlags": [f"matched-{best.get('matchMethod')}", "no-hypsometry-no-percent"]})
+    return candidates, rejections
 
 
 def explicit_percent(source: dict[str, Any]) -> float | None:
@@ -277,22 +439,84 @@ def explicit_percent(source: dict[str, Any]) -> float | None:
     return valid_percent(first_number(source, ["fullnessPercent", "occupancy", "fullness", "activeFullness", "activeFullnessAmount", "doluluk"]))
 
 
-def volume_percent(source: dict[str, Any]) -> float | None:
+def volume_percent_raw(source: dict[str, Any]) -> tuple[float | None, str | None]:
+    """Workbook 'Aktif Hacim' semantics: active-storage amount over the active
+    range -> active / (max - min). Returns (raw_value, warning)."""
     active = first_number(source, ["activeVolumeHm3", "activeVolume", "active_volume", "aktifHacim", "aktif_hacim"])
     minimum = first_number(source, ["minVolumeHm3", "minimumVolumeHm3", "minVolume", "minimumVolume"])
     maximum = first_number(source, ["maxVolumeHm3", "maximumVolumeHm3", "maxVolume", "maximumVolume"])
     if active is None or minimum is None or maximum is None or maximum <= minimum:
-        return None
-    return clamp(active / (maximum - minimum) * 100)
+        return None, None
+    raw = active / (maximum - minimum) * 100
+    if raw > 100 or raw < 0:
+        return raw, f"volume_out_of_range:{raw:.1f}"
+    return raw, None
 
 
-def current_volume_percent(source: dict[str, Any]) -> float | None:
+def volume_percent(source: dict[str, Any]) -> float | None:
+    raw, _ = volume_percent_raw(source)
+    return clamp(raw)
+
+
+def current_volume_percent_raw(source: dict[str, Any]) -> tuple[float | None, str | None]:
+    """Current absolute reservoir volume semantics: (current - min) / (max - min)."""
     current = first_number(source, ["currentVolumeHm3", "currentVolume", "current_volume", "dailyVolume", "daily_volume", "operatingVolume", "operating_volume", "hacim", "volume", "suHacmi"])
     minimum = first_number(source, ["minVolumeHm3", "minimumVolumeHm3", "minVolume", "minimumVolume"])
     maximum = first_number(source, ["maxVolumeHm3", "maximumVolumeHm3", "maxVolume", "maximumVolume"])
     if current is None or minimum is None or maximum is None or maximum <= minimum:
+        return None, None
+    raw = (current - minimum) / (maximum - minimum) * 100
+    if raw > 100 or raw < 0:
+        return raw, f"volume_out_of_range:{raw:.1f}"
+    return raw, None
+
+
+def current_volume_percent(source: dict[str, Any]) -> float | None:
+    raw, _ = current_volume_percent_raw(source)
+    return clamp(raw)
+
+
+def hypsometry_percent(curve: dict[str, Any], level_m: float | None, area_km2: float | None,
+                       min_volume: float | None, max_volume: float | None) -> tuple[float | None, str]:
+    """Level/area -> volume via a validated curve, then volume -> %.
+    Returns (percent, method_note). No curve -> (None, reason)."""
+    levels = curve.get("levelsM") or []
+    volumes = curve.get("volumesHm3") or []
+    if not levels or not volumes or len(levels) != len(volumes) or len(levels) < 2:
+        return None, "no-volume-curve"
+    probe = None
+    if level_m is not None:
+        probe, axis = level_m, levels
+    elif area_km2 is not None and curve.get("areasKm2") and len(curve["areasKm2"]) == len(levels):
+        # area -> level via the same curve, then level -> volume below
+        areas = curve["areasKm2"]
+        probe, axis = area_km2, areas
+        pairs = sorted(zip(axis, levels))
+        probe = _interp(probe, [p[0] for p in pairs], [p[1] for p in pairs])
+        if probe is None:
+            return None, "area-outside-curve"
+        axis = levels
+    else:
+        return None, "no-level-or-area"
+    pairs = sorted(zip(axis, volumes))
+    volume = _interp(probe, [p[0] for p in pairs], [p[1] for p in pairs])
+    if volume is None or min_volume is None or max_volume is None or max_volume <= min_volume:
+        return None, "volume-outside-curve" if volume is None else "missing-volume-bounds"
+    raw = (volume - min_volume) / (max_volume - min_volume) * 100
+    if raw > 100 or raw < 0:
+        return clamp(raw), "hypsometry-clamped-out-of-range"
+    return raw, "level-area-volume-curve"
+
+
+def _interp(x: float, xs: list[float], ys: list[float]) -> float | None:
+    if x < xs[0] or x > xs[-1]:
         return None
-    return clamp((current - minimum) / (maximum - minimum) * 100)
+    for index in range(len(xs) - 1):
+        if xs[index] <= x <= xs[index + 1]:
+            span = xs[index + 1] - xs[index]
+            ratio = 0.0 if span == 0 else (x - xs[index]) / span
+            return ys[index] + ratio * (ys[index + 1] - ys[index])
+    return ys[-1]
 
 
 def epias_record(records: list[dict[str, Any]], hes: dict[str, Any]) -> dict[str, Any] | None:
@@ -313,10 +537,14 @@ def make_result(
     fetched_at: str,
     source_matches: dict[str, dict[str, Any]],
     previous: dict[str, Any] | None = None,
+    provider_obs: dict[str, list[dict[str, Any]]] | None = None,
+    curves: dict[str, dict[str, Any]] | None = None,
+    provider_stats: dict[str, dict[str, int]] | None = None,
 ) -> dict[str, Any]:
     props = hes.get("properties") or {}
     hes_id = str(props.get("id") or hes.get("id") or "")
-    storage = props.get("hydroPlantStorageType", "unknown")
+    storage = classify_storage(props)
+    storage_legacy = props.get("hydroPlantStorageType", "unknown")
     audit_fields = {
         "epiasMatch": epias is not None,
         "dsiMatch": False,
@@ -339,33 +567,58 @@ def make_result(
         "fullnessDirectlyAvailable": explicit_percent(epias) is not None if epias else False,
         "fullnessCanBeCalculated": volume_percent(props) is not None,
     }
-    if storage == "run_of_river":
-        return complete_fullness_record({"hesId": hes_id, "fullnessPercent": None, "status": "not_applicable", "sourceClass": "calculated_storage", "source": "canonical", "method": "run-of-river-no-reservoir", "observedAt": None, "sourcePublishedAt": None, "fetchedAt": fetched_at, "freshnessDays": None, "confidence": "high", "isEstimated": False, "reasonUnavailable": "run-of-river santralinde rezervuar doluluğu uygulanamaz", "qualityFlags": ["storage_type_run_of_river"], **audit_fields})
+    storage_fields = {"storageType": storage["storageType"], "storageTypeProvenance": storage["storageTypeProvenance"],
+                      "storageTypeConfidence": storage["storageTypeConfidence"], "provider": "Envanter"}
+    if is_run_of_river(props, storage):
+        return complete_fullness_record({"hesId": hes_id, "fullnessPercent": None, "status": "not_applicable", "sourceClass": "calculated_storage", "source": "canonical", "method": "run-of-river-no-reservoir", "observedAt": None, "sourcePublishedAt": None, "fetchedAt": fetched_at, "freshnessDays": None, "freshnessLabel": "unknown", "confidence": "high", "isEstimated": False, "reasonUnavailable": "run-of-river santralinde rezervuar doluluğu uygulanamaz", "qualityFlags": ["storage_type_run_of_river"], **storage_fields, **audit_fields})
 
     candidates: list[dict[str, Any]] = []
+    range_warnings: list[dict[str, Any]] = []
     if epias:
         value = explicit_percent(epias)
         if value is not None:
             observed = observed_date(epias.get("observedAt") or epias.get("date") or epias.get("timestamp"))
             age = freshness_days(observed, fetched_at)
-            candidates.append({"hesId": hes_id, "fullnessPercent": value, "status": "stale" if age is not None and age > FRESHNESS_POLICY_DAYS["official_live"] else "available", "sourceClass": "official_live", "source": "epias", "method": "epias-normalized-percent", "observedAt": observed, "sourcePublishedAt": observed_date(epias.get("sourcePublishedAt") or epias.get("publishedAt")), "fetchedAt": fetched_at, "freshnessDays": age, "confidence": "high", "isEstimated": False, "rawValue": value, "rawUnit": "%", "sourceUrl": "https://seffaflik.epias.com.tr/", "qualityFlags": [], **audit_fields})
-        current_value = current_volume_percent(epias)
-        if current_value is not None:
+            stale_after, _ = PROVIDER_FRESHNESS_DAYS["epias"]
+            candidates.append({"hesId": hes_id, "fullnessPercent": value, "status": "stale" if age is not None and age > stale_after else "available", "sourceClass": "official_live", "source": "epias", "provider": "EPİAŞ", "method": "epias-normalized-percent", "observedAt": observed, "sourcePublishedAt": observed_date(epias.get("sourcePublishedAt") or epias.get("publishedAt")), "fetchedAt": fetched_at, "freshnessDays": age, "freshnessLabel": freshness_label("epias", age), "confidence": "high", "isEstimated": False, "rawValue": value, "rawUnit": "%", "sourceUrl": "https://seffaflik.epias.com.tr/", "qualityFlags": [], **storage_fields, **audit_fields})
+        current_raw, current_warning = current_volume_percent_raw(epias)
+        if current_raw is not None:
+            if current_warning:
+                range_warnings.append({"hesId": hes_id, "source": "epias", "field": "currentVolume%", "value": round(current_raw, 2), "reason": current_warning, "rejectedAt": fetched_at})
+            current_value = clamp(current_raw)
             observed = observed_date(epias.get("observedAt") or epias.get("date") or epias.get("timestamp"))
             age = freshness_days(observed, fetched_at)
-            candidates.append({"hesId": hes_id, "fullnessPercent": current_value, "status": "stale" if age is not None and age > FRESHNESS_POLICY_DAYS["official_live"] else "available", "sourceClass": "official_live", "source": "epias", "method": "current-volume/(max-volume-min-volume)", "observedAt": observed, "sourcePublishedAt": observed_date(epias.get("sourcePublishedAt") or epias.get("publishedAt")), "fetchedAt": fetched_at, "freshnessDays": age, "confidence": "high", "isEstimated": True, "rawValue": current_value, "rawUnit": "%", "sourceUrl": "https://seffaflik.epias.com.tr/", "qualityFlags": ["derived_from_current_volume"], **audit_fields})
-    value = volume_percent(props)
-    if value is not None:
+            stale_after, _ = PROVIDER_FRESHNESS_DAYS["epias"]
+            flags = ["derived_from_current_volume"] + ([current_warning] if current_warning else [])
+            candidates.append({"hesId": hes_id, "fullnessPercent": current_value, "status": "stale" if age is not None and age > stale_after else "available", "sourceClass": "official_live", "source": "epias", "provider": "EPİAŞ", "method": "current-volume/(max-volume-min-volume)", "observedAt": observed, "sourcePublishedAt": observed_date(epias.get("sourcePublishedAt") or epias.get("publishedAt")), "fetchedAt": fetched_at, "freshnessDays": age, "freshnessLabel": freshness_label("epias", age), "confidence": "high", "isEstimated": True, "rawValue": current_value, "rawUnit": "%", "sourceUrl": "https://seffaflik.epias.com.tr/", "qualityFlags": flags, **storage_fields, **audit_fields})
+    raw_value, range_warning = volume_percent_raw(props)
+    if raw_value is not None:
+        if range_warning:
+            range_warnings.append({"hesId": hes_id, "source": "canonical", "field": "activeVolume%", "value": round(raw_value, 2), "reason": range_warning, "rejectedAt": fetched_at})
+        value = clamp(raw_value)
         observed = observed_date(props.get("epiasDate"))
         age = freshness_days(observed, fetched_at)
-        candidates.append({"hesId": hes_id, "fullnessPercent": value, "status": "stale" if age is not None and age > FRESHNESS_POLICY_DAYS["calculated_storage"] else "available", "sourceClass": "calculated_storage", "source": "canonical", "method": "active-volume/(max-volume-min-volume)", "observedAt": observed, "sourcePublishedAt": None, "fetchedAt": fetched_at, "freshnessDays": age, "confidence": "medium", "isEstimated": True, "rawValue": value, "rawUnit": "%", "qualityFlags": ["derived_from_inventory_volume"], **audit_fields})
+        stale_after, _ = PROVIDER_FRESHNESS_DAYS["canonical"]
+        flags = ["derived_from_inventory_volume"] + ([range_warning] if range_warning else [])
+        candidates.append({"hesId": hes_id, "fullnessPercent": value, "status": "stale" if age is not None and age > stale_after else "available", "sourceClass": "calculated_storage", "source": "canonical", "provider": "Envanter", "method": "active-volume/(max-volume-min-volume)", "observedAt": observed, "sourcePublishedAt": None, "fetchedAt": fetched_at, "freshnessDays": age, "freshnessLabel": freshness_label("canonical", age), "confidence": "medium", "isEstimated": True, "rawValue": value, "rawUnit": "%", "qualityFlags": flags, **storage_fields, **audit_fields})
+    provider_rejections: list[dict[str, Any]] = list(range_warnings)
+    for provider_name, rows in (provider_obs or {}).items():
+        stats = (provider_stats or {}).setdefault(provider_name, {"fetched": len(rows), "matched": 0, "usable": 0, "rejected": 0})
+        stats["fetched"] = len(rows)
+        new_candidates, new_rejections = provider_candidates(hes, provider_name, rows, curves or {}, fetched_at, {**storage_fields, **audit_fields}, stats)
+        candidates.extend(new_candidates)
+        provider_rejections.extend(new_rejections)
     if record_is_usable(previous):
         candidates.append(mark_last_known_good(previous, fetched_at))
     selected = select_best_fullness_record(candidates, fetched_at)
     if selected:
-        return complete_fullness_record(selected)
+        result = complete_fullness_record(selected)
+        result["_providerRejections"] = provider_rejections
+        return result
     reason = "katalog eşleşti ancak ölçüm indirme yetkisi yok" if source_matches else "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok"
-    return complete_fullness_record({"hesId": hes_id, "fullnessPercent": None, "status": "unavailable", "sourceClass": "calculated_storage", "source": "canonical", "method": "no-verified-fullness-source", "observedAt": None, "sourcePublishedAt": None, "fetchedAt": fetched_at, "freshnessDays": None, "confidence": "low", "isEstimated": False, "reasonUnavailable": reason, "qualityFlags": ["no_data"], **audit_fields})
+    result = complete_fullness_record({"hesId": hes_id, "fullnessPercent": None, "status": "unavailable", "sourceClass": "calculated_storage", "source": "canonical", "provider": "Envanter", "method": "no-verified-fullness-source", "observedAt": None, "sourcePublishedAt": None, "fetchedAt": fetched_at, "freshnessDays": None, "freshnessLabel": "unknown", "confidence": "low", "isEstimated": False, "reasonUnavailable": reason, "qualityFlags": ["no_data"], **storage_fields, **audit_fields})
+    result["_providerRejections"] = provider_rejections
+    return result
 
 
 def read_payload(path: Path) -> dict[str, Any]:
@@ -414,7 +667,11 @@ def snapshot_date(path: Path) -> str | None:
 
 
 def build_timeseries(history_root: Path, fetched_at: str) -> dict[str, Any]:
-    by_hes: dict[str, dict[tuple[str, str], dict[str, Any]]] = {}
+    # Idempotency: the same provider observation re-fetched never creates a
+    # new point. Dedupe key = hesId + provider + observationTimestamp +
+    # sourceClass (the snapshot/day is NOT part of the key: snapshot = shown
+    # state, observation = provider measurement time).
+    by_hes: dict[str, dict[str, dict[str, Any]]] = {}
     snapshots = sorted(history_root.rglob("*.json")) if history_root.exists() else []
     for path in snapshots:
         date_fallback = snapshot_date(path)
@@ -426,8 +683,9 @@ def build_timeseries(history_root: Path, fetched_at: str) -> dict[str, Any]:
             observed = str(record.get("observedAt") or date_fallback or "")
             if not hes_id or not observed:
                 continue
-            key = (observed, str(record.get("source") or "canonical"))
-            point = {"date": observed, "value": clamp(number(record.get("fullnessPercent"))), "source": record.get("source"), "sourceClass": source_class(record), "confidence": record.get("confidence", "low"), "estimated": bool(record.get("isEstimated")), "status": record.get("status", "available"), "method": record.get("method"), "observedAt": record.get("observedAt"), "fetchedAt": record.get("fetchedAt") or snapshot.get("pipelineRunAt") or snapshot.get("generatedAt")}
+            provider = provider_of(record.get("source"))
+            key = dedupe_key(hes_id, provider, observed, source_class(record))
+            point = {"date": observed, "value": clamp(number(record.get("fullnessPercent"))), "source": record.get("source"), "provider": record.get("provider") or PROVIDER_LABELS.get(provider, provider), "sourceClass": source_class(record), "confidence": record.get("confidence", "low"), "estimated": bool(record.get("isEstimated")), "status": record.get("status", "available"), "method": record.get("method"), "observedAt": record.get("observedAt"), "fetchedAt": record.get("fetchedAt") or snapshot.get("pipelineRunAt") or snapshot.get("generatedAt"), "dedupeKey": key}
             current = by_hes.setdefault(hes_id, {}).get(key)
             if current is None or str(point.get("fetchedAt") or "") >= str(current.get("fetchedAt") or ""):
                 by_hes[hes_id][key] = point
@@ -463,6 +721,9 @@ def main() -> None:
     catalog_payload = read_payload(OBSERVATION_CATALOG_PATH)
     catalog_records = [record for record in catalog_payload.get("records", []) if isinstance(record, dict)]
     source_matches_by_hes = {str((feature.get("properties") or {}).get("id")): catalog_matches(feature, catalog_records) for feature in hes_payload.get("features", [])}
+    provider_obs = load_provider_observations()
+    curves = load_hypsometry()
+    provider_stats: dict[str, dict[str, int]] = {}
     records: list[dict[str, Any]] = []
     quality_rejections: list[dict[str, Any]] = []
     for feature in hes_payload.get("features", []):
@@ -472,7 +733,16 @@ def main() -> None:
         if fallback is None:
             fallback = epias_record(epias_lkg_records, feature)
         quality_rejections.extend(rejected_observations(feature, current_epias, fetched_at))
-        records.append(make_result(feature, current_epias, fetched_at, source_matches_by_hes.get(hes_id, {}), fallback))
+        result = make_result(feature, current_epias, fetched_at, source_matches_by_hes.get(hes_id, {}), fallback, provider_obs, curves, provider_stats)
+        quality_rejections.extend(result.pop("_providerRejections", []))
+        # Publish canonical storage classification on the feature (additive).
+        storage_info = classify_storage(feature.get("properties") or {})
+        (feature.setdefault("properties", {}) or {}).update({"storageType": storage_info["storageType"], "storageTypeProvenance": storage_info["storageTypeProvenance"], "storageTypeConfidence": storage_info["storageTypeConfidence"]})
+        records.append(result)
+    for provider_name, rows in provider_obs.items():
+        stats = provider_stats.setdefault(provider_name, {"fetched": len(rows), "matched": 0, "usable": 0, "rejected": 0})
+        latest = max((str(row.get("observedAt") or "") for row in rows), default=None) or None
+        print(f"[{PROVIDER_LABELS.get(provider_name, provider_name)}] fetched={stats['fetched']} matched={stats['matched']} usable={stats['usable']} rejected={stats['rejected']} latest={latest or '—'}")
     by_id = {str(feature.get("properties", {}).get("id")): feature for feature in hes_payload.get("features", [])}
     for result in records:
         feature = by_id.get(result["hesId"])
@@ -488,13 +758,32 @@ def main() -> None:
             props["fullnessFreshnessDays"] = result.get("freshnessDays")
             props["fullnessConfidence"] = result.get("confidence")
             props["fullnessReasonUnavailable"] = result.get("reasonUnavailable")
-    counts = {"available": sum(result["status"] == "available" for result in records), "stale": sum(result["status"] == "stale" for result in records), "notApplicable": sum(result["status"] == "not_applicable" for result in records), "unavailable": sum(result["status"] == "unavailable" for result in records), "officialLive": sum(result["sourceClass"] == "official_live" for result in records), "officialPublished": sum(result["sourceClass"] == "official_published" for result in records), "satellite": sum(result["sourceClass"] in {"satellite_altimetry", "satellite_area"} for result in records), "calculated": sum(result["sourceClass"] == "calculated_storage" and result["fullnessPercent"] is not None for result in records), "mock": sum(result["sourceClass"] == "mock" for result in records)}
+            props["fullnessProvider"] = result.get("provider")
+            props["fullnessFreshnessLabel"] = result.get("freshnessLabel")
+    counts = {"available": sum(result["status"] == "available" for result in records), "stale": sum(result["status"] == "stale" for result in records), "notApplicable": sum(result["status"] == "not_applicable" for result in records), "unavailable": sum(result["status"] == "unavailable" for result in records), "officialLive": sum(result["sourceClass"] == "official_live" for result in records), "officialPublished": sum(result["sourceClass"] == "official_published" for result in records), "satellite": sum(result["sourceClass"] in {"satellite_altimetry", "satellite_area"} for result in records), "calculated": sum(result["sourceClass"] == "calculated_storage" and result["fullnessPercent"] is not None for result in records), "mock": sum(result["sourceClass"] == "mock" for result in records),
+              "estimated": sum(result.get("isEstimated") is True and result.get("fullnessPercent") is not None for result in records), "measured": sum(result.get("isEstimated") is False and result.get("fullnessPercent") is not None for result in records),
+              "fresh": sum(result.get("freshnessLabel") == "fresh" for result in records), "staleLabel": sum(result.get("freshnessLabel") == "stale" for result in records), "old": sum(result.get("freshnessLabel") == "old" for result in records),
+              "confidenceHigh": sum(result.get("confidence") == "high" and result.get("fullnessPercent") is not None for result in records), "confidenceMedium": sum(result.get("confidence") == "medium" and result.get("fullnessPercent") is not None for result in records), "confidenceLow": sum(result.get("confidence") == "low" and result.get("fullnessPercent") is not None for result in records)}
+    missing_sources = []
+    for result in records:
+        if result["status"] != "unavailable":
+            continue
+        feature = by_id.get(result["hesId"], {})
+        props = feature.get("properties", {}) if isinstance(feature, dict) else {}
+        checked = ["epias", "hydroweb", "copernicus", "dahiti"] + (["swot"] if (PROVIDER_OBS_DIR / "swot_levels.json").exists() else [])
+        missing_sources.append({"hesId": result["hesId"], "name": props.get("name"), "storageType": result.get("storageType", "unknown"),
+                                "providersChecked": checked, "candidateSources": [result.get("bestCatalogSource")] if result.get("bestCatalogSource") else [],
+                                "reason": "no_match" if not result.get("bestCatalogSource") else "catalog_match_without_observation_download"})
+    MISSING_PATH.parent.mkdir(parents=True, exist_ok=True)
+    MISSING_PATH.write_text(json.dumps({"pipelineRunAt": fetched_at, "missingCount": len(missing_sources), "records": missing_sources}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     applicable = sum(result["status"] != "not_applicable" for result in records)
-    coverage = {"hesCount": len(records), "applicableCount": applicable, "availableCount": counts["available"], "staleCount": counts["stale"], "notApplicableCount": counts["notApplicable"], "unavailableCount": counts["unavailable"], "officialLiveCount": counts["officialLive"], "officialPublishedCount": counts["officialPublished"], "officialCount": counts["officialLive"] + counts["officialPublished"], "satelliteCount": counts["satellite"], "calculatedCount": counts["calculated"], "mockCount": counts["mock"], "mockIncluded": False, "applicable": applicable, "available": counts["available"] + counts["stale"], "official": counts["officialLive"] + counts["officialPublished"], "satellite": counts["satellite"], "calculated": counts["calculated"], "stale": counts["stale"], "missing": counts["unavailable"], "notApplicable": counts["notApplicable"]}
+    coverage = {"hesCount": len(records), "applicableCount": applicable, "availableCount": counts["available"], "staleCount": counts["stale"], "notApplicableCount": counts["notApplicable"], "unavailableCount": counts["unavailable"], "officialLiveCount": counts["officialLive"], "officialPublishedCount": counts["officialPublished"], "officialCount": counts["officialLive"] + counts["officialPublished"], "satelliteCount": counts["satellite"], "calculatedCount": counts["calculated"], "mockCount": counts["mock"], "mockIncluded": False, "applicable": applicable, "available": counts["available"] + counts["stale"], "official": counts["officialLive"] + counts["officialPublished"], "satellite": counts["satellite"], "calculated": counts["calculated"], "stale": counts["stale"], "missing": counts["unavailable"], "notApplicable": counts["notApplicable"],
+                "estimatedCount": counts["estimated"], "measuredCount": counts["measured"], "freshCount": counts["fresh"], "staleLabelCount": counts["staleLabel"], "oldCount": counts["old"],
+                "confidenceHighCount": counts["confidenceHigh"], "confidenceMediumCount": counts["confidenceMedium"], "confidenceLowCount": counts["confidenceLow"]}
     latest_observation = max((parse_datetime(record.get("observedAt")) for record in records if record.get("fullnessPercent") is not None and parse_datetime(record.get("observedAt"))), default=None)
     latest_observation_at = latest_observation.isoformat().replace("+00:00", "Z") if latest_observation else None
-    previous_observations = {(str(record.get("hesId")), str(record.get("observedAt")), str(record.get("source"))) for record in previous_latest.get("records", []) if isinstance(record, dict) and record.get("fullnessPercent") is not None}
-    new_observations = sum((str(record.get("hesId")), str(record.get("observedAt")), str(record.get("source"))) not in previous_observations for record in records if record.get("fullnessPercent") is not None)
+    previous_observations = {dedupe_key(record.get("hesId"), provider_of(record.get("source")), record.get("observedAt"), record.get("sourceClass")) for record in previous_latest.get("records", []) if isinstance(record, dict) and record.get("fullnessPercent") is not None}
+    new_observations = sum(dedupe_key(record.get("hesId"), provider_of(record.get("source")), record.get("observedAt"), record.get("sourceClass")) not in previous_observations for record in records if record.get("fullnessPercent") is not None)
     source_registry = {
         "epias": {"status": epias_payload.get("status", "missing"), "sourceUrl": "https://seffaflik.epias.com.tr/", "dataAccess": "credentials_or_public_export_required", "latestAttempt": epias_payload.get("generatedAt"), "lastSuccessfulFetch": epias_lkg_payload.get("fetchedAt") or epias_lkg_payload.get("generatedAt"), "lastSuccessfulObservation": epias_lkg_payload.get("latestObservationAt"), "error": epias_payload.get("errors", [])},
         "dsi": {"status": "requires_access", "sourceUrl": "https://www.dsi.gov.tr/", "dataAccess": "official_endpoint_or_export_required"},
@@ -506,6 +795,22 @@ def main() -> None:
         "sentinel": {"status": "not_queried", "sourceUrl": "https://dataspace.copernicus.eu/", "dataAccess": "provider_catalog_required"},
     }
     source_registry.update(catalog_payload.get("sourceRegistry", {}))
+    for provider_name, filename in PROVIDER_OBS_FILES.items():
+        obs_path = PROVIDER_OBS_DIR / filename
+        if not obs_path.exists():
+            continue
+        try:
+            obs_payload = json.loads(obs_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        obs_list = obs_payload.get("observations", []) if isinstance(obs_payload, dict) else []
+        latest_obs = max((str(row.get("observedAt") or "") for row in obs_list if isinstance(row, dict)), default=None) or None
+        entry = dict(source_registry.get(provider_name, {}))
+        entry.update({"observationFile": f"public/data/live/providers/{filename}", "observationStatus": obs_payload.get("status") if isinstance(obs_payload, dict) else None,
+                      "observationErrorCode": obs_payload.get("errorCode") if isinstance(obs_payload, dict) else None,
+                      "observationCount": len(obs_list), "latestObservationAt": latest_obs,
+                      "downloadedAt": obs_payload.get("generatedAt") if isinstance(obs_payload, dict) else None})
+        source_registry[provider_name] = entry
     failed_sources = [name for name, meta in source_registry.items() if str(meta.get("status", "")).lower() in {"failed", "unavailable", "requires_access", "requires_endpoint"}]
     status = "ok" if not failed_sources and counts["unavailable"] == 0 else "degraded" if failed_sources and any(record.get("status") == "stale" for record in records) else "partial"
     payload = {"dataVersion": read_payload(MANIFEST_PATH).get("dataVersion"), "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "generatedAt": fetched_at, "status": status, "coverage": coverage, "sources": source_registry, "quality": {"rejectedCount": len(quality_rejections), "rejectedPath": str(REJECTED_PATH.relative_to(ROOT)).replace("\\", "/")}, "records": records}
@@ -513,11 +818,20 @@ def main() -> None:
     write_payload(REJECTED_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "rejectedCount": len(quality_rejections), "records": quality_rejections})
     AUDIT_PATH.write_text(json.dumps({"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "sourceRegistry": source_registry, "catalogRecordCount": len(catalog_records), "quality": payload["quality"], "records": records}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["hesId", "status", "fullnessPercent", "sourceClass", "source", "method", "observedAt", "sourcePublishedAt", "fetchedAt", "freshnessDays", "confidence", "isEstimated", "epiasMatch", "dsiMatch", "dahitiMatch", "hydrowebMatch", "copernicusMatch", "swotMatch", "gRealmMatch", "gdwMatch", "candidateSourceCount", "bestCatalogSource", "bestCatalogSourceUrl", "bestCatalogDistanceKm", "catalogConfidence", "fullnessDirectlyAvailable", "fullnessCanBeCalculated", "reasonUnavailable"]
+    fields = ["hesId", "status", "fullnessPercent", "sourceClass", "source", "provider", "method", "observedAt", "sourcePublishedAt", "fetchedAt", "freshnessDays", "freshnessLabel", "confidence", "isEstimated", "storageType", "epiasMatch", "dsiMatch", "dahitiMatch", "hydrowebMatch", "copernicusMatch", "swotMatch", "gRealmMatch", "gdwMatch", "candidateSourceCount", "bestCatalogSource", "bestCatalogSourceUrl", "bestCatalogDistanceKm", "catalogConfidence", "fullnessDirectlyAvailable", "fullnessCanBeCalculated", "reasonUnavailable"]
     with CSV_PATH.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader(); writer.writerows({field: record.get(field) for field in fields} for record in records)
-    MD_PATH.write_text("# Fullness source audit\n\n" + f"Pipeline run: `{fetched_at}`\nLatest observation: `{latest_observation_at or '—'}`\nStatus: `{status}`\nNew observations: `{new_observations}`\n\n" + "| Metric | Count |\n|---|---:|\n" + "\n".join(f"| {key} | {value} |" for key, value in counts.items()) + "\n\nMOCK values are excluded from this production snapshot. Unavailable sources remain N/A.\n", encoding="utf-8")
+    previous_coverage = previous_latest.get("coverage", {}) if isinstance(previous_latest, dict) else {}
+    def before_after(key: str, current: int) -> str:
+        old = previous_coverage.get(key)
+        if old is None:
+            return f"{current} (ilk ölçüm)"
+        delta = current - int(old)
+        return f"{current} ({'+' if delta >= 0 else ''}{delta})"
+    coverage_now = {"official": counts["officialLive"] + counts["officialPublished"], "satellite": counts["satellite"],
+                    "estimated": counts["estimated"], "unavailable": counts["unavailable"], "notApplicable": counts["notApplicable"]}
+    MD_PATH.write_text("# Fullness source audit\n\n" + f"Pipeline run: `{fetched_at}`\nLatest observation: `{latest_observation_at or '—'}`\nStatus: `{status}`\nNew observations: `{new_observations}`\n\n" + "## Before / after (vs previous snapshot)\n\n| Metric | Now (Δ) |\n|---|---|\n" + "\n".join(f"| {key} | {before_after(key, value)} |" for key, value in coverage_now.items()) + "\n\n## Coverage\n\n| Metric | Count |\n|---|---:|\n" + "\n".join(f"| {key} | {value} |" for key, value in counts.items()) + "\n\n## Providers\n\n| Provider | Fetched | Matched | Usable | Rejected |\n|---|---:|---:|---:|---:|\n" + "\n".join(f"| {name} | {stats.get('fetched', 0)} | {stats.get('matched', 0)} | {stats.get('usable', 0)} | {stats.get('rejected', 0)} |" for name, stats in sorted(provider_stats.items())) + "\n\nMOCK values are excluded from this production snapshot. Unavailable sources remain N/A. Missing HES list: `reports/fullness_missing_sources.json`.\n", encoding="utf-8")
     today = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
     history_root = Path(os.getenv("HYDRO_HISTORY_ROOT", str(HISTORY_ROOT)))
     history_path = history_root / f"{today:%Y}" / f"{today:%m}" / f"{today:%Y-%m-%d}.json"
@@ -526,9 +840,9 @@ def main() -> None:
     write_payload(history_path, daily_payload)
     series_summary = write_rolling_timeseries(history_root, fetched_at)
     HEALTH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_payload(HEALTH_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "workflowStatus": os.getenv("HYDRO_WORKFLOW_STATUS", "local"), "lastSuccessfulPipelineRunAt": fetched_at, "lastFailedPipelineRunAt": previous_health.get("lastFailedPipelineRunAt"), "historyPersisted": environment_boolean("HYDRO_HISTORY_PERSISTED") is True, "deploySucceeded": environment_boolean("HYDRO_DEPLOY_SUCCEEDED"), "sourcesHealthy": [name for name in source_registry if name not in failed_sources], "sourcesFailed": failed_sources, "newObservations": new_observations, "staleRecords": counts["stale"], "qualityRejectedCount": len(quality_rejections), "coverage": coverage, "history": series_summary})
+    write_payload(HEALTH_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "workflowStatus": os.getenv("HYDRO_WORKFLOW_STATUS", "local"), "lastSuccessfulPipelineRunAt": fetched_at, "lastFailedPipelineRunAt": previous_health.get("lastFailedPipelineRunAt"), "historyPersisted": environment_boolean("HYDRO_HISTORY_PERSISTED") is True, "deploySucceeded": environment_boolean("HYDRO_DEPLOY_SUCCEEDED"), "sourcesHealthy": [name for name in source_registry if name not in failed_sources], "sourcesFailed": failed_sources, "newObservations": new_observations, "staleRecords": counts["stale"], "qualityRejectedCount": len(quality_rejections), "coverage": coverage, "history": series_summary, "providerStats": provider_stats, "storageTypes": {k: sum(1 for r in records if r.get("storageType") == k) for k in ("storage", "run_of_river", "regulator", "mixed", "unknown")}})
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8")) if MANIFEST_PATH.exists() else {}
-    manifest.update({"fullnessAvailableCount": counts["available"] + counts["stale"], "fullnessRealOrDerivedCount": counts["available"] + counts["stale"], "fullnessOfficialCount": counts["officialLive"] + counts["officialPublished"], "fullnessOfficialLiveCount": counts["officialLive"], "fullnessOfficialPublishedCount": counts["officialPublished"], "fullnessSatelliteCount": counts["satellite"], "fullnessCalculatedCount": counts["calculated"], "fullnessStaleCount": counts["stale"], "fullnessUnavailableCount": counts["unavailable"], "fullnessNotApplicableCount": counts["notApplicable"], "fullnessMockCount": 0, "volumeCalculatedFullnessCount": counts["calculated"], "epiasFullnessCount": counts["officialLive"], "fallbackMockFullnessCount": 0, "fullnessCatalogMatchHesCount": sum(result.get("candidateSourceCount", 0) > 0 for result in records), "fullnessAuditRecordCount": len(records), "fullnessSourceAudit": str(AUDIT_PATH.relative_to(ROOT)).replace("\\", "/"), "observationCatalogGeneratedAt": catalog_payload.get("generatedAt"), "observationCatalogRecordCount": len(catalog_records), "fullnessSourceRegistry": source_registry, "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "fullnessStatus": status, "historyObservationCount": series_summary["observationCount"], "historyOldestObservationAt": series_summary["oldestObservationAt"], "historyNewestObservationAt": series_summary["newestObservationAt"]})
+    manifest.update({"fullnessAvailableCount": counts["available"] + counts["stale"], "fullnessRealOrDerivedCount": counts["available"] + counts["stale"], "fullnessOfficialCount": counts["officialLive"] + counts["officialPublished"], "fullnessOfficialLiveCount": counts["officialLive"], "fullnessOfficialPublishedCount": counts["officialPublished"], "fullnessSatelliteCount": counts["satellite"], "fullnessCalculatedCount": counts["calculated"], "fullnessStaleCount": counts["stale"], "fullnessUnavailableCount": counts["unavailable"], "fullnessNotApplicableCount": counts["notApplicable"], "fullnessMockCount": 0, "volumeCalculatedFullnessCount": counts["calculated"], "epiasFullnessCount": counts["officialLive"], "fallbackMockFullnessCount": 0, "fullnessEstimatedCount": counts["estimated"], "fullnessMeasuredCount": counts["measured"], "fullnessFreshCount": counts["fresh"], "fullnessOldCount": counts["old"], "fullnessMissingSources": str(MISSING_PATH.relative_to(ROOT)).replace("\\", "/"), "fullnessCatalogMatchHesCount": sum(result.get("candidateSourceCount", 0) > 0 for result in records), "fullnessAuditRecordCount": len(records), "fullnessSourceAudit": str(AUDIT_PATH.relative_to(ROOT)).replace("\\", "/"), "observationCatalogGeneratedAt": catalog_payload.get("generatedAt"), "observationCatalogRecordCount": len(catalog_records), "fullnessSourceRegistry": source_registry, "fullnessProviderStats": provider_stats, "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "fullnessStatus": status, "historyObservationCount": series_summary["observationCount"], "historyOldestObservationAt": series_summary["oldestObservationAt"], "historyNewestObservationAt": series_summary["newestObservationAt"]})
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     HES_PATH.write_text(json.dumps(hes_payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     print(json.dumps({"hes": len(records), **counts, "newObservations": new_observations, "status": status, "latestObservationAt": latest_observation_at, "live": str(LIVE_PATH.relative_to(ROOT)), "history": series_summary}, ensure_ascii=False))

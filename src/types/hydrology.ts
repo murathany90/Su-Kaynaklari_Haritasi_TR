@@ -32,6 +32,9 @@ export interface FullnessResult {
   status: FullnessStatus;
   sourceClass: FullnessSourceClass;
   source: FullnessSource;
+  provider?: string;
+  freshnessLabel?: 'fresh' | 'stale' | 'old' | 'unknown';
+  storageType?: 'storage' | 'run_of_river' | 'regulator' | 'mixed' | 'unknown';
   method: string;
   observedAt: string | null;
   sourcePublishedAt?: string | null;

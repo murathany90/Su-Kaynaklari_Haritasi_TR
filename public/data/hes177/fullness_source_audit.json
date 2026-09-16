@@ -1,6 +1,6 @@
 {
   "dataVersion": "hes177-v8",
-  "pipelineRunAt": "2026-09-16T07:59:27Z",
+  "pipelineRunAt": "2026-09-16T19:55:18Z",
   "latestObservationAt": "2026-09-13T00:00:00Z",
   "status": "partial",
   "sourceRegistry": {
@@ -73,11 +73,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 1.6304347826086956,
@@ -85,6 +87,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -107,7 +112,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-003",
@@ -115,17 +121,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (pondage)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -150,7 +161,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-004",
@@ -158,11 +170,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 5.591118671381889,
@@ -170,6 +184,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -192,7 +209,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-005",
@@ -200,17 +218,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (pondage)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -235,7 +258,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-006",
@@ -243,17 +267,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -278,7 +307,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-007",
@@ -286,17 +316,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -321,7 +356,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-008",
@@ -329,11 +365,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 70.07055328629782,
@@ -341,6 +379,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -363,7 +404,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-009",
@@ -371,17 +413,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -406,7 +453,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-010",
@@ -414,11 +462,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 72.65933854016005,
@@ -426,6 +476,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -448,7 +501,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-011",
@@ -456,17 +510,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -491,7 +550,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-012",
@@ -499,17 +559,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -534,7 +599,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-014",
@@ -542,11 +608,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 41.985822959889354,
@@ -554,6 +622,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -576,7 +647,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-015",
@@ -584,17 +656,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -619,7 +696,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-017",
@@ -627,17 +705,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -662,7 +745,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-018",
@@ -670,17 +754,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -705,7 +794,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-019",
@@ -713,17 +803,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -748,7 +843,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-020",
@@ -756,17 +852,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -791,7 +892,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-022",
@@ -799,11 +901,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 61.00510297065792,
@@ -811,15 +915,18 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
       "hydrowebMatch": true,
-      "copernicusMatch": true,
+      "copernicusMatch": false,
       "swotMatch": false,
       "gRealmMatch": false,
       "gdwMatch": true,
-      "candidateSourceCount": 3,
+      "candidateSourceCount": 2,
       "bestCatalogSource": "hydroweb",
       "bestCatalogMethod": "name+coordinate",
       "catalogConfidence": "high",
@@ -833,7 +940,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-023",
@@ -841,17 +949,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -876,7 +989,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-025",
@@ -884,17 +998,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (reservoir-polygon)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -919,7 +1038,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-026",
@@ -927,17 +1047,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -962,7 +1087,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-027",
@@ -970,17 +1096,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1005,7 +1136,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-028",
@@ -1013,17 +1145,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1048,7 +1185,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-032",
@@ -1056,17 +1194,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1091,7 +1234,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-033",
@@ -1099,11 +1243,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 68.54545454545456,
@@ -1111,6 +1257,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1133,7 +1282,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-035",
@@ -1141,11 +1291,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 90.841059602649,
@@ -1153,6 +1305,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1175,7 +1330,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-036",
@@ -1183,17 +1339,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1218,7 +1379,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-037",
@@ -1226,17 +1388,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1261,7 +1428,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-039",
@@ -1269,17 +1437,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1304,7 +1477,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-042",
@@ -1312,17 +1486,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1347,7 +1526,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-043",
@@ -1355,17 +1535,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1390,7 +1575,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-045",
@@ -1398,11 +1584,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 34.431023521932616,
@@ -1410,6 +1598,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1432,7 +1623,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-046",
@@ -1440,11 +1632,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 100.0,
@@ -1452,6 +1646,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1474,7 +1671,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-048",
@@ -1482,11 +1680,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 17.4059694917121,
@@ -1494,15 +1694,18 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
       "hydrowebMatch": true,
-      "copernicusMatch": true,
+      "copernicusMatch": false,
       "swotMatch": false,
       "gRealmMatch": false,
       "gdwMatch": true,
-      "candidateSourceCount": 3,
+      "candidateSourceCount": 2,
       "bestCatalogSource": "hydroweb",
       "bestCatalogMethod": "name+coordinate",
       "catalogConfidence": "high",
@@ -1516,7 +1719,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-051",
@@ -1524,11 +1728,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 86.23188405797103,
@@ -1536,6 +1742,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1558,7 +1767,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-052",
@@ -1566,17 +1776,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1601,7 +1816,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-054",
@@ -1609,11 +1825,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 51.837060702875405,
@@ -1621,6 +1839,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1643,7 +1864,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-055",
@@ -1651,17 +1873,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1686,7 +1913,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-056",
@@ -1694,17 +1922,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1729,7 +1962,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-057",
@@ -1737,11 +1971,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 43.47860207177985,
@@ -1749,6 +1985,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1771,7 +2010,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-058",
@@ -1779,11 +2019,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 63.31749264539489,
@@ -1791,6 +2033,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1813,7 +2058,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-059",
@@ -1821,17 +2067,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1856,7 +2107,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-060",
@@ -1864,11 +2116,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 80.85106382978724,
@@ -1876,6 +2130,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1898,7 +2155,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-061",
@@ -1906,17 +2164,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1941,7 +2204,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-062",
@@ -1949,17 +2213,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (pondage)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -1984,7 +2253,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-064",
@@ -1992,17 +2262,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2027,7 +2302,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-065",
@@ -2035,17 +2311,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2070,7 +2351,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-066",
@@ -2078,17 +2360,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2113,7 +2400,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-068",
@@ -2121,11 +2409,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 75.37598718095452,
@@ -2133,6 +2423,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2155,7 +2448,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-069",
@@ -2163,11 +2457,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 22.857142857142854,
@@ -2175,6 +2471,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2197,7 +2496,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-070",
@@ -2205,11 +2505,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 83.62160254147548,
@@ -2217,6 +2519,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2239,7 +2544,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-071",
@@ -2247,17 +2553,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2282,7 +2593,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-072",
@@ -2290,11 +2602,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 53.36795478845272,
@@ -2302,6 +2616,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2324,7 +2641,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-073",
@@ -2332,11 +2650,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 55.17864402186188,
@@ -2344,6 +2664,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2366,7 +2689,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-075",
@@ -2374,17 +2698,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2409,7 +2738,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-076",
@@ -2417,11 +2747,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 29.919028340080967,
@@ -2429,6 +2761,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2451,7 +2786,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-077",
@@ -2459,17 +2795,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2494,7 +2835,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-079",
@@ -2502,17 +2844,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2537,7 +2884,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-080",
@@ -2545,11 +2893,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 58.13295615275813,
@@ -2557,6 +2907,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2579,7 +2932,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-081",
@@ -2587,17 +2941,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2622,7 +2981,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-083",
@@ -2630,11 +2990,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 55.192569748260766,
@@ -2642,6 +3004,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2664,7 +3029,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-084",
@@ -2672,11 +3038,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 48.4506298520952,
@@ -2684,6 +3052,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2706,7 +3077,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-086",
@@ -2714,17 +3086,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2749,7 +3126,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-087",
@@ -2757,17 +3135,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2792,7 +3175,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-088",
@@ -2800,17 +3184,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2835,7 +3224,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-089",
@@ -2843,11 +3233,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 60.88854489164086,
@@ -2855,6 +3247,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2877,7 +3272,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-090",
@@ -2885,11 +3281,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 88.67291040819933,
@@ -2897,6 +3295,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2919,7 +3320,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-091",
@@ -2927,11 +3329,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 45.4229797979798,
@@ -2939,6 +3343,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -2961,7 +3368,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-092",
@@ -2969,11 +3377,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 87.50000000000003,
@@ -2981,6 +3391,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3003,7 +3416,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-093",
@@ -3011,17 +3425,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (reservoir-polygon)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3046,7 +3465,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-094",
@@ -3054,17 +3474,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3089,7 +3514,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-095",
@@ -3097,11 +3523,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 65.98240469208211,
@@ -3109,6 +3537,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3131,7 +3562,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-097",
@@ -3139,11 +3571,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 51.63599182004089,
@@ -3151,6 +3585,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3173,7 +3610,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-098",
@@ -3181,11 +3619,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 23.75127420998981,
@@ -3193,6 +3633,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3215,7 +3658,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-099",
@@ -3223,17 +3667,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3258,7 +3707,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-100",
@@ -3266,17 +3716,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3301,7 +3756,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-102",
@@ -3309,17 +3765,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3344,7 +3805,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-103",
@@ -3352,11 +3814,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 48.14814814814813,
@@ -3364,6 +3828,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3386,7 +3853,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-104",
@@ -3394,17 +3862,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3429,7 +3902,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-105",
@@ -3437,17 +3911,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3472,7 +3951,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-106",
@@ -3480,11 +3960,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 24.764464717221898,
@@ -3492,6 +3974,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3514,7 +3999,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-107",
@@ -3522,11 +4008,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 96.87772544915401,
@@ -3534,6 +4022,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3556,7 +4047,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-108",
@@ -3564,11 +4056,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 83.0330330330329,
@@ -3576,6 +4070,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3598,7 +4095,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-109",
@@ -3606,11 +4104,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 69.79850182916206,
@@ -3618,6 +4118,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3640,7 +4143,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-110",
@@ -3648,17 +4152,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3683,7 +4192,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-111",
@@ -3691,17 +4201,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3726,7 +4241,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-114",
@@ -3734,17 +4250,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3769,7 +4290,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-115",
@@ -3777,17 +4299,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3812,7 +4339,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-117",
@@ -3820,17 +4348,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3855,7 +4388,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-119",
@@ -3863,11 +4397,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 61.65429480381761,
@@ -3875,6 +4411,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3897,7 +4436,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-120",
@@ -3905,11 +4445,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 72.50211685012702,
@@ -3917,6 +4459,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3939,7 +4484,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-121",
@@ -3947,17 +4493,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -3982,7 +4533,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-122",
@@ -3990,17 +4542,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4025,7 +4582,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-123",
@@ -4033,11 +4591,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 64.6417152529622,
@@ -4045,6 +4605,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4067,7 +4630,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-124",
@@ -4075,11 +4639,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 81.16778523489933,
@@ -4087,6 +4653,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4109,7 +4678,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-126",
@@ -4117,11 +4687,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 60.68752754517409,
@@ -4129,6 +4701,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4151,7 +4726,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-127",
@@ -4159,11 +4735,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 80.02776620852424,
@@ -4171,6 +4749,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4193,7 +4774,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-129",
@@ -4201,17 +4783,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4236,7 +4823,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-132",
@@ -4244,11 +4832,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 36.78924598269469,
@@ -4256,6 +4846,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4278,7 +4871,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-133",
@@ -4286,11 +4880,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 80.62657544112353,
@@ -4298,6 +4894,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4320,7 +4919,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-134",
@@ -4328,17 +4928,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4363,7 +4968,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-135",
@@ -4371,17 +4977,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4406,7 +5017,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-136",
@@ -4414,17 +5026,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4449,7 +5066,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-137",
@@ -4457,11 +5075,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 92.04579492128997,
@@ -4469,6 +5089,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4491,7 +5114,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-138",
@@ -4499,11 +5123,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 81.59713335039672,
@@ -4511,6 +5137,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4533,7 +5162,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-140",
@@ -4541,11 +5171,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 64.50805969420752,
@@ -4553,6 +5185,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4575,7 +5210,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-141",
@@ -4583,17 +5219,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4618,7 +5259,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-142",
@@ -4626,17 +5268,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (pondage)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4661,7 +5308,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-143",
@@ -4669,17 +5317,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4704,7 +5357,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-145",
@@ -4712,11 +5366,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 68.29656371172617,
@@ -4724,6 +5380,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4746,7 +5405,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-146",
@@ -4754,17 +5414,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (pondage)",
+      "storageTypeConfidence": "medium",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4789,7 +5454,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-148",
@@ -4797,11 +5463,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 62.19746446407991,
@@ -4809,6 +5477,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4831,7 +5502,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-151",
@@ -4839,17 +5511,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4874,7 +5551,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-152",
@@ -4882,17 +5560,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4917,7 +5600,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-154",
@@ -4925,17 +5609,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -4960,7 +5649,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-155",
@@ -4968,17 +5658,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5003,7 +5698,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-159",
@@ -5011,17 +5707,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5046,7 +5747,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-160",
@@ -5054,11 +5756,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 48.27741702741703,
@@ -5066,6 +5770,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5088,7 +5795,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-161",
@@ -5096,17 +5804,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5131,7 +5844,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-162",
@@ -5139,11 +5853,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 1.1228262357935095,
@@ -5151,6 +5867,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5173,7 +5892,8 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-163",
@@ -5181,17 +5901,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5216,7 +5941,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-164",
@@ -5224,11 +5950,13 @@
       "status": "available",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": 3,
+      "freshnessLabel": "fresh",
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 40.18951764013063,
@@ -5236,176 +5964,9 @@
       "qualityFlags": [
         "derived_from_inventory_volume"
       ],
-      "epiasMatch": false,
-      "dsiMatch": false,
-      "dahitiMatch": false,
-      "hydrowebMatch": true,
-      "copernicusMatch": false,
-      "swotMatch": false,
-      "gRealmMatch": false,
-      "gdwMatch": true,
-      "candidateSourceCount": 2,
-      "bestCatalogSource": "hydroweb",
-      "bestCatalogMethod": "name+coordinate",
-      "catalogConfidence": "medium",
-      "bestCatalogSourceUrl": "https://hydroweb.next.theia-land.fr/api/catalog/stac/collections/HYDROWEB_LAKES_OPE/items/L_uluabat%40hysope2%3Ac707f367-4589-35c3-90ad-c2ad1625f36b%3AV1",
-      "bestCatalogDistanceKm": 34.29,
-      "waterLevelAvailable": false,
-      "surfaceAreaAvailable": false,
-      "volumeAvailable": true,
-      "hypsometryAvailable": false,
-      "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true,
-      "uncertainty": null,
-      "sourceUrl": null,
-      "sourceStationId": null
-    },
-    {
-      "hesId": "hes177-167",
-      "fullnessPercent": null,
-      "status": "unavailable",
-      "sourceClass": "calculated_storage",
-      "source": "canonical",
-      "method": "no-verified-fullness-source",
-      "observedAt": null,
-      "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
-      "freshnessDays": null,
-      "confidence": "low",
-      "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
-      "qualityFlags": [
-        "no_data"
-      ],
-      "epiasMatch": false,
-      "dsiMatch": false,
-      "dahitiMatch": false,
-      "hydrowebMatch": false,
-      "copernicusMatch": false,
-      "swotMatch": false,
-      "gRealmMatch": false,
-      "gdwMatch": false,
-      "candidateSourceCount": 0,
-      "bestCatalogSource": null,
-      "bestCatalogMethod": null,
-      "catalogConfidence": null,
-      "bestCatalogSourceUrl": null,
-      "bestCatalogDistanceKm": null,
-      "waterLevelAvailable": false,
-      "surfaceAreaAvailable": false,
-      "volumeAvailable": false,
-      "hypsometryAvailable": false,
-      "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false,
-      "rawValue": null,
-      "rawUnit": null,
-      "uncertainty": null,
-      "sourceUrl": null,
-      "sourceStationId": null
-    },
-    {
-      "hesId": "hes177-168",
-      "fullnessPercent": null,
-      "status": "unavailable",
-      "sourceClass": "calculated_storage",
-      "source": "canonical",
-      "method": "no-verified-fullness-source",
-      "observedAt": null,
-      "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
-      "freshnessDays": null,
-      "confidence": "low",
-      "isEstimated": false,
-      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
-      "qualityFlags": [
-        "no_data"
-      ],
-      "epiasMatch": false,
-      "dsiMatch": false,
-      "dahitiMatch": false,
-      "hydrowebMatch": false,
-      "copernicusMatch": false,
-      "swotMatch": false,
-      "gRealmMatch": false,
-      "gdwMatch": false,
-      "candidateSourceCount": 0,
-      "bestCatalogSource": null,
-      "bestCatalogMethod": null,
-      "catalogConfidence": null,
-      "bestCatalogSourceUrl": null,
-      "bestCatalogDistanceKm": null,
-      "waterLevelAvailable": false,
-      "surfaceAreaAvailable": false,
-      "volumeAvailable": false,
-      "hypsometryAvailable": false,
-      "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false,
-      "rawValue": null,
-      "rawUnit": null,
-      "uncertainty": null,
-      "sourceUrl": null,
-      "sourceStationId": null
-    },
-    {
-      "hesId": "hes177-171",
-      "fullnessPercent": 73.36911643270025,
-      "status": "available",
-      "sourceClass": "calculated_storage",
-      "source": "canonical",
-      "method": "active-volume/(max-volume-min-volume)",
-      "observedAt": "2026-09-13",
-      "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
-      "freshnessDays": 3,
-      "confidence": "medium",
-      "isEstimated": true,
-      "rawValue": 73.36911643270025,
-      "rawUnit": "%",
-      "qualityFlags": [
-        "derived_from_inventory_volume"
-      ],
-      "epiasMatch": false,
-      "dsiMatch": false,
-      "dahitiMatch": false,
-      "hydrowebMatch": false,
-      "copernicusMatch": false,
-      "swotMatch": false,
-      "gRealmMatch": false,
-      "gdwMatch": false,
-      "candidateSourceCount": 0,
-      "bestCatalogSource": null,
-      "bestCatalogMethod": null,
-      "catalogConfidence": null,
-      "bestCatalogSourceUrl": null,
-      "bestCatalogDistanceKm": null,
-      "waterLevelAvailable": false,
-      "surfaceAreaAvailable": false,
-      "volumeAvailable": true,
-      "hypsometryAvailable": false,
-      "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true,
-      "uncertainty": null,
-      "sourceUrl": null,
-      "sourceStationId": null
-    },
-    {
-      "hesId": "hes177-174",
-      "fullnessPercent": 0.0,
-      "status": "available",
-      "sourceClass": "calculated_storage",
-      "source": "canonical",
-      "method": "active-volume/(max-volume-min-volume)",
-      "observedAt": "2026-09-13",
-      "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
-      "freshnessDays": 3,
-      "confidence": "medium",
-      "isEstimated": true,
-      "rawValue": 0.0,
-      "rawUnit": "%",
-      "qualityFlags": [
-        "derived_from_inventory_volume"
-      ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5428,7 +5989,202 @@
       "fullnessCanBeCalculated": true,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
+    },
+    {
+      "hesId": "hes177-167",
+      "fullnessPercent": null,
+      "status": "unavailable",
+      "sourceClass": "calculated_storage",
+      "source": "canonical",
+      "provider": "Envanter",
+      "method": "no-verified-fullness-source",
+      "observedAt": null,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T19:55:18Z",
+      "freshnessDays": null,
+      "freshnessLabel": "unknown",
+      "confidence": "low",
+      "isEstimated": false,
+      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "qualityFlags": [
+        "no_data"
+      ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
+      "epiasMatch": false,
+      "dsiMatch": false,
+      "dahitiMatch": false,
+      "hydrowebMatch": false,
+      "copernicusMatch": false,
+      "swotMatch": false,
+      "gRealmMatch": false,
+      "gdwMatch": false,
+      "candidateSourceCount": 0,
+      "bestCatalogSource": null,
+      "bestCatalogMethod": null,
+      "catalogConfidence": null,
+      "bestCatalogSourceUrl": null,
+      "bestCatalogDistanceKm": null,
+      "waterLevelAvailable": false,
+      "surfaceAreaAvailable": false,
+      "volumeAvailable": false,
+      "hypsometryAvailable": false,
+      "fullnessDirectlyAvailable": false,
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null,
+      "observationTimestamp": null
+    },
+    {
+      "hesId": "hes177-168",
+      "fullnessPercent": null,
+      "status": "unavailable",
+      "sourceClass": "calculated_storage",
+      "source": "canonical",
+      "provider": "Envanter",
+      "method": "no-verified-fullness-source",
+      "observedAt": null,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T19:55:18Z",
+      "freshnessDays": null,
+      "freshnessLabel": "unknown",
+      "confidence": "low",
+      "isEstimated": false,
+      "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
+      "qualityFlags": [
+        "no_data"
+      ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
+      "epiasMatch": false,
+      "dsiMatch": false,
+      "dahitiMatch": false,
+      "hydrowebMatch": false,
+      "copernicusMatch": false,
+      "swotMatch": false,
+      "gRealmMatch": false,
+      "gdwMatch": false,
+      "candidateSourceCount": 0,
+      "bestCatalogSource": null,
+      "bestCatalogMethod": null,
+      "catalogConfidence": null,
+      "bestCatalogSourceUrl": null,
+      "bestCatalogDistanceKm": null,
+      "waterLevelAvailable": false,
+      "surfaceAreaAvailable": false,
+      "volumeAvailable": false,
+      "hypsometryAvailable": false,
+      "fullnessDirectlyAvailable": false,
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null,
+      "observationTimestamp": null
+    },
+    {
+      "hesId": "hes177-171",
+      "fullnessPercent": 73.36911643270025,
+      "status": "available",
+      "sourceClass": "calculated_storage",
+      "source": "canonical",
+      "provider": "Envanter",
+      "method": "active-volume/(max-volume-min-volume)",
+      "observedAt": "2026-09-13",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T19:55:18Z",
+      "freshnessDays": 3,
+      "freshnessLabel": "fresh",
+      "confidence": "medium",
+      "isEstimated": true,
+      "rawValue": 73.36911643270025,
+      "rawUnit": "%",
+      "qualityFlags": [
+        "derived_from_inventory_volume"
+      ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
+      "epiasMatch": false,
+      "dsiMatch": false,
+      "dahitiMatch": false,
+      "hydrowebMatch": false,
+      "copernicusMatch": false,
+      "swotMatch": false,
+      "gRealmMatch": false,
+      "gdwMatch": false,
+      "candidateSourceCount": 0,
+      "bestCatalogSource": null,
+      "bestCatalogMethod": null,
+      "catalogConfidence": null,
+      "bestCatalogSourceUrl": null,
+      "bestCatalogDistanceKm": null,
+      "waterLevelAvailable": false,
+      "surfaceAreaAvailable": false,
+      "volumeAvailable": true,
+      "hypsometryAvailable": false,
+      "fullnessDirectlyAvailable": false,
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
+    },
+    {
+      "hesId": "hes177-174",
+      "fullnessPercent": 0.0,
+      "status": "available",
+      "sourceClass": "calculated_storage",
+      "source": "canonical",
+      "provider": "Envanter",
+      "method": "active-volume/(max-volume-min-volume)",
+      "observedAt": "2026-09-13",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T19:55:18Z",
+      "freshnessDays": 3,
+      "freshnessLabel": "fresh",
+      "confidence": "medium",
+      "isEstimated": true,
+      "rawValue": 0.0,
+      "rawUnit": "%",
+      "qualityFlags": [
+        "derived_from_inventory_volume"
+      ],
+      "storageType": "storage",
+      "storageTypeProvenance": "storage evidence (volume-bounds)",
+      "storageTypeConfidence": "high",
+      "epiasMatch": false,
+      "dsiMatch": false,
+      "dahitiMatch": false,
+      "hydrowebMatch": false,
+      "copernicusMatch": false,
+      "swotMatch": false,
+      "gRealmMatch": false,
+      "gdwMatch": true,
+      "candidateSourceCount": 1,
+      "bestCatalogSource": null,
+      "bestCatalogMethod": null,
+      "catalogConfidence": null,
+      "bestCatalogSourceUrl": null,
+      "bestCatalogDistanceKm": null,
+      "waterLevelAvailable": false,
+      "surfaceAreaAvailable": false,
+      "volumeAvailable": true,
+      "hypsometryAvailable": false,
+      "fullnessDirectlyAvailable": false,
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null,
+      "observationTimestamp": "2026-09-13"
     },
     {
       "hesId": "hes177-175",
@@ -5436,17 +6192,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5471,7 +6232,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-176",
@@ -5479,17 +6241,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5514,7 +6281,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     },
     {
       "hesId": "hes177-177",
@@ -5522,17 +6290,22 @@
       "status": "unavailable",
       "sourceClass": "calculated_storage",
       "source": "canonical",
+      "provider": "Envanter",
       "method": "no-verified-fullness-source",
       "observedAt": null,
       "sourcePublishedAt": null,
-      "fetchedAt": "2026-09-16T07:59:27Z",
+      "fetchedAt": "2026-09-16T19:55:18Z",
       "freshnessDays": null,
+      "freshnessLabel": "unknown",
       "confidence": "low",
       "isEstimated": false,
       "reasonUnavailable": "EPİAŞ erişimi yok; doğrulanmış hacim/uydu serisi yok",
       "qualityFlags": [
         "no_data"
       ],
+      "storageType": "unknown",
+      "storageTypeProvenance": "no storage evidence",
+      "storageTypeConfidence": "low",
       "epiasMatch": false,
       "dsiMatch": false,
       "dahitiMatch": false,
@@ -5557,7 +6330,8 @@
       "rawUnit": null,
       "uncertainty": null,
       "sourceUrl": null,
-      "sourceStationId": null
+      "sourceStationId": null,
+      "observationTimestamp": null
     }
   ]
 }

@@ -96,3 +96,62 @@ Sidebar'daki canonical HES kayÄ±tlarÄ±na tÄ±klamak `flyTo` veya `fitBounds` ile
 seÃ§ilen nokta/Ã§izgi/poligona gider. Stil deÄŸiÅŸimlerinde kaynak ve Ã§izim
 katmanlarÄ± `ensureHydrologyOverlay` ile yeniden kurulur. MapLibre worker Vite
 asset URL'sine baÄŸlÄ± olduÄŸu iÃ§in GeoJSON Ã§izimleri altlÄ±k yÃ¼kÃ¼nden baÄŸÄ±msÄ±zdÄ±r.
+
+## HES doluluk veri pipeline''ý
+
+### Kaynak önceliði (resolver)
+
+`official_live` > `official_published` > `satellite_volume`
+> `satellite_altimetry` + hypsometry > `satellite_area` + hypsometry
+> `calculated_storage` > `unavailable`. Sýnýf önce gelir; freshness ve
+confidence ayný sýnýf içinde karar verir. Düþük güvenli veri, daha iyi bir
+kaynaðý override edemez. 30 günlük official ile 2 günlük uydu çakýþýrsa
+politika (`PROVIDER_FRESHNESS_DAYS`): bayat official (öncelik 4''e düþer)
+yerine taze uydu seçilir.
+
+### Ölçüm / türev / tahmin
+
+* `isEstimated=false` + `official_*` = doðrudan ölçüm.
+* `isEstimated=true` + `calculated_storage` = envanter hacim hesabý
+  (`activeVolume / (maxVolume - minVolume)` — workbook "Aktif Hacim" aktif
+  depolama miktarýdýr; güncel mutlak hacim akýþlarý `(current - min) /
+  (max - min)` kullanýr).
+* Uydu kot/alan gözlemleri doðrulanmýþ hypsometry
+  (`public/data/static/mappings/reservoir_hypsometry.json`) olmadan yüzdeye
+  çevrilmez; ham deðer + birim (`m`, `km2`) aynen yayýnlanýr.
+
+### not_applicable / unavailable
+
+* `run_of_river` (kanonik `storageType`, provenance + confidence ile) =
+  `not_applicable`, `fullnessPercent=null`. `unavailable` sayýlmaz.
+* Diðer her þey veri yoksa `unavailable`, `fullnessPercent=null`.
+* Eksik deðerlerde asla `0` yazýlmaz; `null` kullanýlýr. `>100` / `<0`
+  hacim sonuçlarý sessizce clamp edilmez: audit uyarýsý + `qualityFlags`
+  bayraðý üretilir.
+
+### Fetch / observation cadence ve credentials
+
+* Cron UTC''dir; Türkiye = UTC+3. 6 saatlik akýþ 03/09/15/21 TR''de koþar;
+  EPÝAÞ günlük gözlemi sabah netleþir, 09:00 TR ana fetch, diðerleri retry.
+* Ayný gözlemin tekrar fetch''i yeni nokta üretmez: dedupe key =
+  `hesId + provider + observationTimestamp + sourceClass`.
+* Snapshot (bugün gösterilen) ile observation (provider ölçüm zamaný)
+  ayrýdýr; 7/30/90/365d serileri gerçek observation timestamp kullanýr.
+* Secrets: `EPIAS_USERNAME/PASSWORD/TGT_URL/DAM_ENDPOINT`,
+  `HYDROWEB_API_KEY`, `COPERNICUS_ACCESS_TOKEN`, `DAHITI_API_KEY`,
+  `EARTHDATA_TOKEN`. Yoksa ilgili job `skipped` olur. EPÝAÞ kimlik varken
+  hata verirse exit 2 ile CI''da görünür þekilde düþer.
+* Backfill: `python tools/hydro/backfill_fullness.py --provider copernicus
+  --from 2024-01-01 --to 2026-09-16` (incremental/resume/dedupe).
+* Arþiv: `public/data/history/fullness/YYYY/MM/YYYY-MM-DD.json` (+
+  `data-history` branch''i); zaman serileri `public/data/timeseries/`.
+
+### Testler ve þema
+
+* `python -m unittest discover -s tools/hydro/tests` (EPÝAÞ mock, matcher,
+  hesap, history, entegrasyon — credentials gerektirmez).
+* `python tools/hydro/test_fullness_quality.py` resolver + yayýnlanan
+  snapshot''ýn `schemas/hes_fullness.schema.json` doðrulamasýný yapar.
+* Audit çýktýlarý: `reports/fullness_source_audit.{md,csv}`,
+  `reports/fullness_missing_sources.json`,
+  `public/data/quality/fullness_rejected.json`.
