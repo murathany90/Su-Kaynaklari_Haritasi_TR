@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, Map as MapIcon, Menu, RefreshCw, X } from 'lucide-react';
 import { formatDataDate } from '../../data/hydrology';
-import { ENABLE_MOCK, fullnessRecordsByHes, preferredFullnessRecord, resolveHesFullness } from '../../data/fullnessSources';
+import { fullnessRecordsByHes, preferredFullnessRecord, resolveHesFullness } from '../../data/fullnessSources';
 import { useAppStore } from '../../store/useAppStore';
 
 const basemapLabels = { dark: 'Karanlık', light: 'Açık', neutral: 'Nötr', satellite: 'Uydu', streets: 'Sokak' };
@@ -19,7 +19,6 @@ export const HesToolbar: React.FC = () => {
   const epias = useAppStore((state) => state.epias);
   const fullnessPayload = useAppStore((state) => state.fullness);
   const dataMode = useAppStore((state) => state.dataMode);
-  const setDataMode = useAppStore((state) => state.setDataMode);
   const dataStatus = useAppStore((state) => state.hydroDataStatus);
   const lastRefreshAt = useAppStore((state) => state.lastRefreshAt);
   const refreshHydroData = useAppStore((state) => state.refreshHydroData);
@@ -81,10 +80,7 @@ export const HesToolbar: React.FC = () => {
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-1.5">
-        <div className="flex rounded-lg border border-[var(--line)] p-0.5 font-mono text-[9px]" aria-label="Doluluk kaynağı">
-          <button type="button" onClick={() => setDataMode('mock')} disabled={!ENABLE_MOCK} title={ENABLE_MOCK ? 'Geliştirme mock verisi' : 'Üretimde devre dışı'} className={`rounded-md px-1.5 py-1 disabled:cursor-not-allowed disabled:opacity-40 ${dataMode === 'mock' ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)]'}`}>MOCK</button>
-          <button type="button" onClick={() => setDataMode('epias')} className={`rounded-md px-1.5 py-1 ${dataMode === 'epias' ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)]'}`}>EPİAŞ</button>
-        </div>
+        <span className="rounded-lg border border-cyan-500/25 bg-cyan-500/8 px-2 py-1.5 font-mono text-[9px] text-[var(--primary)]" title="Doluluk, kanonik resolver ve mevcut doğrulanmış kaynaklara göre gösterilir">GERÇEK VERİ</span>
         <button type="button" onClick={() => void refreshHydroData()} disabled={dataStatus === 'loading'} className="hidden items-center gap-1.5 rounded-lg border border-cyan-500/35 px-2 py-1.5 text-[10px] font-medium text-[var(--primary)] transition hover:bg-cyan-500/8 disabled:opacity-50 sm:flex"><RefreshCw className={`h-3.5 w-3.5 ${dataStatus === 'loading' ? 'animate-spin' : ''}`} />Yenile</button>
         <div className="relative">
           <button type="button" onClick={() => setBasemapMenuOpen((open) => !open)} className="flex items-center gap-1 rounded-lg border border-[var(--line)] px-2 py-1.5 text-[10px] text-[var(--muted)]"><MapIcon className="h-3.5 w-3.5 text-[var(--primary)]" /><span className="hidden sm:inline">{basemapLabels[basemap]}</span><ChevronDown className="h-3 w-3" /></button>

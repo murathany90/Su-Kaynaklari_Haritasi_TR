@@ -45,6 +45,7 @@ interface AppState {
   historyError: string | null;
   historicalDate: string | null;
   dataMode: 'mock' | 'epias';
+  flowVisualization: boolean;
   activeCatchmentHesId: string | null;
 
   // Actions
@@ -65,6 +66,7 @@ interface AppState {
   loadFullnessHistory: () => Promise<void>;
   setHistoricalDate: (date: string | null) => void;
   setDataMode: (mode: 'mock' | 'epias') => void;
+  toggleFlowVisualization: () => void;
   toggleCatchment: (hesId: string) => void;
 }
 
@@ -106,6 +108,7 @@ export const useAppStore = create<AppState>((set) => ({
   historyError: null,
   historicalDate: null,
   dataMode: 'epias',
+  flowVisualization: false,
   activeCatchmentHesId: null,
 
   setTab: (tab) => set({ currentTab: tab }),
@@ -122,6 +125,7 @@ export const useAppStore = create<AppState>((set) => ({
   setTimelineIndex: (index) => set({ timelineIndex: Math.max(0, Math.round(index)) }),
   toggleTimelinePlayback: () => set((state) => ({ isPlayingTimeline: !state.isPlayingTimeline })),
   setDataMode: (dataMode) => set({ dataMode }),
+  toggleFlowVisualization: () => set((state) => ({ flowVisualization: !state.flowVisualization })),
   setHistoricalDate: (historicalDate) => set({ historicalDate }),
   toggleCatchment: (hesId) => set((state) => ({ activeCatchmentHesId: state.activeCatchmentHesId === hesId ? null : hesId })),
   loadHydroData: async () => {

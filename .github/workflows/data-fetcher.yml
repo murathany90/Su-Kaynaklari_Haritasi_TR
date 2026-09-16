@@ -95,6 +95,10 @@ jobs:
           fi
 
       - name: Build, resolve, archive and validate canonical package
+        env:
+          HYDRO_WORKFLOW_STATUS: ${{ github.event_name }}
+          HYDRO_HISTORY_PERSISTED: 'true'
+          HYDRO_DEPLOY_SUCCEEDED: 'true'
         run: |
           python tools/hydro/build_all.py
           python tools/hydro/test_fullness_quality.py

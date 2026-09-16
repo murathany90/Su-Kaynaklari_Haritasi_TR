@@ -385,6 +385,13 @@ def write_payload(path: Path, payload: dict[str, Any]) -> None:
     os.replace(temporary, path)
 
 
+def environment_boolean(name: str) -> bool | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    return value.strip().lower() in {"1", "true", "yes", "y"}
+
+
 def merge_daily_snapshot(path: Path, payload: dict[str, Any], fetched_at: str) -> dict[str, Any]:
     previous = read_payload(path)
     previous_records = {str(record.get("hesId")): record for record in previous.get("records", []) if isinstance(record, dict)}
@@ -447,6 +454,7 @@ def main() -> None:
     fetched_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     hes_payload = read_payload(HES_PATH)
     previous_latest = read_payload(LIVE_PATH)
+    previous_health = read_payload(HEALTH_PATH)
     previous_records = {str(record.get("hesId")): record for record in previous_latest.get("records", []) if isinstance(record, dict)}
     epias_payload = read_payload(EPIAS_PATH)
     epias_records = [record for record in epias_payload.get("records", []) if isinstance(record, dict)]
@@ -518,7 +526,7 @@ def main() -> None:
     write_payload(history_path, daily_payload)
     series_summary = write_rolling_timeseries(history_root, fetched_at)
     HEALTH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_payload(HEALTH_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "sourcesHealthy": [name for name in source_registry if name not in failed_sources], "sourcesFailed": failed_sources, "newObservations": new_observations, "staleRecords": counts["stale"], "qualityRejectedCount": len(quality_rejections), "coverage": coverage, "history": series_summary})
+    write_payload(HEALTH_PATH, {"dataVersion": payload["dataVersion"], "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "status": status, "workflowStatus": os.getenv("HYDRO_WORKFLOW_STATUS", "local"), "lastSuccessfulPipelineRunAt": fetched_at, "lastFailedPipelineRunAt": previous_health.get("lastFailedPipelineRunAt"), "historyPersisted": environment_boolean("HYDRO_HISTORY_PERSISTED") is True, "deploySucceeded": environment_boolean("HYDRO_DEPLOY_SUCCEEDED"), "sourcesHealthy": [name for name in source_registry if name not in failed_sources], "sourcesFailed": failed_sources, "newObservations": new_observations, "staleRecords": counts["stale"], "qualityRejectedCount": len(quality_rejections), "coverage": coverage, "history": series_summary})
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8")) if MANIFEST_PATH.exists() else {}
     manifest.update({"fullnessAvailableCount": counts["available"] + counts["stale"], "fullnessRealOrDerivedCount": counts["available"] + counts["stale"], "fullnessOfficialCount": counts["officialLive"] + counts["officialPublished"], "fullnessOfficialLiveCount": counts["officialLive"], "fullnessOfficialPublishedCount": counts["officialPublished"], "fullnessSatelliteCount": counts["satellite"], "fullnessCalculatedCount": counts["calculated"], "fullnessStaleCount": counts["stale"], "fullnessUnavailableCount": counts["unavailable"], "fullnessNotApplicableCount": counts["notApplicable"], "fullnessMockCount": 0, "volumeCalculatedFullnessCount": counts["calculated"], "epiasFullnessCount": counts["officialLive"], "fallbackMockFullnessCount": 0, "fullnessCatalogMatchHesCount": sum(result.get("candidateSourceCount", 0) > 0 for result in records), "fullnessAuditRecordCount": len(records), "fullnessSourceAudit": str(AUDIT_PATH.relative_to(ROOT)).replace("\\", "/"), "observationCatalogGeneratedAt": catalog_payload.get("generatedAt"), "observationCatalogRecordCount": len(catalog_records), "fullnessSourceRegistry": source_registry, "pipelineRunAt": fetched_at, "latestObservationAt": latest_observation_at, "fullnessStatus": status, "historyObservationCount": series_summary["observationCount"], "historyOldestObservationAt": series_summary["oldestObservationAt"], "historyNewestObservationAt": series_summary["newestObservationAt"]})
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
