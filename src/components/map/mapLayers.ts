@@ -84,7 +84,7 @@ function ensurePieImages(map: MapLibreMap, onReady: () => void): boolean {
 
 function setSource(map: MapLibreMap, id: string, data: OverlayCollection): void {
   const source = map.getSource(id) as GeoJSONSource | undefined;
-  if (source) void source.setData(data).catch(() => undefined);
+  if (source) source.setData(data);
 }
 
 function addLayer(map: MapLibreMap, layer: Parameters<MapLibreMap['addLayer']>[0]): void {
