@@ -122,6 +122,25 @@ const satelliteStyle: StyleSpecification = {
   }],
 };
 
+export const BASEMAP_RASTER_SOURCE = {
+  type: 'raster' as const,
+  tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+  tileSize: 256,
+  attribution: 'Tiles Â© Esri',
+};
+
+/** A source-free first style lets local GeoJSON layers attach before tiles load. */
+export const getBasemapBootstrapStyle = (theme: 'dark' | 'light' = 'dark'): StyleSpecification => ({
+  version: 8,
+  name: 'HydroScope overlay bootstrap style',
+  sources: {},
+  layers: [{
+    id: 'basemap-background',
+    type: 'background',
+    paint: { 'background-color': THEME_BACKGROUND[theme] },
+  }],
+});
+
 /**
  * A raster fallback keeps the map usable when the vector basemap or its tile
  * source is unavailable. The hydrology overlay is added on top of this style

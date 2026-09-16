@@ -7,7 +7,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { getForecastTimestamps } from '../../services/hydroData';
 import { damIconBucket, displayName, getBasinColor, getDamColor, getFlowScaleColor } from '../../data/hydrology';
 import { fullnessRecordsByHes, fullnessSourceLabel, preferredFullnessRecord, resolveHistoricalFullness, resolveHesFullness } from '../../data/fullnessSources';
-import { getBasemapFallbackStyle, getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
+import { BASEMAP_RASTER_SOURCE, getBasemapBootstrapStyle, getBasemapFallbackStyle, getBasemapStyle, THEME_BACKGROUND } from './mapStyles';
 import { HES_PIE_LAYER_ID, ensureHydrologyOverlay, type OverlayCollections, type OverlayOptions } from './mapLayers';
 import { focusSelectedEntity } from './mapCamera';
 import { emptyFeatureCollection, type FullnessHistoryPoint } from '../../types/hydrology';
@@ -336,13 +336,24 @@ export function BaseMap() {
     // leave the canvas blank before the fallback timer could react. Hydrology
     // overlays are still inserted on top immediately, and users can switch to
     // the optional vector styles from the basemap menu when available.
-    const initialStyle = initialBasemapRef.current === 'satellite'
-      ? getBasemapStyle(initialBasemapRef.current)
-      : getBasemapFallbackStyle(themeRef.current);
+    const initialStyle = getBasemapBootstrapStyle(themeRef.current);
     const map = new maplibregl.Map({ container: mapContainerRef.current, style: initialStyle, center: [35.3, 39], zoom: 5.5, attributionControl: false, renderWorldCopies: false });
     mapRef.current = map;
+    let rasterBasemapReady = false;
+    const addRasterBasemap = () => {
+      if (rasterBasemapReady) return;
+      try {
+        if (!map.getSource('basemap-raster')) map.addSource('basemap-raster', { ...BASEMAP_RASTER_SOURCE });
+        if (!map.getLayer('basemap-raster')) map.addLayer({ id: 'basemap-raster', type: 'raster', source: 'basemap-raster', paint: { 'raster-opacity': themeRef.current === 'light' ? 0.72 : 0.48 } });
+        rasterBasemapReady = true;
+      } catch {
+        // styledata/load will retry after the source-free bootstrap style is ready
+      }
+    };
     const onStyleReady = () => scheduleOverlaySync(true);
-    const onStyleData = () => scheduleOverlaySync();
+    const onStyleData = () => { addRasterBasemap(); scheduleOverlaySync(); };
+    const onLoad = () => { addRasterBasemap(); onStyleReady(); };
+    const onStyleLoad = () => { addRasterBasemap(); onStyleReady(); };
     const fallbackToRaster = () => {
       if (basemapFallbackRef.current || initialBasemapRef.current === 'satellite') return;
       basemapFallbackRef.current = true;
@@ -359,8 +370,8 @@ export function BaseMap() {
       // hydrology layers remain available even when the basemap is not.
       (event as unknown as { preventDefault?: () => void }).preventDefault?.();
     };
-    map.on('load', onStyleReady);
-    map.on('style.load', onStyleReady);
+    map.on('load', onLoad);
+    map.on('style.load', onStyleLoad);
     map.on('styledata', onStyleData);
     map.on('error', onMapError);
     let bootstrapAttempts = 0;
@@ -395,7 +406,7 @@ export function BaseMap() {
       if (overlayRetryRef.current !== null) clearTimeout(overlayRetryRef.current);
       stopOverlayBootstrap();
       if (fallbackTimer !== null) clearTimeout(fallbackTimer);
-      map.off('load', onStyleReady); map.off('style.load', onStyleReady); map.off('styledata', onStyleData); map.off('error', onMapError); map.off('render', onFirstRender);
+      map.off('load', onLoad); map.off('style.load', onStyleLoad); map.off('styledata', onStyleData); map.off('error', onMapError); map.off('render', onFirstRender);
       popupRef.current?.remove();
       map.remove(); mapRef.current = null;
       clickPopupRef.current?.remove();
