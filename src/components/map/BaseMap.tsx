@@ -281,6 +281,7 @@ export function BaseMap() {
     const map = mapRef.current;
     if (!map || !dataRef.current || !optionsRef.current || !map.getStyle()) return;
     if (!force && lastSyncedDataRef.current === dataRef.current && lastSyncedOptionsRef.current === optionsRef.current) return;
+    const needsInitialRefresh = lastSyncedDataRef.current !== dataRef.current || lastSyncedOptionsRef.current !== optionsRef.current;
     try {
       const synced = ensureHydrologyOverlay(map, dataRef.current, optionsRef.current, () => { requestAnimationFrame(() => syncOverlay(true)); });
       if (!synced) {
@@ -296,6 +297,15 @@ export function BaseMap() {
       lastSyncedOptionsRef.current = optionsRef.current;
       if (map.getLayer('basemap-background')) map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[themeRef.current]);
       map.triggerRepaint();
+      // Raster styles can finish their first render one frame after the
+      // GeoJSON source is registered. Reconcile once more after that frame so
+      // the first view does not require a manual layer toggle to paint.
+      if (needsInitialRefresh && overlayRetryRef.current === null) {
+        overlayRetryRef.current = setTimeout(() => {
+          overlayRetryRef.current = null;
+          syncOverlay(true);
+        }, 350);
+      }
     } catch {
       // A style swap can briefly invalidate the style object. Retry after the
       // style parser has had a chance to finish, even if no further tile event
