@@ -61,6 +61,7 @@ def canonical_observation(
     lat: float | None = None,
     source_url: str | None = None,
     product: str | None = None,
+    estimated: bool | None = None,
     raw: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One provider observation. Never invent a percentage: level/area-only
@@ -83,6 +84,7 @@ def canonical_observation(
         "lat": lat,
         "sourceUrl": source_url,
         "product": product,
+        "isEstimated": estimated,
         "raw": raw or {},
     }
 

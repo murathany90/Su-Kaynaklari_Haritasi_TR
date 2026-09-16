@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Activity, ArrowUpDown, Eye, EyeOff, Gauge, Mountain, Search, Waves, X, Zap } from 'lucide-react';
 import { describeFullness, fullnessRecordsByHes, fullnessSourceLabel, preferredFullnessRecord, resolveHistoricalFullness, resolveHesFullness } from '../../data/fullnessSources';
+import { HesDetailPanel } from './HesDetail';
 import { useAppStore, type TabType } from '../../store/useAppStore';
-import type { FullnessHistoryPoint, FullnessResult } from '../../types/hydrology';
+import type { FullnessResult } from '../../types/hydrology';
 
 type SortKey = 'type' | 'name' | 'basin' | 'river' | 'power' | 'fullness' | 'source' | 'count' | 'forecast' | 'cascade';
 type FullnessSource = string;
@@ -45,23 +46,6 @@ function fullnessCode(result: FullnessResult): string {
   return 'H';
 }
 
-function FullnessTrend({ points, isLight }: { points: FullnessHistoryPoint[]; isLight: boolean }): React.ReactNode {
-  if (!points.length) return <div className="mt-2 rounded border border-dashed border-[var(--line)] p-2 text-[9px] text-[var(--muted)]">Seçili HES için tarihsel gözlem yok.</div>;
-  const width = 240;
-  const height = 48;
-  const values = points.map((point) => point.value);
-  const min = Math.min(...values, 0);
-  const max = Math.max(...values, 100);
-  const span = Math.max(1, max - min);
-  const path = points.length > 1 ? points.map((point, index) => {
-    const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width;
-    const y = height - ((point.value - min) / span) * height;
-    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ') : '';
-  const latest = points[points.length - 1];
-  return <div className="mt-2 rounded border border-[var(--line)] bg-[var(--panel2)] p-1.5" title={`${latest.date} · %${Math.round(latest.value)} · ${latest.source ?? 'canonical'} · ${latest.method ?? '—'} · ${latest.confidence ?? '—'}`}><div className="mb-1 flex items-center justify-between font-mono text-[8px] text-[var(--muted)]"><span>{points.length === 1 ? '1 gözlem mevcut' : `Doluluk trendi · ${points.length} gözlem`}</span><span>%{Math.round(latest.value)}</span></div><svg viewBox={`0 0 ${width} ${height}`} className="h-12 w-full" role="img" aria-label="Doluluk tarihsel trendi"><path d={path} fill="none" stroke={isLight ? '#087f9a' : '#22d3ee'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />{points.map((point, index) => { const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width; const y = height - ((point.value - min) / span) * height; return <circle key={`${point.date}-${point.source ?? 'source'}-${index}`} cx={x} cy={y} r="2.2" fill={point.sourceClass === 'official_live' ? '#facc15' : point.sourceClass === 'official_published' ? '#fb923c' : point.sourceClass?.startsWith('satellite') ? '#f87171' : '#38bdf8'}><title>{point.date} · %{Math.round(point.value)} · {point.source ?? 'canonical'} · {point.method ?? '—'} · {point.confidence ?? '—'}</title></circle>; })}</svg><div className="mt-0.5 flex justify-between font-mono text-[8px] text-[var(--muted)]"><span>{points[0].date}</span><span>{latest.date}</span></div></div>;
-}
-
 function volumeFullness(rows: Array<{ details?: Record<string, unknown> }>): number | null {
   const eligible = rows.map((row) => ({
     details: row.details,
@@ -76,11 +60,20 @@ function volumeFullness(rows: Array<{ details?: Record<string, unknown> }>): num
 
 function fullnessCell(row: Row): React.ReactNode {
   const result = row.details?.fullnessResult as FullnessResult | undefined;
-  if (!result) return <span title="Doluluk verisi bulunamadı">{row.source}</span>;
+  if (!result) return <span title="Doluluk verisi bulunamadı">— Veri yok</span>;
   const described = describeFullness(result);
   const sourceLabel = `${fullnessSourceLabel(result)} · ${result.method}`;
-  if (row.fullness === null) return <span title={`${described.title} · ${sourceLabel}`}>{described.cell}</span>;
+  if (row.fullness === null) return <span title={`${described.title} · ${sourceLabel}`}>— Veri yok</span>;
   return <span title={`${described.title} · ${sourceLabel}`}>{`%${Math.round(row.fullness)} · ${row.source}`}</span>;
+}
+
+function hesNameCell(row: Row): React.ReactNode {
+  return (
+    <span className="min-w-0">
+      <span className="flex min-w-0 items-center gap-1 truncate"><Zap className="h-3 w-3 shrink-0 text-amber-400" /><span className="truncate">{row.name}</span></span>
+      <span className="block truncate text-[8px] font-normal text-[var(--muted)]">{row.river} · {row.basin}</span>
+    </span>
+  );
 }
 
 function isValidRiver(value: unknown): value is string {
@@ -96,7 +89,6 @@ export const Sidebar: React.FC = () => {
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const selectedEntity = useAppStore((s) => s.selectedEntity);
   const setSelectedEntity = useAppStore((s) => s.setSelectedEntity);
-  const toggleCatchment = useAppStore((s) => s.toggleCatchment);
   const toggleLayer = useAppStore((s) => s.toggleLayer);
   const flowVisualization = useAppStore((s) => s.flowVisualization);
   const toggleFlowVisualization = useAppStore((s) => s.toggleFlowVisualization);
@@ -109,16 +101,12 @@ export const Sidebar: React.FC = () => {
   const fullnessPayload = useAppStore((s) => s.fullness);
   const dataMode = useAppStore((s) => s.dataMode);
   const fullnessHistory = useAppStore((s) => s.fullnessHistory);
-  const historyStatus = useAppStore((s) => s.historyStatus);
   const historicalDate = useAppStore((s) => s.historicalDate);
-  const setHistoricalDate = useAppStore((s) => s.setHistoricalDate);
-  const loadFullnessHistory = useAppStore((s) => s.loadFullnessHistory);
   const dataStatus = useAppStore((s) => s.hydroDataStatus);
   const hydroDataError = useAppStore((s) => s.hydroDataError);
   const isLight = theme === 'light';
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [historyRange, setHistoryRange] = useState<7 | 30 | 90 | 365>(30);
   const [fullnessFilter, setFullnessFilter] = useState<'all' | 'available' | 'official' | 'satellite' | 'calculated' | 'stale' | 'unavailable' | 'not_applicable'>('all');
   const fullnessByHes = useMemo(() => fullnessRecordsByHes(fullnessPayload), [fullnessPayload]);
 
@@ -200,13 +188,13 @@ export const Sidebar: React.FC = () => {
   }), [filteredRows, sortDirection, sortKey]);
 
   const columns = useMemo<Column[]>(() => currentTab === 'hes' ? [
-    { key: 'name', label: 'HES adı', value: (row) => <span className="flex min-w-0 items-center gap-1"><Zap className="h-3 w-3 shrink-0 text-amber-400" />{row.name}</span> }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'river', label: 'Akarsu', value: (row) => row.river }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: fullnessCell }, { key: 'source', label: 'Kaynak', className: 'text-right', value: (row) => <span title="E: resmî canlı · D: resmî yayınlanmış · U: uydu/türetilmiş · H: fiziksel hacim hesabı · —: veri yok · N/A: uygulanamaz">{row.source}</span> },
+    { key: 'name', label: 'HES', value: hesNameCell }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: fullnessCell },
   ] : currentTab === 'rivers' ? [
     { key: 'name', label: 'Akarsu adı', value: (row) => row.name }, { key: 'basin', label: 'Havza', value: (row) => row.basin }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'forecast', label: 'Tahmin', className: 'text-right', value: (row) => row.forecast ? 'Var' : 'Yok' }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` },
   ] : [
     { key: 'name', label: 'Havza adı', value: (row) => row.name }, { key: 'count', label: 'HES', className: 'text-right', value: (row) => row.count.toLocaleString('tr-TR') }, { key: 'power', label: 'MW', className: 'text-right', value: (row) => formatMw(row.power) }, { key: 'river', label: 'Ana akarsular', value: (row) => row.riverNames }, { key: 'fullness', label: 'Doluluk', className: 'text-right', value: (row) => row.fullness === null ? '—' : `%${Math.round(row.fullness)}` }, { key: 'cascade', label: 'Kaskat', className: 'text-right', value: (row) => row.cascadeCount || '—' },
   ], [currentTab]);
-  const gridTemplate = currentTab === 'hes' ? 'minmax(0,1.45fr) minmax(0,.78fr) minmax(0,.82fr) 3.7rem 3.65rem 2.7rem' : currentTab === 'rivers' ? 'minmax(0,1.5fr) minmax(0,.9fr) 2.2rem 4.15rem 2.8rem 3.55rem' : 'minmax(0,1.3fr) 2.2rem 4.15rem minmax(0,1.1fr) 3.55rem 2.8rem';
+  const gridTemplate = currentTab === 'hes' ? 'minmax(0,1.7fr) 4.4rem 4.6rem' : currentTab === 'rivers' ? 'minmax(0,1.5fr) minmax(0,.9fr) 2.2rem 4.15rem 2.8rem 3.55rem' : 'minmax(0,1.3fr) 2.2rem 4.15rem minmax(0,1.1fr) 3.55rem 2.8rem';
   const selectedHes = selectedEntity?.type === 'hes' ? hesRows.find((row) => row.id === selectedEntity.id) : null;
   const selectedFullness = selectedHes?.details?.fullnessResult as FullnessResult | undefined;
   const selectedRiver = selectedEntity?.type === 'river' ? riverRows.find((row) => row.id === selectedEntity.id) : null;
@@ -216,13 +204,14 @@ export const Sidebar: React.FC = () => {
   const selectRow = (row: Row) => setSelectedEntity({ type: row.type, id: row.id });
   const onSort = (key: SortKey) => { if (sortKey === key) setSortDirection((direction) => direction === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDirection('asc'); } };
 
-  useEffect(() => {
-    if (selectedEntity?.type === 'hes') void loadFullnessHistory();
-  }, [loadFullnessHistory, selectedEntity?.id, selectedEntity?.type]);
-
-  const allSelectedHesPoints = selectedHes ? fullnessHistory?.records?.find((record) => record.hesId === selectedHes.id)?.points ?? [] : [];
-  const selectedHesPoints = allSelectedHesPoints.filter((point) => { const latest = Date.parse(allSelectedHesPoints.at(-1)?.date ?? ''); const date = Date.parse(point.date); return Number.isFinite(latest) && Number.isFinite(date) ? latest - date <= historyRange * 86400000 : true; });
-  const selectedHesPanel = selectedHes ? <div className={`mb-2 rounded-xl border p-2 ${isLight ? 'border-cyan-200 bg-cyan-50' : 'border-cyan-500/20 bg-cyan-500/5'}`}><div className="flex items-center justify-between gap-2"><span className="truncate text-[11px] font-semibold text-cyan-400">⚡ {selectedHes.name}</span><span className="font-mono text-[9px] text-sky-300">{selectedHes.fullness === null ? '—' : `%${Math.round(selectedHes.fullness)} ${selectedHes.source}`}</span></div><div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] text-slate-500"><span>Havza: {selectedHes.basin}</span><span>Resmî havza: {String(selectedHes.details?.officialBasinName ?? '—')}</span><span>Akarsu: {selectedHes.river}</span><span>Güç: {formatMw(selectedHes.power)}</span><span>Doluluk kaynağı: {selectedFullness ? fullnessSourceLabel(selectedFullness) : '—'}</span><span>Sağlayıcı: {typeof selectedFullness?.provider === 'string' && selectedFullness.provider ? selectedFullness.provider : '—'}</span><span>Yöntem: {selectedFullness?.method ?? '—'}</span><span>Gözlem: {selectedFullness?.observedAt ?? '—'}</span><span>Veri yaşı: {selectedFullness?.freshnessDays === null || selectedFullness?.freshnessDays === undefined ? '—' : `${selectedFullness.freshnessDays} gün`}</span><span>Tazelik: {selectedFullness?.freshnessLabel === 'fresh' ? 'Taze' : selectedFullness?.freshnessLabel === 'stale' ? 'Eski' : selectedFullness?.freshnessLabel === 'old' ? 'Çok eski' : '—'}</span><span>Depolama: {typeof selectedFullness?.storageType === 'string' && selectedFullness.storageType ? selectedFullness.storageType.replace('run_of_river', 'Nehir tipi').replace('storage', 'Depolamalı').replace('regulator', 'Regülatör').replace('mixed', 'Karma').replace('unknown', 'Bilinmiyor') : '—'}</span><span>Yayın: {selectedFullness?.sourcePublishedAt ?? '—'}</span><span>Güven: {selectedFullness?.confidence ?? '—'}{selectedFullness?.isEstimated ? ' · tahmini' : ''}</span><span>Debi: {numberOf(selectedHes.details?.unitFlowM3s)?.toLocaleString('tr-TR') ?? '—'} m³/sn</span><span>Baraj: {String(selectedHes.details?.damName ?? '—')}</span><span>Min / max kot: {numberOf(selectedHes.details?.minWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxWaterLevelM)?.toLocaleString('tr-TR') ?? '—'} m</span><span>Min / max hacim: {numberOf(selectedHes.details?.minVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} / {numberOf(selectedHes.details?.maxVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Aktif hacim: {numberOf(selectedHes.details?.activeVolumeHm3)?.toLocaleString('tr-TR') ?? '—'} hm³</span><span>Kaskat: {String(selectedHes.details?.cascadeName ?? '—')}</span></div><div className="mt-2 flex items-center gap-1"><label htmlFor="historical-fullness-date" className="text-[9px] text-[var(--muted)]">Tarih:</label><input id="historical-fullness-date" type="date" value={historicalDate ?? ''} onChange={(event) => setHistoricalDate(event.target.value || null)} className="min-w-0 flex-1 rounded border border-[var(--line)] bg-[var(--panel2)] px-1 py-1 text-[9px] text-[var(--text)]" /><button type="button" onClick={() => setHistoricalDate(null)} className="rounded border border-[var(--line)] px-1.5 py-1 text-[8px] text-[var(--muted)]">Canlı</button></div><div className="mt-1 flex gap-1" aria-label="Trend aralığı">{([7, 30, 90, 365] as const).map((days) => <button key={days} type="button" onClick={() => setHistoryRange(days)} className={`rounded px-1.5 py-0.5 font-mono text-[8px] ${historyRange === days ? 'bg-cyan-500/15 text-cyan-400' : 'text-[var(--muted)]'}`}>{days === 365 ? '1Y' : `${days}G`}</button>)}</div>{historyStatus === 'loading' ? <div className="mt-2 text-[9px] text-[var(--muted)]">Tarihçe yükleniyor…</div> : historicalDate && selectedFullness?.isHistoricalView === true ? <div className="mt-1 text-[9px] text-amber-500">{historicalDate} görünümü · gözlem: {selectedFullness.observedAt ?? '—'}</div> : null}<FullnessTrend points={selectedHesPoints} isLight={isLight} /><div className="mt-2 grid grid-cols-2 gap-1"><button onClick={() => { const id = String(selectedHes.details?.riverSystemId ?? ''); if (id) setSelectedEntity({ type: 'river', id }); }} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Akarsuyu göster</button><button onClick={() => { const id = String(selectedHes.details?.basinId ?? ''); if (id) setSelectedEntity({ type: 'basin', id }); }} className="rounded border border-violet-500/25 px-1.5 py-1 text-[8px] text-violet-400">Havzayı göster</button><button onClick={() => { const id = String(selectedHes.details?.cascadeToId ?? ''); if (id) setSelectedEntity({ type: 'hes', id }); }} className="rounded border border-amber-500/25 px-1.5 py-1 text-[8px] text-amber-400">Kaskadı göster</button><button onClick={() => toggleCatchment(selectedHes.id)} className="rounded border border-cyan-500/25 px-1.5 py-1 text-[8px] text-cyan-400">Su alanını göster</button></div></div> : null;
+  const selectedHesPanel = selectedHes ? (
+    <HesDetailPanel
+      key={selectedHes.id}
+      data={{ id: selectedHes.id, name: selectedHes.name, basin: selectedHes.basin, river: selectedHes.river, power: selectedHes.power, fullness: selectedHes.fullness, source: selectedHes.source, details: selectedHes.details }}
+      fullness={selectedFullness}
+      isLight={isLight}
+    />
+  ) : null;
 
   return <aside className={`flex h-full min-h-0 w-full flex-col border-r border-[var(--line)] bg-[var(--panel)] text-[var(--text)] shadow-xl shadow-slate-950/10 transition-colors ${isLight ? 'light-scrollbar' : ''}`}>
     <div className="border-b border-[var(--line)] p-3">
@@ -230,13 +219,13 @@ export const Sidebar: React.FC = () => {
       <div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--muted)]" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="HES, akarsu veya havza ara..." className="w-full rounded-lg border border-[var(--line)] bg-[var(--panel2)] py-2 pl-9 pr-3 text-xs text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-cyan-500/70" /></div>
     </div>
     <div className="grid grid-cols-3 gap-1 border-b border-[var(--line)] p-2">{tabs.map((tab) => <button key={tab.id} onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-[9px] transition ${currentTab === tab.id ? 'bg-cyan-500/12 text-[var(--primary)]' : 'text-[var(--muted)] hover:bg-[var(--panel2)]'}`}>{tab.icon}<span>{tab.label}</span><span className="font-mono text-[8px] opacity-70">{tab.count.toLocaleString('tr-TR')}</span></button>)}</div>
-    <div className="border-b border-[var(--line)] px-3 py-2"><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-[var(--muted)]">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/12 text-[var(--primary)]' : 'bg-[var(--panel2)] text-[var(--muted)]'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div><button type="button" onClick={toggleFlowVisualization} className={`mt-1 flex w-full items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${flowVisualization ? 'bg-cyan-500/12 text-[var(--primary)]' : 'bg-[var(--panel2)] text-[var(--muted)]'}`} aria-pressed={flowVisualization} title="GEOGLOWS debi renk ölçeğini aç/kapat"><Waves className="h-3 w-3" />{flowVisualization ? 'Debi görünümü açık' : 'Debi görünümü'}</button><div className="mt-2 grid grid-cols-2 gap-1 font-mono text-[8px] text-[var(--muted)]" title="Doluluk yüzdesi değil, veri kaynağı sınıfı gösterilir"><span className="whitespace-nowrap text-yellow-400">[E] Resmî canlı</span><span className="whitespace-nowrap text-orange-400">[D] Resmî yayın</span><span className="whitespace-nowrap text-red-400">[U] Uydu/türetilmiş</span><span className="whitespace-nowrap text-cyan-400">[H] Hacim hesabı</span><span className="whitespace-nowrap">[—] Veri yok</span><span className="whitespace-nowrap">[N/A] Uygulanamaz</span></div></div>
+    <div className="border-b border-[var(--line)] px-3 py-2"><div className="mb-1 font-mono text-[9px] uppercase tracking-wider text-[var(--muted)]">Harita katmanları</div><div className="grid grid-cols-3 gap-1">{layerControls.map(({ key, label }) => <button key={key} onClick={() => toggleLayer(key)} className={`flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${layers[key] ? 'bg-cyan-500/12 text-[var(--primary)]' : 'bg-[var(--panel2)] text-[var(--muted)]'}`} aria-pressed={layers[key]}>{layers[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}{label}</button>)}</div><button type="button" onClick={toggleFlowVisualization} className={`mt-1 flex w-full items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] transition ${flowVisualization ? 'bg-cyan-500/12 text-[var(--primary)]' : 'bg-[var(--panel2)] text-[var(--muted)]'}`} aria-pressed={flowVisualization} title="GEOGLOWS debi renk ölçeğini aç/kapat"><Waves className="h-3 w-3" />{flowVisualization ? 'Debi görünümü açık' : 'Debi görünümü'}</button><div className="mt-2 font-mono text-[8px] text-[var(--muted)]"><span title="E: EPİAŞ resmî canlı · D: DSİ resmî yayın · U: uydu · H: hacim tahmini · —: veri yok · N/A: uygulanamaz (nehir tipi)">ⓘ Kaynak kodları: E · D · U · H · — · N/A</span></div></div>
     <div className="min-h-0 flex-1 overflow-auto p-2">
       <div className="mb-1 flex items-center justify-between gap-2 rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-2 py-1.5 font-mono text-[9px] text-slate-500"><span>Kaynaklar: TATUS · GEOGLOWS · EPİAŞ</span>{currentTab === 'hes' ? <select value={fullnessFilter} onChange={(event) => setFullnessFilter(event.target.value as typeof fullnessFilter)} className="max-w-[135px] rounded border border-[var(--line)] bg-[var(--panel2)] px-1 py-0.5 text-[8px] text-[var(--muted)]" aria-label="Doluluk veri filtresi"><option value="all">Tüm doluluk</option><option value="available">Verisi var</option><option value="official">Resmî</option><option value="satellite">Uydu/türetilmiş</option><option value="calculated">Hacim hesabı</option><option value="stale">Eski / stale</option><option value="unavailable">Veri yok</option><option value="not_applicable">Uygulanamaz</option></select> : <span>{sortedRows.length.toLocaleString('tr-TR')} kayıt</span>}</div>
-      <div className={`mb-1 grid ${currentTab === 'hes' ? 'min-w-[360px]' : 'min-w-[405px]'} items-center gap-1 rounded-lg bg-[var(--panel2)] px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-[var(--muted)]`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => <button key={column.key} type="button" onClick={() => onSort(column.key)} className={`truncate text-left hover:text-[var(--primary)] ${column.className ?? ''}`} title={`${column.label} göre sırala`}>{column.label}{sortKey === column.key ? <ArrowUpDown className="ml-0.5 inline h-2.5 w-2.5" /> : null}</button>)}</div>
+      <div className={`mb-1 grid ${currentTab === 'hes' ? '' : 'min-w-[405px]'} items-center gap-1 rounded-lg bg-[var(--panel2)] px-2 py-1 font-mono text-[8px] uppercase tracking-wide text-[var(--muted)]`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => <button key={column.key} type="button" onClick={() => onSort(column.key)} className={`truncate text-left hover:text-[var(--primary)] ${column.className ?? ''}`} title={`${column.label} göre sırala`}>{column.label}{sortKey === column.key ? <ArrowUpDown className="ml-0.5 inline h-2.5 w-2.5" /> : null}</button>)}</div>
       {selectedHesPanel}
       {selectedRiver && relatedRiverRows.length > 0 && <div className="mb-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-2"><div className="text-[10px] font-semibold text-cyan-400">İlgili HES tesisleri</div><div className="mb-1 text-[9px] text-slate-500">Kanonik logical akarsu ilişkisi · {relatedRiverRows.length} HES</div>{relatedRiverRows.slice(0, 4).map((row) => <button key={row.id} onClick={() => selectRow(row)} className="block w-full truncate py-0.5 text-left text-[9px] text-slate-300 hover:text-cyan-300">⚡ {row.name} · {formatMw(row.power)}</button>)}</div>}
-      {dataStatus === 'loading' ? <div className="p-4 text-center text-xs text-[var(--muted)]">Kanonik HES verisi yükleniyor…</div> : dataStatus === 'failed' ? <div className="m-1 rounded-lg border border-rose-500/30 bg-rose-500/8 p-3 text-xs text-rose-300" role="alert"><div className="font-semibold">Veri paketi yüklenemedi</div><div className="mt-1 break-words font-mono text-[9px] text-rose-200/80">{hydroDataError ?? 'Kanonik manifest veya HES GeoJSON alınamadı.'}</div></div> : sortedRows.map((row) => <button key={row.id} onClick={() => selectRow(row)} className={`mb-1 grid ${currentTab === 'hes' ? 'min-w-[360px]' : 'min-w-[405px]'} w-full items-center gap-1 rounded-lg border border-transparent bg-[var(--panel2)] px-2 py-1.5 text-left transition hover:border-cyan-500/30 ${selectedEntity?.type === row.type && selectedEntity.id === row.id ? 'ring-1 ring-cyan-400/55' : ''}`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => { const content = column.value(row); return <span key={column.key} title={typeof content === 'string' ? content : undefined} className={`truncate text-[9px] ${column.key === 'name' ? 'font-semibold text-[var(--text)]' : column.key === 'river' ? 'text-[var(--primary)]' : column.className ?? 'text-[var(--muted)]'}`}>{content}</span>; })}</button>)}
+      {dataStatus === 'loading' ? <div className="p-4 text-center text-xs text-[var(--muted)]">Kanonik HES verisi yükleniyor…</div> : dataStatus === 'failed' ? <div className="m-1 rounded-lg border border-rose-500/30 bg-rose-500/8 p-3 text-xs text-rose-300" role="alert"><div className="font-semibold">Veri paketi yüklenemedi</div><div className="mt-1 break-words font-mono text-[9px] text-rose-200/80">{hydroDataError ?? 'Kanonik manifest veya HES GeoJSON alınamadı.'}</div></div> : sortedRows.map((row) => <button key={row.id} onClick={() => selectRow(row)} className={`mb-1 grid ${currentTab === 'hes' ? '' : 'min-w-[405px]'} w-full items-center gap-1 rounded-lg border border-transparent bg-[var(--panel2)] px-2 py-1.5 text-left transition hover:border-cyan-500/30 ${selectedEntity?.type === row.type && selectedEntity.id === row.id ? 'ring-1 ring-cyan-400/55' : ''}`} style={{ gridTemplateColumns: gridTemplate }}>{columns.map((column) => { const content = column.value(row); return <span key={column.key} title={typeof content === 'string' ? content : undefined} className={`min-w-0 truncate text-[9px] ${column.key === 'name' ? 'font-semibold text-[var(--text)]' : column.key === 'river' ? 'text-[var(--primary)]' : column.className ?? 'text-[var(--muted)]'}`}>{content}</span>; })}</button>)}
     </div>
     <div className={`border-t p-3 font-mono text-[9px] ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-600'}`}>20 MW+ HES envanteri · seçim haritada uygun ölçeğe yaklaşır · doluluk: gerçek kaynak resolver&apos;ı</div>
   </aside>;

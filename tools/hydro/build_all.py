@@ -26,7 +26,9 @@ def main() -> None:
         run("tools/hydro/fetch_observation_catalogs.py")
         # Provider observation downloads. Each adapter is credential-gated
         # (skipped without secrets) and idempotent; EPİAŞ exits nonzero only
-        # when credentials ARE configured but the fetch errors.
+        # when credentials ARE configured but the fetch errors. DSİ public
+        # aggregates need no credentials.
+        run("tools/hydro/fetch_dsi.py")
         run("tools/hydro/fetch_hydroweb.py")
         run("tools/hydro/fetch_copernicus.py")
         run("tools/hydro/fetch_dahiti.py")

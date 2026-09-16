@@ -87,9 +87,11 @@ jobs:
           EPIAS_TGT_URL: ${{ secrets.EPIAS_TGT_URL }}
           EPIAS_DAM_ENDPOINT: ${{ secrets.EPIAS_DAM_ENDPOINT }}
       - name: Download provider observations
+        # DSİ public aggregates need no credentials; the rest skip cleanly.
         if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
         continue-on-error: true
         run: |
+          python tools/hydro/fetch_dsi.py
           python tools/hydro/fetch_hydroweb.py
           python tools/hydro/fetch_copernicus.py --mode incremental
           python tools/hydro/fetch_dahiti.py

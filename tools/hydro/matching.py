@@ -33,6 +33,7 @@ SPATIAL_RADIUS_KM = {
     "swot": 20.0,
     "sentinel": 15.0,
     "epias": 25.0,
+    "dsi": 25.0,
     "g_realm": 20.0,
     "default": 15.0,
 }

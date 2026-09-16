@@ -1,968 +1,1349 @@
 {
-  "pipelineRunAt": "2026-09-16T19:55:18Z",
+  "pipelineRunAt": "2026-09-16T21:24:28Z",
   "missingCount": 74,
+  "providersChecked": [
+    "dsi",
+    "epias"
+  ],
+  "providersSkipped": {
+    "hydroweb": "credentials_missing",
+    "copernicus": "credentials_missing",
+    "dahiti": "credentials_missing",
+    "swot": "credentials_missing",
+    "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+  },
   "records": [
     {
       "hesId": "hes177-003",
       "name": "ADIGÜZEL HES",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-005",
       "name": "AKKÖY1 HES",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "reservoir_not_mapped"
     },
     {
       "hesId": "hes177-006",
       "name": "AKKÖY2 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-007",
       "name": "AKŞAR NAZAR HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-009",
       "name": "ALKUMRU HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-011",
       "name": "ALPASLAN1 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-012",
       "name": "ALPASLAN2 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-015",
       "name": "ANDIRIN HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-017",
       "name": "ARDAHAN AKINCI HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-018",
       "name": "ARKUN HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-019",
       "name": "ARTVİN HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-020",
       "name": "ASLANCIK HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-023",
       "name": "AŞAĞI KALEKÖY HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-025",
       "name": "ATATÜRK HES",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-026",
       "name": "AYVALI HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-027",
       "name": "BAĞIŞTAŞ1 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-028",
       "name": "BAĞIŞTAŞ2 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-032",
       "name": "BATMAN HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-036",
       "name": "BEYHAN1 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-037",
       "name": "BİRECİK-NİZİP HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-039",
       "name": "BORÇKA HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-042",
       "name": "BURÇBENDİ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-043",
       "name": "BÜYÜKDÜZ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-052",
       "name": "ÇETİN HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-055",
       "name": "DARICA1 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-056",
       "name": "DARICA2 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-059",
       "name": "DERİNER HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-061",
       "name": "DİCLE HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-062",
       "name": "DİM HES",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "reservoir_not_mapped"
     },
     {
       "hesId": "hes177-064",
       "name": "DOĞANKAYA HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-065",
       "name": "DOĞANKENT HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-066",
       "name": "EREN HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-071",
       "name": "GARZAN HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-075",
       "name": "GÖKKAYA HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-077",
       "name": "GÜLLÜBAĞ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-079",
       "name": "GÜNDER HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-081",
       "name": "HACININOĞLU HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-086",
       "name": "ILISU HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-087",
       "name": "KADINCIK1 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-088",
       "name": "KADINCIK2 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-093",
       "name": "KARAKAYA HES DİYARBAKIR",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-094",
       "name": "KARAKURT HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-099",
       "name": "KARGILIK HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-100",
       "name": "KARKAMIŞ HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-102",
       "name": "KASIMLAR HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-104",
       "name": "KAYAKÖPRÜ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-105",
       "name": "KEBAN HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-110",
       "name": "KİĞI HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-111",
       "name": "KİRAZLIK HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-114",
       "name": "KOTANLI 1-2 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-115",
       "name": "KOYULHİSAR BEREKET HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-117",
       "name": "KOZBÜKÜ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-121",
       "name": "KRALKIZI HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-122",
       "name": "KUZGUN HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-129",
       "name": "MURATLI HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-134",
       "name": "ÖZLÜCE HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-135",
       "name": "PEMBELİK HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-136",
       "name": "REŞADİYE HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-141",
       "name": "SEFAKÖY HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-142",
       "name": "SEYHAN 1 HES",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-143",
       "name": "SEYRANTEPE HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-146",
       "name": "SIRIMTAŞ HES",
       "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "reservoir_not_mapped"
     },
     {
       "hesId": "hes177-151",
       "name": "SÜMER HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-152",
       "name": "ŞANLIURFA HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-154",
       "name": "ŞİRVAN HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-155",
       "name": "TATAR HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-159",
       "name": "TOKAT AKINCI HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-161",
       "name": "TORTUM HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-163",
       "name": "TUNA HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-167",
       "name": "UZUNÇAYIR HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-168",
       "name": "UZUNDERE1 HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-175",
       "name": "YUKARI KALEKÖY HES",
-      "storageType": "unknown",
+      "storageType": "storage",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-176",
       "name": "YUKARI MANAHOZ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     },
     {
       "hesId": "hes177-177",
       "name": "YUSUFELİ HES",
       "storageType": "unknown",
       "providersChecked": [
-        "epias",
-        "hydroweb",
-        "copernicus",
-        "dahiti"
+        "dsi",
+        "epias"
       ],
+      "providersSkipped": {
+        "hydroweb": "credentials_missing",
+        "copernicus": "credentials_missing",
+        "dahiti": "credentials_missing",
+        "swot": "credentials_missing",
+        "sentinel": "disabled_opt_in (SENTINEL2_ENABLED!=1)"
+      },
       "candidateSources": [],
-      "reason": "no_match"
+      "reason": "missing_inventory_volume"
     }
   ]
 }

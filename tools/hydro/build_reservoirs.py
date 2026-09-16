@@ -166,15 +166,21 @@ def main() -> None:
         props = feature.get("properties") or {}
         hes_id = str(props.get("id") or feature.get("id") or "")
         point = point_of(feature)
-        if not point or props.get("coordinateKind") in {"transformer", "unresolved"}:
+        if not point:
             continue
+        approximate = props.get("coordinateKind") in {"transformer", "unresolved"}
         ranked: list[tuple[float, float, dict[str, Any]]] = []
         for candidate in candidates:
             score = name_score(props, candidate)
             if score < 0.62:
                 continue
+            if approximate and score < 1.0:
+                # Approximate (e.g. transformer) coordinates may only match on
+                # an EXACT normalized dam/reservoir name — never fuzzy.
+                continue
             distance = point_polygon_distance_km(point, candidate["geometry"])
-            if distance > (35 if score >= 0.82 else 15):
+            limit = 15 if approximate else (35 if score >= 0.82 else 15)
+            if distance > limit:
                 continue
             ranked.append((score, distance, candidate))
         if not ranked:
@@ -182,7 +188,9 @@ def main() -> None:
         score, distance, candidate = max(ranked, key=lambda item: (item[0], -item[1]))
         candidate_props = candidate.get("properties") or {}
         gdw_id = str(candidate_props.get("GDW_ID") or candidate.get("id") or "")
-        record = output.setdefault(gdw_id, {"type": "Feature", "id": f"reservoir-gdw-{gdw_id}", "geometry": candidate["geometry"], "properties": {"id": f"reservoir-gdw-{gdw_id}", "hesIds": [], "basinIds": [], "riverSystemIds": [], "damName": candidate_props.get("DAM_NAME") or candidate_props.get("RES_NAME"), "reservoirName": candidate_props.get("RES_NAME") or candidate_props.get("DAM_NAME"), "basinId": props.get("officialBasinId") or props.get("basinId"), "source": "GDW", "sourceId": gdw_id, "sourceUrl": GDW_LAYER, "matchMethod": "name+coordinate", "matchConfidence": "high" if score >= 0.82 and distance <= 10 else "medium", "areaKm2": candidate_props.get("AREA_POLY") or candidate_props.get("AREA_SKM"), "validated": True, "validationNotes": "Turkey envelope; facility name, basin/river relation and coordinate distance check"}})
+        method = "name+coordinate-approximate" if approximate else "name+coordinate"
+        confidence = "medium" if approximate or not (score >= 0.82 and distance <= 10) else "high"
+        record = output.setdefault(gdw_id, {"type": "Feature", "id": f"reservoir-gdw-{gdw_id}", "geometry": candidate["geometry"], "properties": {"id": f"reservoir-gdw-{gdw_id}", "hesIds": [], "basinIds": [], "riverSystemIds": [], "damName": candidate_props.get("DAM_NAME") or candidate_props.get("RES_NAME"), "reservoirName": candidate_props.get("RES_NAME") or candidate_props.get("DAM_NAME"), "basinId": props.get("officialBasinId") or props.get("basinId"), "source": "GDW", "sourceId": gdw_id, "sourceUrl": GDW_LAYER, "matchMethod": method, "matchConfidence": confidence, "areaKm2": candidate_props.get("AREA_POLY") or candidate_props.get("AREA_SKM"), "validated": True, "validationNotes": ("approximate HES coordinate; exact dam-name match required; " if approximate else "") + "Turkey envelope; facility name, basin/river relation and coordinate distance check"}})
         record["properties"]["hesIds"] = sorted(set(record["properties"].get("hesIds", []) + [hes_id]))
         basin_id = props.get("officialBasinId") or props.get("basinId")
         river_system_id = props.get("riverSystemId")
@@ -194,7 +202,7 @@ def main() -> None:
         props["reservoirIds"] = [record["properties"]["id"]]
         props["reservoirName"] = record["properties"]["reservoirName"]
         props["reservoirSource"] = "GDW"
-        props["reservoirMatchMethod"] = "name+coordinate"
+        props["reservoirMatchMethod"] = method
         props["reservoirMatchConfidence"] = record["properties"]["matchConfidence"]
         props["coordinateDistanceToReservoirKm"] = round(distance, 2)
     for feature in hes.get("features", []):

@@ -159,6 +159,15 @@ def main() -> int:
     except (PermissionError, TimeoutError, ConnectionError, ValueError) as exc:
         errors.append(str(exc))
     usable = [o for o in observations if o.get("waterLevelM") is not None]
+    # NetCDF product bodies: full downloads are GB-scale and need the optional
+    # netCDF4 dependency, so CI parses inline values only. Catalogue metadata
+    # alone is never presented as a measurement (audit drops such rows).
+    try:
+        import netCDF4  # noqa: F401
+        netcdf_parser = "available"
+    except ImportError:
+        netcdf_parser = "unavailable (pip install netCDF4 + COPERNICUS_NETCDF=1 for body parsing)"
+    netcdf_bodies = sum(1 for o in observations if (o.get("raw") or {}).get("reason", "").startswith("no inline"))
     if newest:
         state["lastContentDate"] = newest
         state["updatedAt"] = fetched_at
@@ -167,7 +176,9 @@ def main() -> int:
     latest = max((str(o.get("observedAt") or "") for o in usable), default=None) or None
     write_provider_file("copernicus_lwl", {"generatedAt": fetched_at, "status": status,
                                            "errorCode": None if usable else ("endpoint_error" if errors else "empty_result"),
-                                           "mode": args.mode, "observations": observations, "errors": errors})
+                                           "mode": args.mode, "netcdfBodyParsing": netcdf_parser,
+                                           "netcdfDeferredCount": netcdf_bodies,
+                                           "observations": observations, "errors": errors})
     summarize("Copernicus", fetched=len(observations), matched=0, usable=len(usable), rejected=0,
               latest_observation=latest, duration_s=time.monotonic() - started, status=status)
     return 0

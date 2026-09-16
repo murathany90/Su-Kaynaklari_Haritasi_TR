@@ -137,11 +137,22 @@
 }
 .hydro-click-popup-wrap .maplibregl-popup-content {
   width: 250px;
+  max-width: 280px;
+  max-height: min(360px, calc(100vh - 80px));
+  overflow-y: auto;
   padding: 0 !important;
 }
 .hydro-click-popup {
   padding: 11px 12px 10px;
 }
+.hydro-popup-main { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.hydro-popup-power { color: #e2e8f0; font-size: 12px; font-weight: 700; }
+.hydro-popup-fullness { color: #67e8f9; font-size: 15px; font-weight: 800; white-space: nowrap; }
+.hydro-popup-fullness small { font-size: 9px; font-weight: 600; color: #94a3b8; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 2px; }
+.hydro-popup-source { margin-top: 5px; color: #94a3b8; font-size: 9px; }
+.hydro-popup-observed { margin-top: 2px; color: #64748b; font-size: 8px; }
+.hydro-popup-detail { width: 100%; margin-top: 9px; border: 1px solid rgba(34, 211, 238, .35); border-radius: 6px; padding: 5px 4px; color: #67e8f9; font-size: 10px; font-weight: 600; }
+.hydro-popup-detail:hover { background: rgba(34, 211, 238, .12); }
 .hydro-popup-head {
   display: flex;
   align-items: center;

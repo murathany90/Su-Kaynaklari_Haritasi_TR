@@ -133,7 +133,7 @@ def main() -> None:
     previous = previous_payload()
     previous_records = previous.get("records", [])
     registry: dict[str, dict[str, Any]] = {
-        "dsi": {"status": "requires_access", "dataAccess": "official_endpoint_or_export_required", "sourceUrl": "https://www.dsi.gov.tr/"},
+        "dsi": {"status": "public_aggregates", "dataAccess": "public_api_no_auth__per_dam_admin_only", "sourceUrl": "https://yagisbarajdoluluk.dsi.gov.tr", "credentialsConfigured": True},
         "dahiti": {"status": "requires_access", "dataAccess": "api_key_required", "credentialsConfigured": bool(os.getenv("DAHITI_API_KEY")), "sourceUrl": "https://dahiti.dgfi.tum.de/en/api/doc/v2/"},
         "swot": {"status": "requires_access", "dataAccess": "Earthdata_credentials_required", "credentialsConfigured": bool(os.getenv("EARTHDATA_TOKEN")), "sourceUrl": "https://www.earthdata.nasa.gov/"},
         "g_realm": {"status": "not_queried", "dataAccess": "provider_catalog_required", "sourceUrl": "https://www.g-realm.com/"},
@@ -154,7 +154,8 @@ def main() -> None:
     # Merge real observation-file states so the registry reflects downloads,
     # not just catalog discovery.
     providers_dir = ROOT / "public" / "data" / "live" / "providers"
-    for provider_name, filename in (("epias", "epias_active_fullness.json"), ("hydroweb", "hydroweb_levels.json"),
+    for provider_name, filename in (("epias", "epias_active_fullness.json"), ("dsi", "dsi_levels.json"),
+                                    ("hydroweb", "hydroweb_levels.json"),
                                     ("copernicus", "copernicus_lwl.json"), ("dahiti", "dahiti_levels.json"),
                                     ("swot", "swot_levels.json"), ("sentinel", "sentinel2_area.json")):
         path = providers_dir / filename
