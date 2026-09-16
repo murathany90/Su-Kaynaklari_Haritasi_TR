@@ -149,6 +149,30 @@ export const getBasemapBootstrapStyle = (theme: 'dark' | 'light' = 'dark'): Styl
     id: 'basemap-background',
     type: 'background',
     paint: { 'background-color': THEME_BACKGROUND[theme] },
+  }, {
+    id: 'basins-fill',
+    type: 'fill',
+    source: 'basins',
+    paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.12 },
+  }, {
+    id: 'rivers-core',
+    type: 'line',
+    source: 'rivers',
+    minzoom: 4,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': '#38bdf8', 'line-width': 3, 'line-opacity': 0.95 },
+  }, {
+    id: 'hes177-points',
+    type: 'circle',
+    source: 'hes177',
+    minzoom: 4,
+    paint: {
+      'circle-radius': 8,
+      'circle-color': '#0f172a',
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#f8fafc',
+      'circle-opacity': 0.95,
+    },
   }],
 });
 
