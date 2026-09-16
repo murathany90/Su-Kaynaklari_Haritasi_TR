@@ -344,7 +344,14 @@ export function BaseMap() {
     map.on('styledata', onStyleData);
     map.on('error', onMapError);
     const fallbackTimer = initialBasemapRef.current === 'satellite' ? null : setTimeout(() => {
-      if (!map.isStyleLoaded() && map.getLayer('basemap-water')) fallbackToRaster();
+      if (!map.getSource('openmaptiles')) return;
+      let hasVisibleBasemap = false;
+      try {
+        hasVisibleBasemap = map.queryRenderedFeatures({ layers: ['basemap-landcover', 'basemap-water', 'basemap-roads', 'basemap-boundaries'] }).length > 0;
+      } catch {
+        hasVisibleBasemap = false;
+      }
+      if (!map.isSourceLoaded('openmaptiles') || !hasVisibleBasemap) fallbackToRaster();
     }, 4500);
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right');
     map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: 'GDW rezervuar poligonları · OpenFreeMap / OSM' }), 'bottom-right');
