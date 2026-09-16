@@ -13,6 +13,14 @@ import { focusSelectedEntity } from './mapCamera';
 import { emptyFeatureCollection, type FullnessHistoryPoint } from '../../types/hydrology';
 
 const INTERACTIVE_LAYERS = ['rivers-core', 'dams-points', 'basins-fill', 'reservoirs-outline', 'hes177-points', HES_PIE_LAYER_ID] as const;
+const HYDROLOGY_LAYER_ORDER = [
+  'basins-fill',
+  'reservoirs-fill',
+  'rivers-glow',
+  'dams-halo',
+  'hes177-halo',
+  'hes-cascades',
+] as const;
 
 function numberFrom(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
@@ -294,6 +302,8 @@ export function BaseMap() {
         }
         return;
       }
+      const firstHydrologyLayer = HYDROLOGY_LAYER_ORDER.find((id) => Boolean(map.getLayer(id)));
+      if (map.getLayer('basemap-raster') && firstHydrologyLayer) map.moveLayer('basemap-raster', firstHydrologyLayer);
       lastSyncedDataRef.current = dataRef.current;
       lastSyncedOptionsRef.current = optionsRef.current;
       if (map.getLayer('basemap-background')) map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[themeRef.current]);
@@ -344,7 +354,15 @@ export function BaseMap() {
       if (rasterBasemapReady) return;
       try {
         if (!map.getSource('basemap-raster')) map.addSource('basemap-raster', { ...BASEMAP_RASTER_SOURCE });
-        if (!map.getLayer('basemap-raster')) map.addLayer({ id: 'basemap-raster', type: 'raster', source: 'basemap-raster', paint: { 'raster-opacity': themeRef.current === 'light' ? 0.72 : 0.48 } });
+        const firstHydrologyLayer = HYDROLOGY_LAYER_ORDER.find((id) => Boolean(map.getLayer(id)));
+        if (!map.getLayer('basemap-raster')) {
+          map.addLayer(
+            { id: 'basemap-raster', type: 'raster', source: 'basemap-raster', paint: { 'raster-opacity': themeRef.current === 'light' ? 0.72 : 0.48 } },
+            firstHydrologyLayer,
+          );
+        } else if (firstHydrologyLayer) {
+          map.moveLayer('basemap-raster', firstHydrologyLayer);
+        }
         rasterBasemapReady = true;
       } catch {
         // styledata/load will retry after the source-free bootstrap style is ready
