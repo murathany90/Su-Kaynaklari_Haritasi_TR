@@ -146,6 +146,7 @@ export function BaseMap() {
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const clickPopupRef = useRef<maplibregl.Popup | null>(null);
   const basemapFallbackRef = useRef(false);
+  const overlayRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [catchment, setCatchment] = useState(emptyFeatureCollection());
 
   const rivers = useAppStore((state) => state.rivers);
@@ -282,13 +283,29 @@ export function BaseMap() {
     if (!force && lastSyncedDataRef.current === dataRef.current && lastSyncedOptionsRef.current === optionsRef.current) return;
     try {
       const synced = ensureHydrologyOverlay(map, dataRef.current, optionsRef.current, () => { requestAnimationFrame(() => syncOverlay(true)); });
-      if (!synced) return;
+      if (!synced) {
+        if (overlayRetryRef.current === null) {
+          overlayRetryRef.current = setTimeout(() => {
+            overlayRetryRef.current = null;
+            syncOverlay(true);
+          }, 250);
+        }
+        return;
+      }
       lastSyncedDataRef.current = dataRef.current;
       lastSyncedOptionsRef.current = optionsRef.current;
       if (map.getLayer('basemap-background')) map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[themeRef.current]);
       map.triggerRepaint();
     } catch {
-      // A style swap can briefly invalidate the style object. styledata retries.
+      // A style swap can briefly invalidate the style object. Retry after the
+      // style parser has had a chance to finish, even if no further tile event
+      // is emitted by the fallback source.
+      if (overlayRetryRef.current === null) {
+        overlayRetryRef.current = setTimeout(() => {
+          overlayRetryRef.current = null;
+          syncOverlay(true);
+        }, 250);
+      }
     }
   }, []);
 
@@ -333,6 +350,7 @@ export function BaseMap() {
     map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: 'GDW rezervuar poligonları · OpenFreeMap / OSM' }), 'bottom-right');
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      if (overlayRetryRef.current !== null) clearTimeout(overlayRetryRef.current);
       if (fallbackTimer !== null) clearTimeout(fallbackTimer);
       map.off('load', onStyleReady); map.off('style.load', onStyleReady); map.off('styledata', onStyleData); map.off('error', onMapError);
       popupRef.current?.remove();
