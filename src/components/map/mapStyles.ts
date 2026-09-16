@@ -126,7 +126,7 @@ export const BASEMAP_RASTER_SOURCE = {
   type: 'raster' as const,
   tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
   tileSize: 256,
-  attribution: 'Tiles Â© Esri',
+  attribution: 'Tiles © Esri',
 };
 
 /** A source-free first style lets local GeoJSON layers attach before tiles load. */

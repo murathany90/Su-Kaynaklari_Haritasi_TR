@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+// IMPORTANT: `?worker&url` (not `?url`) so Vite bundles the worker TOGETHER
+// with its `./maplibre-gl-shared.mjs` dependency into a single self-contained
+// asset. Plain `?url` copies only the worker file and production fails with
+// 404 on assets/maplibre-gl-shared.mjs, which kills the GL worker: base
+// raster still paints but ALL GeoJSON overlays stay invisible (dev works
+// because the dev server resolves the relative sibling file).
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAppStore } from '../../store/useAppStore';
 import { getForecastTimestamps } from '../../services/hydroData';
@@ -304,6 +310,10 @@ export function BaseMap() {
       }
       const firstHydrologyLayer = HYDROLOGY_LAYER_ORDER.find((id) => Boolean(map.getLayer(id)));
       if (map.getLayer('basemap-raster') && firstHydrologyLayer) map.moveLayer('basemap-raster', firstHydrologyLayer);
+      if (lastSyncedDataRef.current === null) {
+        // eslint-disable-next-line no-console
+        console.info(`[BaseMap] overlays synced: ${dataRef.current.hes177.features.length} HES, ${dataRef.current.rivers.features.length} rivers, ${dataRef.current.basins.features.length} basins`);
+      }
       lastSyncedDataRef.current = dataRef.current;
       lastSyncedOptionsRef.current = optionsRef.current;
       if (map.getLayer('basemap-background')) map.setPaintProperty('basemap-background', 'background-color', THEME_BACKGROUND[themeRef.current]);
@@ -346,6 +356,8 @@ export function BaseMap() {
     const initialStyle = getBasemapBootstrapStyle(themeRef.current);
     const map = new maplibregl.Map({ container: mapContainerRef.current, style: initialStyle, center: [35.3, 39], zoom: 5.5, attributionControl: false, renderWorldCopies: false });
     mapRef.current = map;
+    // Support/deep-diagnosis handle (allows console inspection of live map state).
+    (window as unknown as { __hydroMap?: MapLibreMap }).__hydroMap = map;
     let rasterBasemapReady = false;
     const addRasterBasemap = () => {
       if (rasterBasemapReady) return;
