@@ -147,6 +147,7 @@ export function BaseMap() {
   const clickPopupRef = useRef<maplibregl.Popup | null>(null);
   const basemapFallbackRef = useRef(false);
   const overlayRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const overlayBootstrapRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [catchment, setCatchment] = useState(emptyFeatureCollection());
 
   const rivers = useAppStore((state) => state.rivers);
@@ -362,6 +363,21 @@ export function BaseMap() {
     map.on('style.load', onStyleReady);
     map.on('styledata', onStyleData);
     map.on('error', onMapError);
+    let bootstrapAttempts = 0;
+    const stopOverlayBootstrap = () => {
+      if (overlayBootstrapRef.current !== null) {
+        clearInterval(overlayBootstrapRef.current);
+        overlayBootstrapRef.current = null;
+      }
+    };
+    const bootstrapOverlays = () => {
+      bootstrapAttempts += 1;
+      scheduleOverlaySync(true);
+      if ((map.getLayer('hes177-points') && map.getLayer('rivers-core')) || bootstrapAttempts >= 30) stopOverlayBootstrap();
+    };
+    const onFirstRender = () => bootstrapOverlays();
+    map.on('render', onFirstRender);
+    overlayBootstrapRef.current = setInterval(bootstrapOverlays, 500);
     const fallbackTimer = initialBasemapRef.current === 'satellite' ? null : setTimeout(() => {
       if (!map.getSource('openmaptiles')) return;
       let hasVisibleBasemap = false;
@@ -377,8 +393,9 @@ export function BaseMap() {
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       if (overlayRetryRef.current !== null) clearTimeout(overlayRetryRef.current);
+      stopOverlayBootstrap();
       if (fallbackTimer !== null) clearTimeout(fallbackTimer);
-      map.off('load', onStyleReady); map.off('style.load', onStyleReady); map.off('styledata', onStyleData); map.off('error', onMapError);
+      map.off('load', onStyleReady); map.off('style.load', onStyleReady); map.off('styledata', onStyleData); map.off('error', onMapError); map.off('render', onFirstRender);
       popupRef.current?.remove();
       map.remove(); mapRef.current = null;
       clickPopupRef.current?.remove();
