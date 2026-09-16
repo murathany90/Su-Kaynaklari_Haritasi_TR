@@ -133,7 +133,18 @@ export const BASEMAP_RASTER_SOURCE = {
 export const getBasemapBootstrapStyle = (theme: 'dark' | 'light' = 'dark'): StyleSpecification => ({
   version: 8,
   name: 'HydroScope overlay bootstrap style',
-  sources: {},
+  // Declare local sources in the first style.  GitHub Pages can render the
+  // raster basemap while the style is still settling; predeclaring these
+  // sources keeps production from racing `addSource()` during that window.
+  sources: {
+    basins: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    rivers: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    dams: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    hes177: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    cascades: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    catchment: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+    reservoirs: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+  },
   layers: [{
     id: 'basemap-background',
     type: 'background',
