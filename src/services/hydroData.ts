@@ -2,6 +2,7 @@ import {
   emptyFeatureCollection,
   type EpiasPayload,
   type FullnessPayload,
+  type FullnessHistoryPayload,
   type GeoglowsPayload,
   type HydroDataBundle,
   type HydroDataManifest,
@@ -9,6 +10,8 @@ import {
   type Hes177Relations,
   type RiverMappingManifest,
 } from '../types/hydrology';
+
+const DATA_BASE_URL = String(import.meta.env.VITE_HYDROLOGY_DATA_BASE_URL ?? '').replace(/\/$/, '');
 
 const STATIC_FILES = {
   basins: '/data/hes177/hes_basins.geojson',
@@ -21,8 +24,9 @@ const STATIC_FILES = {
 } as const;
 
 async function readJson<T>(path: string): Promise<T> {
-  const response = await fetch(path, { cache: 'no-cache' });
-  if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
+  const requestPath = /^https?:\/\//.test(path) ? path : `${DATA_BASE_URL}${path}`;
+  const response = await fetch(requestPath, { cache: 'no-cache' });
+  if (!response.ok) throw new Error(`${requestPath}: HTTP ${response.status}`);
   return response.json() as Promise<T>;
 }
 
@@ -84,7 +88,7 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
     readJson<RiverMappingManifest>('/data/manifest/river_reach_map_manifest.json'),
     readJson<GeoglowsPayload>('/data/live/geoglows_latest.json'),
     readJson<EpiasPayload>('/data/live/epias_dams_latest.json'),
-    readJson<FullnessPayload>('/data/live/hes_fullness_latest.json'),
+    readJson<FullnessPayload>(versionedPath('/data/live/hes_fullness_latest.json', assetVersion)),
     readJson<Hes177Relations>(versionedPath('/data/hes177/hes_177_relations.json', assetVersion)),
   ]);
   if (optional[0].status === 'fulfilled') bundle.manifest = optional[0].value;
@@ -101,6 +105,11 @@ export async function loadHydroData(): Promise<HydroDataBundle> {
   else bundle.errors.push(`177 HES relations: ${reasonOf(optional[5])}`);
   validateCanonicalCounts(bundle, canonicalManifest);
   return bundle;
+}
+
+/** History is intentionally loaded only after the user opens/selects a HES. */
+export async function loadFullnessHistory(version?: string | number | null): Promise<FullnessHistoryPayload> {
+  return readJson<FullnessHistoryPayload>(versionedPath('/data/timeseries/hes_fullness_365d.json', version));
 }
 
 export { STATIC_FILES };

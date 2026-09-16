@@ -5,12 +5,14 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "public" / "data" / "hes177"
 LIVE = ROOT / "public" / "data" / "live" / "hes_fullness_latest.json"
+TIMESERIES = ROOT / "public" / "data" / "timeseries"
 MIN_POWER_MW = 20.0
 WATERBODY_WORDS = ("GOL", "GOLU", "GOLLER", "BARAJ", "REZERVUAR", "LAGUN")
 
@@ -35,6 +37,16 @@ def point_is_valid(feature: dict[str, Any]) -> bool:
         return len(coordinates) >= 2 and -180 <= float(coordinates[0]) <= 180 and -90 <= float(coordinates[1]) <= 90
     except (TypeError, ValueError):
         return False
+
+
+def parse_date(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
 
 
 def main() -> None:
@@ -63,6 +75,31 @@ def main() -> None:
     fullness_audit_fields = ("epiasMatch", "dsiMatch", "dahitiMatch", "hydrowebMatch", "copernicusMatch", "swotMatch", "gRealmMatch", "gdwMatch", "candidateSourceCount", "fullnessDirectlyAvailable", "fullnessCanBeCalculated")
     missing_fullness_audit = [feature["properties"].get("name") for feature in hes if not all(field in (feature["properties"].get("fullnessResult") or {}) for field in fullness_audit_fields)]
     storage_fullness_errors = [feature["properties"].get("name") for feature in hes if feature["properties"].get("hydroPlantStorageType") == "run_of_river" and (feature["properties"].get("fullnessResult") or {}).get("status") != "not_applicable"]
+    allowed_statuses = {"available", "stale", "unavailable", "not_applicable"}
+    allowed_source_classes = {"official", "official_live", "official_published", "satellite_altimetry", "satellite_area", "calculated_storage", "historical", "mock"}
+    live_records = [record for record in live.get("records", []) if isinstance(record, dict)]
+    live_schema_errors = [record.get("hesId") for record in live_records if not {"hesId", "fullnessPercent", "status", "sourceClass", "source", "method", "observedAt", "sourcePublishedAt", "fetchedAt", "freshnessDays", "confidence", "isEstimated", "rawValue", "rawUnit", "uncertainty", "sourceUrl", "sourceStationId", "qualityFlags"}.issubset(record) or record.get("status") not in allowed_statuses or record.get("sourceClass") not in allowed_source_classes]
+    pipeline_at = parse_date(live.get("pipelineRunAt") or live.get("generatedAt"))
+    future_observations = [record.get("hesId") for record in live_records if parse_date(record.get("observedAt")) and pipeline_at and parse_date(record.get("observedAt")) > pipeline_at]
+    invalid_freshness = [record.get("hesId") for record in live_records if record.get("freshnessDays") is not None and (not isinstance(record.get("freshnessDays"), (int, float)) or float(record.get("freshnessDays")) < 0)]
+    timeseries_duplicate_points: list[str] = []
+    timeseries_observation_count = 0
+    timeseries_oldest: str | None = None
+    timeseries_newest: str | None = None
+    series_365 = TIMESERIES / "hes_fullness_365d.json"
+    if series_365.exists():
+        series = json.loads(series_365.read_text(encoding="utf-8"))
+        for row in series.get("records", []):
+            seen: set[tuple[str, str]] = set()
+            for point in row.get("points", []):
+                key = (str(point.get("date")), str(point.get("source")))
+                if key in seen:
+                    timeseries_duplicate_points.append(f"{row.get('hesId')}:{key}")
+                seen.add(key)
+                timeseries_observation_count += 1
+                date_value = str(point.get("date"))
+                timeseries_oldest = min(timeseries_oldest, date_value) if timeseries_oldest else date_value
+                timeseries_newest = max(timeseries_newest, date_value) if timeseries_newest else date_value
     invalid_reservoirs = [feature.get("id") for feature in reservoirs if not feature.get("geometry") or not isinstance((feature.get("properties") or {}).get("hesIds"), list) or (feature.get("properties") or {}).get("validated") is not True]
     cross_mismatch = [feature["properties"].get("name") for feature in hes if feature["properties"].get("basinId") == "21" and ((normalize(feature["properties"].get("riverName")) == "FIRAT" and normalize(feature["properties"].get("name")) in {"ILISU", "DICLE", "KRALKIZI"}) or (normalize(feature["properties"].get("riverName")) == "DICLE" and normalize(feature["properties"].get("name")) in {"ATATURK", "KEBAN", "KARAKAYA"}))]
     duplicate_ids = len(hes_ids) != len(hes)
@@ -106,6 +143,16 @@ def main() -> None:
         "Missing canonical relations": len(missing_relations),
         "Missing fullness audit fields": len(missing_fullness_audit),
         "Storage fullness semantic errors": len(storage_fullness_errors),
+        "Current snapshot schema errors": len(live_schema_errors),
+        "Future observations": len(future_observations),
+        "Invalid freshness values": len(invalid_freshness),
+        "History observations": timeseries_observation_count,
+        "History duplicate points": len(timeseries_duplicate_points),
+        "History oldest observation": timeseries_oldest,
+        "History newest observation": timeseries_newest,
+        "Pipeline run": live.get("pipelineRunAt"),
+        "Latest actual observation": live.get("latestObservationAt"),
+        "Storage types": {storage: sum((feature.get("properties") or {}).get("hydroPlantStorageType") == storage for feature in hes) for storage in ("reservoir", "pondage", "run_of_river", "unknown")},
         "Manifest has ambiguous sourceCommit": "sourceCommit" in manifest,
         "Live coverage": live.get("coverage", {}),
         "Duplicate HES ids": duplicate_ids,
@@ -120,7 +167,7 @@ def main() -> None:
         },
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    failures = [key for key, value in report.items() if key in {"Fırat/Dicle cross mismatch", "Basin selection mismatch", "GEOGLOWS accepted over 25 km", "Waterbody names used as river", "Fullness out of range", "Invalid relation ids", "Invalid coordinate kinds", "Missing canonical relations", "Missing fullness audit fields", "Storage fullness semantic errors", "Manifest has ambiguous sourceCommit"} and value not in (0, False)]
+    failures = [key for key, value in report.items() if key in {"Fırat/Dicle cross mismatch", "Basin selection mismatch", "GEOGLOWS accepted over 25 km", "Waterbody names used as river", "Fullness out of range", "Invalid relation ids", "Invalid coordinate kinds", "Missing canonical relations", "Missing fullness audit fields", "Storage fullness semantic errors", "Current snapshot schema errors", "Future observations", "Invalid freshness values", "History duplicate points", "Manifest has ambiguous sourceCommit"} and value not in (0, False)]
     failures.extend(key for key, value in report["Manifest count mismatches"].items() if value)
     failures.extend(key for key in ("Fullness semantic errors", "Missing FullnessResult", "Invalid reservoir polygons", "Transformer marked verified") if report[key] != 0)
     raise SystemExit(1 if failures else 0)

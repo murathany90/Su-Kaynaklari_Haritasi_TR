@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { loadHydroData as fetchHydroData } from '../services/hydroData';
-import { emptyFeatureCollection, type Hes177Relations, type HydroDataManifest, type HydrologyFeatureCollection, type HydroLoadStatus, type GeoglowsPayload, type EpiasPayload, type RiverMappingManifest, type FullnessPayload } from '../types/hydrology';
+import { loadFullnessHistory, loadHydroData as fetchHydroData } from '../services/hydroData';
+import { emptyFeatureCollection, type FullnessHistoryPayload, type Hes177Relations, type HydroDataManifest, type HydrologyFeatureCollection, type HydroLoadStatus, type GeoglowsPayload, type EpiasPayload, type RiverMappingManifest, type FullnessPayload } from '../types/hydrology';
 
 export type TabType = 'hes' | 'rivers' | 'basins';
 export type ThemeType = 'dark' | 'light';
@@ -40,6 +40,10 @@ interface AppState {
   geoglows: GeoglowsPayload | null;
   epias: EpiasPayload | null;
   fullness: FullnessPayload | null;
+  fullnessHistory: FullnessHistoryPayload | null;
+  historyStatus: 'idle' | 'loading' | 'ready' | 'failed';
+  historyError: string | null;
+  historicalDate: string | null;
   dataMode: 'mock' | 'epias';
   activeCatchmentHesId: string | null;
 
@@ -58,6 +62,8 @@ interface AppState {
   toggleTimelinePlayback: () => void;
   loadHydroData: () => Promise<void>;
   refreshHydroData: () => Promise<void>;
+  loadFullnessHistory: () => Promise<void>;
+  setHistoricalDate: (date: string | null) => void;
   setDataMode: (mode: 'mock' | 'epias') => void;
   toggleCatchment: (hesId: string) => void;
 }
@@ -95,12 +101,16 @@ export const useAppStore = create<AppState>((set) => ({
   geoglows: null,
   epias: null,
   fullness: null,
+  fullnessHistory: null,
+  historyStatus: 'idle',
+  historyError: null,
+  historicalDate: null,
   dataMode: 'epias',
   activeCatchmentHesId: null,
 
   setTab: (tab) => set({ currentTab: tab }),
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setSelectedEntity: (entity) => set({ selectedEntity: entity }),
+  setSelectedEntity: (entity) => set((state) => ({ selectedEntity: entity, historicalDate: entity?.type === 'hes' ? state.historicalDate : null })),
   setTrace: (type, riverId) => set({ activeTraceType: type, activeTraceRiverId: riverId }),
   toggleLayer: (layerName) => set((state) => ({
     layers: { ...state.layers, [layerName]: !state.layers[layerName] }
@@ -112,6 +122,7 @@ export const useAppStore = create<AppState>((set) => ({
   setTimelineIndex: (index) => set({ timelineIndex: Math.max(0, Math.round(index)) }),
   toggleTimelinePlayback: () => set((state) => ({ isPlayingTimeline: !state.isPlayingTimeline })),
   setDataMode: (dataMode) => set({ dataMode }),
+  setHistoricalDate: (historicalDate) => set({ historicalDate }),
   toggleCatchment: (hesId) => set((state) => ({ activeCatchmentHesId: state.activeCatchmentHesId === hesId ? null : hesId })),
   loadHydroData: async () => {
     if (useAppStore.getState().hydroDataStatus === 'loading') return;
@@ -147,5 +158,16 @@ export const useAppStore = create<AppState>((set) => ({
   refreshHydroData: async () => {
     set({ hydroDataStatus: 'idle' });
     await useAppStore.getState().loadHydroData();
+  },
+  loadFullnessHistory: async () => {
+    const state = useAppStore.getState();
+    if (state.historyStatus === 'loading' || state.historyStatus === 'ready') return;
+    set({ historyStatus: 'loading', historyError: null });
+    try {
+      const history = await loadFullnessHistory(state.hes177Manifest?.dataVersion ?? null);
+      set({ fullnessHistory: history, historyStatus: 'ready' });
+    } catch (error) {
+      set({ historyStatus: 'failed', historyError: error instanceof Error ? error.message : String(error) });
+    }
   },
 }));

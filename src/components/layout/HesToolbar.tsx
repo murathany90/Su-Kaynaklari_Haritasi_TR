@@ -50,10 +50,14 @@ export const HesToolbar: React.FC = () => {
       stale: sources.filter((source) => source.status === 'stale').length,
       notApplicable: sources.filter((source) => source.status === 'not_applicable').length,
       unavailable: sources.filter((source) => source.status === 'unavailable').length,
+      applicable: Number(fullnessPayload?.coverage?.applicableCount ?? sources.filter((source) => source.status !== 'not_applicable').length),
+      available: Number(fullnessPayload?.coverage?.availableCount ?? sources.filter((source) => source.status === 'available').length) + Number(fullnessPayload?.coverage?.staleCount ?? sources.filter((source) => source.status === 'stale').length),
+      latestObservationAt: fullnessPayload?.latestObservationAt ?? sources.map((source) => source.observedAt).filter(Boolean).sort().at(-1) ?? null,
     };
   }, [basins.features.length, dataMode, epias?.records, fullnessPayload, hes177.features, manifest, relations?.cascadeEdges?.length, rivers.features.length]);
 
   const statusLabel = dataStatus === 'ready' ? 'Veri hazır' : dataStatus === 'loading' ? 'Yükleniyor' : dataStatus === 'partial' ? 'Kısmi veri' : 'Veri bekleniyor';
+  const pipelineRunAt = fullnessPayload?.pipelineRunAt ?? lastRefreshAt;
 
   return (
     <section className="hes-toolbar z-20 flex min-h-12 shrink-0 items-center gap-2 border-b px-3 py-1.5 sm:px-4" aria-label="HES araç çubuğu">
@@ -63,7 +67,7 @@ export const HesToolbar: React.FC = () => {
       <div className="flex min-w-0 items-center gap-2 border-r border-[var(--line)] pr-2 sm:pr-3">
         <span className="text-xs font-semibold">HESLER</span>
         <span className="rounded-md bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-[var(--primary)]">20 MW+</span>
-        <span className="hidden font-mono text-[9px] text-[var(--muted)] sm:inline">{statusLabel}{lastRefreshAt ? ` · ${formatDataDate(lastRefreshAt)}` : ''}</span>
+        <span className="hidden font-mono text-[9px] text-[var(--muted)] sm:inline" title={pipelineRunAt ? `Pipeline çalışması: ${formatDataDate(pipelineRunAt)}` : undefined}>{statusLabel}{kpis.latestObservationAt ? ` · Son gözlem ${formatDataDate(kpis.latestObservationAt)}` : ' · Gözlem yok'}</span>
       </div>
 
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto whitespace-nowrap">
@@ -73,7 +77,7 @@ export const HesToolbar: React.FC = () => {
         <Kpi label="Akarsu" value={kpis.rivers.toLocaleString('tr-TR')} />
         <Kpi label="Kaskat" value={kpis.cascades.toLocaleString('tr-TR')} className="hidden md:flex" />
         <Kpi label="Konumlu" value={kpis.located.toLocaleString('tr-TR')} className="hidden lg:flex" />
-        <Kpi label="Doluluk" value={`${kpis.calculated + kpis.epias + kpis.satellite}/${kpis.hes} · N/A ${kpis.unavailable + kpis.notApplicable}`} className="hidden xl:flex" title={`Hesaplanan ${kpis.calculated} · EPİAŞ ${kpis.epias} · Uydu ${kpis.satellite} · Eski ${kpis.stale} · Uygulanamaz ${kpis.notApplicable}`} />
+        <Kpi label="Doluluk" value={`${kpis.available}/${kpis.applicable}`} className="hidden xl:flex" title={`Mevcut ${kpis.available} · Uygulanabilir ${kpis.applicable} · Hesaplanan ${kpis.calculated} · EPİAŞ ${kpis.epias} · Uydu ${kpis.satellite} · Eski ${kpis.stale} · Veri yok ${kpis.unavailable} · Uygulanamaz ${kpis.notApplicable}`} />
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-1.5">

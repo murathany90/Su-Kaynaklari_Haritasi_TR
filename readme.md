@@ -65,6 +65,23 @@ ve [CDSE CLMS documentation](https://documentation.dataspace.copernicus.eu/Data/
 kullanılır. `public/data/static/mappings/observation_catalogs.json` kaynak,
 indirilen zaman, sürüm, ETag ve checksum bilgisini saklar.
 
+Latest doluluk sözleşmesi `public/data/live/hes_fullness_latest.json` içinde
+`pipelineRunAt` (pipeline çalışması) ve `latestObservationAt` (gerçek son
+gözlem) alanlarını ayrı tutar. Kaynak kesintisinde son geçerli kayıt
+`last-known-good` olarak stale işaretlenir; yeni `N/A` ile silinmez. Günlük
+history snapshot'ları GitHub Actions tarafından ana branch'ten ayrı
+`data-history` branch'ine `data/history/fullness/YYYY/MM/YYYY-MM-DD.json`
+olarak append/idempotent biçimde yazılır. Frontend ilk açılışta history
+indirmez; HES seçildiğinde versioned `data/timeseries/hes_fullness_365d.json`
+dosyasını lazy yükler. Harici producer taşınırken veri kökü
+`VITE_HYDROLOGY_DATA_BASE_URL` ile değiştirilebilir.
+
+Kaynak yenileme cadence'i workflow içinde ayrıdır: EPİAŞ/GEOGLOWS yaklaşık
+6 saat, gözlem katalogları günlük, TATUS/HydroRIVERS/rezervuar geometrisi
+haftalık çalışır. `python tools/hydro/test_fullness_quality.py` framework
+eklemeden source priority, future observation, LKG ve history dedupe
+kontrollerini çalıştırır.
+
 Kanonik koordinat kalite enum'u `hes`, `dam`, `reservoir`, `transformer`,
 `approximate`, `unresolved` değerleridir. `transformer` kaydı yalnız elektrik
 bağlantı referansıdır; havza doğrulamasını override etmez, gerçek HES/nehir

@@ -182,8 +182,14 @@ def main() -> None:
         score, distance, candidate = max(ranked, key=lambda item: (item[0], -item[1]))
         candidate_props = candidate.get("properties") or {}
         gdw_id = str(candidate_props.get("GDW_ID") or candidate.get("id") or "")
-        record = output.setdefault(gdw_id, {"type": "Feature", "id": f"reservoir-gdw-{gdw_id}", "geometry": candidate["geometry"], "properties": {"id": f"reservoir-gdw-{gdw_id}", "hesIds": [], "damName": candidate_props.get("DAM_NAME") or candidate_props.get("RES_NAME"), "reservoirName": candidate_props.get("RES_NAME") or candidate_props.get("DAM_NAME"), "basinId": props.get("officialBasinId") or props.get("basinId"), "source": "GDW", "sourceId": gdw_id, "sourceUrl": GDW_LAYER, "matchMethod": "name+coordinate", "matchConfidence": "high" if score >= 0.82 and distance <= 10 else "medium", "areaKm2": candidate_props.get("AREA_POLY") or candidate_props.get("AREA_SKM"), "validated": True, "validationNotes": "Turkey envelope; facility name and coordinate distance check"}})
-        record["properties"]["hesIds"].append(hes_id)
+        record = output.setdefault(gdw_id, {"type": "Feature", "id": f"reservoir-gdw-{gdw_id}", "geometry": candidate["geometry"], "properties": {"id": f"reservoir-gdw-{gdw_id}", "hesIds": [], "basinIds": [], "riverSystemIds": [], "damName": candidate_props.get("DAM_NAME") or candidate_props.get("RES_NAME"), "reservoirName": candidate_props.get("RES_NAME") or candidate_props.get("DAM_NAME"), "basinId": props.get("officialBasinId") or props.get("basinId"), "source": "GDW", "sourceId": gdw_id, "sourceUrl": GDW_LAYER, "matchMethod": "name+coordinate", "matchConfidence": "high" if score >= 0.82 and distance <= 10 else "medium", "areaKm2": candidate_props.get("AREA_POLY") or candidate_props.get("AREA_SKM"), "validated": True, "validationNotes": "Turkey envelope; facility name, basin/river relation and coordinate distance check"}})
+        record["properties"]["hesIds"] = sorted(set(record["properties"].get("hesIds", []) + [hes_id]))
+        basin_id = props.get("officialBasinId") or props.get("basinId")
+        river_system_id = props.get("riverSystemId")
+        if basin_id not in (None, ""):
+            record["properties"]["basinIds"] = sorted(set(record["properties"].get("basinIds", []) + [str(basin_id)]))
+        if river_system_id not in (None, ""):
+            record["properties"]["riverSystemIds"] = sorted(set(record["properties"].get("riverSystemIds", []) + [str(river_system_id)]))
         matched_hes.add(hes_id)
         props["reservoirIds"] = [record["properties"]["id"]]
         props["reservoirName"] = record["properties"]["reservoirName"]

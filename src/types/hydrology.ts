@@ -22,7 +22,7 @@ export interface HydroDataManifest {
 }
 
 export type FullnessStatus = 'available' | 'stale' | 'not_applicable' | 'unavailable';
-export type FullnessSourceClass = 'official' | 'satellite_altimetry' | 'satellite_area' | 'calculated_storage' | 'historical' | 'mock';
+export type FullnessSourceClass = 'official' | 'official_live' | 'official_published' | 'satellite_altimetry' | 'satellite_area' | 'calculated_storage' | 'historical' | 'mock';
 export type FullnessSource = 'epias' | 'dsi' | 'dahiti' | 'hydroweb' | 'copernicus' | 'swot' | 'g_realm' | 'sentinel' | 'canonical' | 'mock';
 export type FullnessConfidence = 'high' | 'medium' | 'low';
 
@@ -34,6 +34,7 @@ export interface FullnessResult {
   source: FullnessSource;
   method: string;
   observedAt: string | null;
+  sourcePublishedAt?: string | null;
   fetchedAt: string | null;
   freshnessDays: number | null;
   confidence: FullnessConfidence;
@@ -49,11 +50,43 @@ export interface FullnessResult {
 }
 
 export interface FullnessPayload {
+  dataVersion?: string;
+  pipelineRunAt?: string;
+  latestObservationAt?: string | null;
   generatedAt?: string;
   status?: string;
+  sources?: Record<string, Record<string, unknown>>;
   coverage?: Record<string, unknown>;
   records?: FullnessResult[];
   [key: string]: unknown;
+}
+
+export interface FullnessHistoryPoint {
+  date: string;
+  value: number;
+  source?: string;
+  sourceClass?: FullnessSourceClass;
+  confidence?: FullnessConfidence;
+  estimated?: boolean;
+  status?: FullnessStatus;
+  method?: string;
+  observedAt?: string | null;
+  fetchedAt?: string | null;
+}
+
+export interface FullnessHistoryRecord {
+  hesId: string;
+  points: FullnessHistoryPoint[];
+}
+
+export interface FullnessHistoryPayload {
+  dataVersion?: string;
+  pipelineRunAt?: string;
+  latestObservationAt?: string | null;
+  rangeDays?: number;
+  recordCount?: number;
+  observationCount?: number;
+  records?: FullnessHistoryRecord[];
 }
 
 export interface GeoglowsRecord {

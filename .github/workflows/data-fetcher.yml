@@ -2,18 +2,22 @@ name: Hydrology data pipeline
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    # Official/forecast sources: approximately every six hours.
     - cron: '0 */6 * * *'
+    # Satellite catalog/product discovery: once per day.
+    - cron: '30 2 * * *'
+    # TATUS, HydroRIVERS and reservoir geometry: weekly.
+    - cron: '0 3 * * 0'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: hydro-pages
-  cancel-in-progress: true
+  group: hydro-pipeline
+  cancel-in-progress: false
 
 jobs:
   build-and-publish:
@@ -21,22 +25,48 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      HISTORY_WORKTREE: ${{ runner.temp }}/hydrology-history
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install -r tools/hydro/requirements.txt
+
+      - name: Prepare persistent history branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin data-history >/dev/null 2>&1; then
+            git clone --depth=1 --branch data-history "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$HISTORY_WORKTREE"
+          else
+            mkdir -p "$HISTORY_WORKTREE"
+            git -C "$HISTORY_WORKTREE" init
+            git -C "$HISTORY_WORKTREE" checkout --orphan data-history
+            git -C "$HISTORY_WORKTREE" remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git -C "$HISTORY_WORKTREE" config user.name 'github-actions[bot]'
+            git -C "$HISTORY_WORKTREE" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          fi
+          mkdir -p "$HISTORY_WORKTREE/data/history/fullness"
+
       - name: Fetch TATUS layers
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 3 * * 0'
         continue-on-error: true
         run: python tools/hydro/fetch_tatus.py
       - name: Build river reach mapping
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 3 * * 0'
         continue-on-error: true
         run: python tools/hydro/build_river_reach_map.py
       - name: Fetch GEOGLOWS
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
         continue-on-error: true
         run: python tools/hydro/fetch_geoglows.py
       - name: Fetch EPİAŞ
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
         continue-on-error: true
         run: python tools/hydro/fetch_epias.py
         env:
@@ -45,6 +75,7 @@ jobs:
           EPIAS_TGT_URL: ${{ secrets.EPIAS_TGT_URL }}
           EPIAS_DAM_ENDPOINT: ${{ secrets.EPIAS_DAM_ENDPOINT }}
       - name: Discover fullness observation catalogs
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 2 * * *'
         continue-on-error: true
         run: python tools/hydro/fetch_observation_catalogs.py
         env:
@@ -52,18 +83,43 @@ jobs:
           HYDROWEB_API_KEY: ${{ secrets.HYDROWEB_API_KEY }}
           COPERNICUS_ACCESS_TOKEN: ${{ secrets.COPERNICUS_ACCESS_TOKEN }}
           EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
-      - name: Build, audit and validate canonical package
+
+      - name: Refresh persistent history before write
+        shell: bash
         run: |
-          python tools/build_hes177.py
-          python tools/hydro/build_reservoirs.py
-          python tools/hydro/audit_fullness_sources.py
-          python tools/validate_hes177.py
+          set -euo pipefail
+          if git -C "$HISTORY_WORKTREE" rev-parse --verify HEAD >/dev/null 2>&1; then
+            git -C "$HISTORY_WORKTREE" pull --rebase origin data-history
+          fi
+
+      - name: Build, resolve, archive and validate canonical package
+        env:
+          HYDRO_HISTORY_ROOT: ${{ runner.temp }}/hydrology-history/data/history/fullness
+        run: |
+          python tools/build_all.py
+          python tools/hydro/test_fullness_quality.py
+
+      - name: Persist history branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C "$HISTORY_WORKTREE" config user.name 'github-actions[bot]'
+          git -C "$HISTORY_WORKTREE" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C "$HISTORY_WORKTREE" add data/history
+          if git -C "$HISTORY_WORKTREE" diff --cached --quiet; then
+            echo 'No new history snapshot.'
+          else
+            git -C "$HISTORY_WORKTREE" commit -m "data: archive hydrology snapshot $(date -u +%F)"
+            git -C "$HISTORY_WORKTREE" push origin HEAD:data-history
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm run lint
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

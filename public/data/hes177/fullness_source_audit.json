@@ -1,5 +1,8 @@
 {
-  "generatedAt": "2026-09-15T23:35:21Z",
+  "dataVersion": "hes177-v8",
+  "pipelineRunAt": "2026-09-16T07:59:27Z",
+  "latestObservationAt": "2026-09-13T00:00:00Z",
+  "status": "partial",
   "sourceRegistry": {
     "epias": {
       "status": "separate_runtime_fetch",
@@ -59,6 +62,10 @@
     }
   },
   "catalogRecordCount": 142,
+  "quality": {
+    "rejectedCount": 0,
+    "rejectedPath": "public/data/quality/fullness_rejected.json"
+  },
   "records": [
     {
       "hesId": "hes177-002",
@@ -68,8 +75,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 1.6304347826086956,
@@ -96,7 +104,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-003",
@@ -106,7 +117,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -133,7 +145,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-004",
@@ -143,8 +160,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 5.591118671381889,
@@ -171,7 +189,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-005",
@@ -181,7 +202,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -208,7 +230,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-006",
@@ -218,7 +245,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -245,7 +273,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-007",
@@ -255,7 +288,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -282,7 +316,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-008",
@@ -292,8 +331,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 70.07055328629782,
@@ -320,7 +360,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-009",
@@ -330,7 +373,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -357,7 +401,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-010",
@@ -367,8 +416,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 72.65933854016005,
@@ -395,7 +445,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-011",
@@ -405,7 +458,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -432,7 +486,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-012",
@@ -442,7 +501,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -469,7 +529,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-014",
@@ -479,8 +544,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 41.985822959889354,
@@ -507,7 +573,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-015",
@@ -517,7 +586,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -544,7 +614,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-017",
@@ -554,7 +629,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -581,7 +657,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-018",
@@ -591,7 +672,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -618,7 +700,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-019",
@@ -628,7 +715,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -655,7 +743,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-020",
@@ -665,7 +758,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -692,7 +786,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-022",
@@ -702,8 +801,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 61.00510297065792,
@@ -730,7 +830,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-023",
@@ -740,7 +843,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -767,7 +871,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-025",
@@ -777,7 +886,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -804,7 +914,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-026",
@@ -814,7 +929,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -841,7 +957,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-027",
@@ -851,7 +972,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -878,7 +1000,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-028",
@@ -888,7 +1015,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -915,7 +1043,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-032",
@@ -925,7 +1058,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -952,7 +1086,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-033",
@@ -962,8 +1101,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 68.54545454545456,
@@ -990,7 +1130,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-035",
@@ -1000,8 +1143,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 90.841059602649,
@@ -1028,7 +1172,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-036",
@@ -1038,7 +1185,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1065,7 +1213,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-037",
@@ -1075,7 +1228,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1102,7 +1256,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-039",
@@ -1112,7 +1271,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1139,7 +1299,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-042",
@@ -1149,7 +1314,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1176,7 +1342,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-043",
@@ -1186,7 +1357,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1213,7 +1385,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-045",
@@ -1223,8 +1400,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 34.431023521932616,
@@ -1251,7 +1429,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-046",
@@ -1261,8 +1442,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 100.0,
@@ -1289,7 +1471,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-048",
@@ -1299,8 +1484,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 17.4059694917121,
@@ -1327,7 +1513,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-051",
@@ -1337,8 +1526,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 86.23188405797103,
@@ -1365,7 +1555,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-052",
@@ -1375,7 +1568,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1402,7 +1596,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-054",
@@ -1412,8 +1611,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 51.837060702875405,
@@ -1440,7 +1640,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-055",
@@ -1450,7 +1653,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1477,7 +1681,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-056",
@@ -1487,7 +1696,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1514,7 +1724,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-057",
@@ -1524,8 +1739,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 43.47860207177985,
@@ -1552,7 +1768,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-058",
@@ -1562,8 +1781,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 63.31749264539489,
@@ -1590,7 +1810,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-059",
@@ -1600,7 +1823,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1627,7 +1851,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-060",
@@ -1637,8 +1866,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 80.85106382978724,
@@ -1665,7 +1895,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-061",
@@ -1675,7 +1908,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1702,7 +1936,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-062",
@@ -1712,7 +1951,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1739,7 +1979,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-064",
@@ -1749,7 +1994,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1776,7 +2022,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-065",
@@ -1786,7 +2037,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1813,7 +2065,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-066",
@@ -1823,7 +2080,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -1850,7 +2108,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-068",
@@ -1860,8 +2123,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 75.37598718095452,
@@ -1888,7 +2152,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-069",
@@ -1898,8 +2165,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 22.857142857142854,
@@ -1926,7 +2194,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-070",
@@ -1936,8 +2207,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 83.62160254147548,
@@ -1964,7 +2236,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-071",
@@ -1974,7 +2249,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2001,7 +2277,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-072",
@@ -2011,8 +2292,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 53.36795478845272,
@@ -2039,7 +2321,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-073",
@@ -2049,8 +2334,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 55.17864402186188,
@@ -2077,7 +2363,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-075",
@@ -2087,7 +2376,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2114,7 +2404,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-076",
@@ -2124,8 +2419,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 29.919028340080967,
@@ -2152,7 +2448,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-077",
@@ -2162,7 +2461,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2189,7 +2489,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-079",
@@ -2199,7 +2504,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2226,7 +2532,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-080",
@@ -2236,8 +2547,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 58.13295615275813,
@@ -2264,7 +2576,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-081",
@@ -2274,7 +2589,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2301,7 +2617,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-083",
@@ -2311,8 +2632,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 55.192569748260766,
@@ -2339,7 +2661,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-084",
@@ -2349,8 +2674,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 48.4506298520952,
@@ -2377,7 +2703,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-086",
@@ -2387,7 +2716,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2414,7 +2744,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-087",
@@ -2424,7 +2759,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2451,7 +2787,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-088",
@@ -2461,7 +2802,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2488,7 +2830,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-089",
@@ -2498,8 +2845,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 60.88854489164086,
@@ -2526,7 +2874,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-090",
@@ -2536,8 +2887,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 88.67291040819933,
@@ -2564,7 +2916,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-091",
@@ -2574,8 +2929,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 45.4229797979798,
@@ -2602,7 +2958,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-092",
@@ -2612,8 +2971,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 87.50000000000003,
@@ -2640,7 +3000,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-093",
@@ -2650,7 +3013,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2677,7 +3041,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-094",
@@ -2687,7 +3056,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2714,7 +3084,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-095",
@@ -2724,8 +3099,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 65.98240469208211,
@@ -2752,7 +3128,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-097",
@@ -2762,8 +3141,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 51.63599182004089,
@@ -2790,7 +3170,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-098",
@@ -2800,8 +3183,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 23.75127420998981,
@@ -2828,7 +3212,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-099",
@@ -2838,7 +3225,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2865,7 +3253,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-100",
@@ -2875,7 +3268,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2902,7 +3296,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-102",
@@ -2912,7 +3311,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -2939,7 +3339,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-103",
@@ -2949,8 +3354,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 48.14814814814813,
@@ -2977,7 +3383,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-104",
@@ -2987,7 +3396,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3014,7 +3424,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-105",
@@ -3024,7 +3439,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3051,7 +3467,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-106",
@@ -3061,8 +3482,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 24.764464717221898,
@@ -3089,7 +3511,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-107",
@@ -3099,8 +3524,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 96.87772544915401,
@@ -3127,7 +3553,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-108",
@@ -3137,8 +3566,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 83.0330330330329,
@@ -3165,7 +3595,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-109",
@@ -3175,8 +3608,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 69.79850182916206,
@@ -3203,7 +3637,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-110",
@@ -3213,7 +3650,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3240,7 +3678,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-111",
@@ -3250,7 +3693,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3277,7 +3721,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-114",
@@ -3287,7 +3736,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3314,7 +3764,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-115",
@@ -3324,7 +3779,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3351,7 +3807,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-117",
@@ -3361,7 +3822,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3388,7 +3850,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-119",
@@ -3398,8 +3865,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 61.65429480381761,
@@ -3426,7 +3894,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-120",
@@ -3436,8 +3907,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 72.50211685012702,
@@ -3464,7 +3936,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-121",
@@ -3474,7 +3949,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3501,7 +3977,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-122",
@@ -3511,7 +3992,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3538,7 +4020,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-123",
@@ -3548,8 +4035,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 64.6417152529622,
@@ -3576,7 +4064,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-124",
@@ -3586,8 +4077,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 81.16778523489933,
@@ -3614,7 +4106,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-126",
@@ -3624,8 +4119,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 60.68752754517409,
@@ -3652,7 +4148,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-127",
@@ -3662,8 +4161,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 80.02776620852424,
@@ -3690,7 +4190,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-129",
@@ -3700,7 +4203,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3727,7 +4231,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-132",
@@ -3737,8 +4246,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 36.78924598269469,
@@ -3765,7 +4275,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-133",
@@ -3775,8 +4288,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 80.62657544112353,
@@ -3803,7 +4317,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-134",
@@ -3813,7 +4330,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3840,7 +4358,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-135",
@@ -3850,7 +4373,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3877,7 +4401,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-136",
@@ -3887,7 +4416,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -3914,7 +4444,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-137",
@@ -3924,8 +4459,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 92.04579492128997,
@@ -3952,7 +4488,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-138",
@@ -3962,8 +4501,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 81.59713335039672,
@@ -3990,7 +4530,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-140",
@@ -4000,8 +4543,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 64.50805969420752,
@@ -4028,7 +4572,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-141",
@@ -4038,7 +4585,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4065,7 +4613,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-142",
@@ -4075,7 +4628,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4102,7 +4656,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-143",
@@ -4112,7 +4671,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4139,7 +4699,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-145",
@@ -4149,8 +4714,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 68.29656371172617,
@@ -4177,7 +4743,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-146",
@@ -4187,7 +4756,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4214,7 +4784,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-148",
@@ -4224,8 +4799,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 62.19746446407991,
@@ -4252,7 +4828,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-151",
@@ -4262,7 +4841,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4289,7 +4869,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-152",
@@ -4299,7 +4884,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4326,7 +4912,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-154",
@@ -4336,7 +4927,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4363,7 +4955,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-155",
@@ -4373,7 +4970,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4400,7 +4998,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-159",
@@ -4410,7 +5013,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4437,7 +5041,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-160",
@@ -4447,8 +5056,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 48.27741702741703,
@@ -4475,7 +5085,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-161",
@@ -4485,7 +5098,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4512,7 +5126,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-162",
@@ -4522,8 +5141,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 1.1228262357935095,
@@ -4550,7 +5170,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-163",
@@ -4560,7 +5183,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4587,7 +5211,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-164",
@@ -4597,8 +5226,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 40.18951764013063,
@@ -4625,7 +5255,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-167",
@@ -4635,7 +5268,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4662,7 +5296,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-168",
@@ -4672,7 +5311,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4699,7 +5339,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-171",
@@ -4709,8 +5354,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 73.36911643270025,
@@ -4737,7 +5383,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-174",
@@ -4747,8 +5396,9 @@
       "source": "canonical",
       "method": "active-volume/(max-volume-min-volume)",
       "observedAt": "2026-09-13",
-      "fetchedAt": "2026-09-15T23:35:21Z",
-      "freshnessDays": 2,
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
+      "freshnessDays": 3,
       "confidence": "medium",
       "isEstimated": true,
       "rawValue": 0.0,
@@ -4775,7 +5425,10 @@
       "volumeAvailable": true,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": true
+      "fullnessCanBeCalculated": true,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-175",
@@ -4785,7 +5438,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4812,7 +5466,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-176",
@@ -4822,7 +5481,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4849,7 +5509,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     },
     {
       "hesId": "hes177-177",
@@ -4859,7 +5524,8 @@
       "source": "canonical",
       "method": "no-verified-fullness-source",
       "observedAt": null,
-      "fetchedAt": "2026-09-15T23:35:21Z",
+      "sourcePublishedAt": null,
+      "fetchedAt": "2026-09-16T07:59:27Z",
       "freshnessDays": null,
       "confidence": "low",
       "isEstimated": false,
@@ -4886,7 +5552,12 @@
       "volumeAvailable": false,
       "hypsometryAvailable": false,
       "fullnessDirectlyAvailable": false,
-      "fullnessCanBeCalculated": false
+      "fullnessCanBeCalculated": false,
+      "rawValue": null,
+      "rawUnit": null,
+      "uncertainty": null,
+      "sourceUrl": null,
+      "sourceStationId": null
     }
   ]
 }
