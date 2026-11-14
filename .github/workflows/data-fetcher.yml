@@ -34,11 +34,39 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      # Avoid automatic 298 MiB LFS downloads on every scheduled checkout.
+      GIT_LFS_SKIP_SMUDGE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          lfs: true
+          fetch-depth: 1
+          lfs: false
+
+      # The full TATUS rivers layer is build-time input for tools/build_hes177.py.
+      # Cache by the checked-in LFS pointer (which contains the object SHA256).
+      - name: Restore cached TATUS river network
+        id: rivers-cache
+        uses: actions/cache@v4
+        with:
+          path: public/data/static/tatus/rivers.geojson
+          key: tatus-rivers-lfs-${{ runner.os }}-${{ hashFiles('public/data/static/tatus/rivers.geojson') }}
+
+      - name: Fetch TATUS river network only on cache miss
+        if: steps.rivers-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull --include='public/data/static/tatus/rivers.geojson' --exclude=''
+
+      - name: Validate full TATUS river network
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(wc -c < public/data/static/tatus/rivers.geojson)" -gt 1000000
+          python -c "import json; p='public/data/static/tatus/rivers.geojson'; d=json.load(open(p, encoding='utf-8')); assert d.get('type') == 'FeatureCollection' and isinstance(d.get('features'), list), 'Invalid TATUS river GeoJSON'"
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
