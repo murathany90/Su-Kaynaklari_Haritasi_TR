@@ -34,7 +34,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    env:
       # Avoid automatic 298 MiB LFS downloads on every scheduled checkout.
       GIT_LFS_SKIP_SMUDGE: '1'
     steps:
