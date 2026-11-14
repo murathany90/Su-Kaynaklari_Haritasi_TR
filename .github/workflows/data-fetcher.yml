@@ -34,11 +34,74 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Avoid automatic 298 MiB LFS downloads on every scheduled checkout.
+      GIT_LFS_SKIP_SMUDGE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          lfs: true
+          fetch-depth: 1
+          lfs: false
+
+      # TATUS full-river GeoJSON is build-time input. Keep an IMMUTABLE
+      # copy keyed by the committed Git LFS pointer, outside the public/
+      # directory that is refreshed by the weekly upstream fetch.
+      - name: Restore cached TATUS river network
+        id: rivers-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/tatus/rivers.geojson
+          key: tatus-rivers-lfs-${{ runner.os }}-${{ hashFiles('public/data/static/tatus/rivers.geojson') }}
+
+      - name: Fetch TATUS river network only on cache miss
+        if: steps.rivers-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull --include='public/data/static/tatus/rivers.geojson' --exclude=''
+          mkdir -p .cache/tatus
+          cp public/data/static/tatus/rivers.geojson .cache/tatus/rivers.geojson
+
+      - name: Verify cached data matches the committed LFS pointer
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import re
+          import subprocess
+          from pathlib import Path
+
+          path = 'public/data/static/tatus/rivers.geojson'
+          pointer = subprocess.check_output(['git', 'show', f'HEAD:{path}'], text=True)
+          size_match = re.search(r'^size (\d+)$', pointer, re.MULTILINE)
+          sha_match = re.search(r'^oid sha256:([0-9a-f]{64})$', pointer, re.MULTILINE)
+          if not size_match or not sha_match:
+              raise SystemExit('TATUS rivers: committed file is not a valid LFS pointer')
+          cached = Path('.cache/tatus/rivers.geojson')
+          if not cached.is_file() or cached.stat().st_size != int(size_match.group(1)):
+              raise SystemExit('TATUS rivers: cached file missing or size mismatch')
+          digest = hashlib.sha256()
+          with cached.open('rb') as stream:
+              for block in iter(lambda: stream.read(1024 * 1024), b''):
+                  digest.update(block)
+          if digest.hexdigest() != sha_match.group(1):
+              raise SystemExit('TATUS rivers: cached SHA256 mismatch')
+          print('TATUS LFS object verified against its committed size and SHA256')
+          PY
+
+      # Save now rather than waiting for post-job cleanup: a downstream
+      # provider/build failure must not cause another 298 MiB LFS download.
+      - name: Save validated TATUS data to Actions cache
+        if: steps.rivers-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/tatus/rivers.geojson
+          key: tatus-rivers-lfs-${{ runner.os }}-${{ hashFiles('public/data/static/tatus/rivers.geojson') }}
+
+      - name: Restore build-time TATUS river network
+        shell: bash
+        run: cp .cache/tatus/rivers.geojson public/data/static/tatus/rivers.geojson
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
